@@ -138,7 +138,23 @@ El sistema está preparado para ramificarse en soluciones específicas según el
 *   **Módulo Contable/Seguimiento:** Para consultorías o servicios profesionales.
 *   **Interfaz Orbit:** Navegación disruptiva mediante burbujas interactivas según búsqueda del usuario.
 
+### F. Infraestructura de Desarrollo y Automatización
+Para agilizar el ciclo de vida del desarrollo, el sistema utiliza un protocolo de **Automatización de Alto Nivel** mediante el agente Antigravity:
+
+1.  **Modo Turbo (`// turbo-all`)**: Los flujos de trabajo críticos (`Orquestador`, `Evaluador`) tienen habilitada la ejecución automática de comandos. Esto elimina la necesidad de aprobaciones manuales para tareas repetitivas de mantenimiento y sincronización.
+2.  **Entorno de Ejecución (Node.js)**: El sistema está optimizado para trabajar con Node v22.x. Se han configurado políticas de ejecución de PowerShell (`RemoteSigned`) para permitir el uso sin restricciones de `npm` en entornos Windows.
+3.  **Memoria Adaptativa**: El archivo `.agent/memory/lecciones.md` captura automáticamente las preferencias del usuario (estética, flujos, reglas) que el `Evaluador` procesa para que cada nueva función se alinee con el estándar visual "BK-Style" u otros definidos.
+
+### G. Seguridad de Repositorio (Privacidad del Código)
+**CRÍTICO:** El archivo `backend_schema.gs` y la configuración de `app.js` contienen la lógica de seguridad y el punto de acceso a la base de datos de Google Sheets.
+- **Repositorios Públicos:** Nunca hospedar este proyecto en un repositorio público de GitHub. Esto expone la URL del backend y la estructura de datos, permitiendo clonación o intentos de acceso no autorizados.
+- **Producción:** Se recomienda el uso de **Vercel** o **GitHub Pages (Solo con Repositorio Privado - Requiere plan de pago en GitHub)** para el despliegue de producción. Vercel permite despliegue gratuito desde repositorios privados, manteniendo el código fuente oculto del público.
+- **Estándar de Seguridad:** Todas las APIs deben cumplir con el flujo `/seguridad-api`, que incluye sanitización, autenticación por tokens y blindaje contra XSS/SQLi.
+
 ---
+- **v3.4.0**: **Delivery Engine Stage**. Implementación de cargo por envío dinámico y selector de método de entrega (Recoger/Domicilio) en Checkout Express. Optimización visual de tarjetas de catálogo.
+- **v3.3.9**: **Desbloqueo de Flujo de Desarrollo**. Implementación de **Modo Turbo** en Workflows and automatización de políticas de ejecución para Node.js/NPM. Documentación de infraestructura de desarrollo.
+- **v3.3.8**: Parche de Estabilidad y Seguridad. Implementación de Blindaje de Tokens en todas las llamadas API (app.js) y protección de secretos en el backend. Filtrado estricto multi-inquilino.
 - **v3.3.7:** Refuerzo del Protocolo de Semillas con función `ensureSeed`. Fix de sincronización AI Agentes.
 - **v3.3.6:** Implementación del Protocolo de Verificación de Semillas (Seeds):
     - Asegurar que registros maestros (Agentes IA, Roles Críticos, SEO base) existan en el backend mediante lógica de "Upsert".

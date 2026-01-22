@@ -1,5 +1,6 @@
 ---
 description: Orquestador inteligente de tareas y flujos del sistema.
+// turbo-all
 ---
 # Workflow: Orquestador del Sistema
 
@@ -25,10 +26,11 @@ Antes de actuar, el agente debe categorizar la solicitud en uno de los siguiente
 5. **Documentar**: Si es un error nuevo, registrarlo en la memoria.
 
 #### B. Si es una SOLICITUD (Funcionalidad):
-1. **Validar Permisos**: Consultar `/niveles-acceso` si la función implica roles (RBAC).
-2. **Aislamiento**: Seguir `/multi-inquilino` para que la función sea configurable y no hardcodeada.
-3. **Implementar**: Seguir `/estandar-crud` para módulos de datos o `/barra-estado` para el UI header.
-4. **Control de Créditos**: Validar disponibilidad con `/politicas-creditos`.
+1. **Activar `/planeacion` (OBLIGATORIO)**: Antes de tocar el código, realizar el análisis de sesgos, dependencias y adaptación semántica multi-inquilino. Presentar el Plan de Acción al usuario.
+2. **Validar Permisos**: Consultar `/niveles-acceso` si la función implica roles (RBAC).
+3. **Aislamiento**: Seguir `/multi-inquilino` para que la función sea configurable y no hardcodeada.
+4. **Implementar**: Seguir `/estandar-crud` para módulos de datos o `/barra-estado` para el UI header.
+5. **Control de Créditos**: Validar disponibilidad con `/politicas-creditos`.
 
 #### C. Si es una PREGUNTA (Saber):
 1. **Investigar**: Leer `tech_manual.md` y archivos de configuración.
@@ -44,6 +46,9 @@ Antes de actuar, el agente debe categorizar la solicitud en uno de los siguiente
 ### 4. Cierre de Ciclo de Vida
 Una vez completada la acción principal, el Orquestador **siempre** debe verificar si se requiere sincronización:
 - **Ejecutar `/integridad-total`**: Para asegurar versiones, manuales y roadmap al unísono.
+- **Persistencia de Contenido**: Verificar que las secciones de información críticas (como `Config_SEO`) permanezcan visibles en el landing independientemente del tema aplicado (Industria o Comida).
+- **Ejecutar `/checkpoint` (CRÍTICO)**: Registrar la solicitud, actualizar versión de backend si aplica, y solicitar el "Visto Bueno" del usuario para congelar la función.
+- **Calibración con `/evaluador`**: Analizar el resultado final para actualizar la memoria de lecciones aprendidas y mejorar la siguiente interacción.
 
 ---
 *Este workflow debe ser consultado al inicio de cada nueva interacción con el agente.*

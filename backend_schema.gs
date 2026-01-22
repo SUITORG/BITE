@@ -1,22 +1,36 @@
 /**
- * SISTEMA SUITORG - BACKEND v3.3.7
- * VERSION: v3.3.7
- * DATE: 2026-01-20
- * UPDATE: Robust Seed Protocol (ensureSeed).
- * AUDIT_LINES:
- * - app.js: 3,210
- * - style.css: 1,694
- * - index.html: 1,142
- * - backend_schema.gs: 221
- * - TOTAL: 6,267
- */
+ * SISTEMA SUITORG - BACKEND v3.4.4
+ * VERSION: v3.4.4 (Multi-tenant Login Fix)
+ * DATE: 2026-01-22 12:35
+ * UPDATE: Fixed dynamic Staff login trigger when switching companies.
+ * AUDIT_LINES: 325
+ * */
 
 const CONFIG = {
-  VERSION: "3.3.7",
-  ID_SHEET: "", 
-  BACKUP_RETENTION_DAYS: 60,
-  GEMINI_API_KEY: "AIzaSyARtQDMaNnqUthixeFRH9-PB3ych4E7btI",
+  VERSION: "3.4.4 (Multi-tenant Login Fix)",
+  // NO HARCODEAR LLAVES AQUÍ. Usar Propiedades del Script en el editor de Apps Script.
+  GEMINI_API_KEY: PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY') || "",
+  API_AUTH_TOKEN: PropertiesService.getScriptProperties().getProperty('API_AUTH_TOKEN') || "SUITORG_DEFAULT_TOKEN",
+  BACKUP_RETENTION_DAYS: 60
 };
+
+/* =========================================
+   API DIAGNOSTICS
+   ========================================= */
+
+function verificarConfiguracion() {
+  const props = PropertiesService.getScriptProperties().getProperties();
+  const faltantes = [];
+  if (!props.GEMINI_API_KEY) faltantes.push("GEMINI_API_KEY");
+  if (!props.API_AUTH_TOKEN) faltantes.push("API_AUTH_TOKEN");
+  
+  if (faltantes.length > 0) {
+    console.error("⚠️ SEGURIDAD CRÍTICA: Faltan variables en Propiedades del Script: " + faltantes.join(", "));
+    return false;
+  }
+  console.log("✅ Configuración de seguridad validada.");
+  return true;
+}
 
 /* =========================================
    API ENDPOINTS (doGet / doPost)
@@ -25,18 +39,27 @@ const CONFIG = {
 function doGet(e) {
   const params = e.parameter || {};
   const action = params.action || "ping";
+  const token = params.token || "";
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   
+  // Public action
   if (action === "ping") return jsonResponse({status: "online", version: CONFIG.VERSION});
+  
+  // Security Check for private data
+  if (token !== CONFIG.API_AUTH_TOKEN) {
+    return jsonResponse({error: "No autorizado. Token inválido.", success: false});
+  }
   
   if (action === "getAll") {
     const data = {};
-    const businessId = params.id_empresa;
+    const businessId = (params.id_empresa || "").toString().trim().toUpperCase();
     
+    if (!businessId) return jsonResponse({error: "ID de Empresa requerido para sincronizar."});
+
     const sheets = [
         "Prompts", "Config_Empresas", "Config_Roles", "Config_Flujo_Proyecto", "Config_Galeria",
         "Catalogo", "Usuarios", "Leads", "Proyectos", "Proyectos_Etapas",
-        "Proyectos_Materiales", "Proyectos_Pagos", "Proyectos_Bitacora",
+        "Proyectos_Materiales", "Proyectos_Pagos", "Pagos", "Proyectos_Bitacora",
         "Empresa_Documentos", "Logs", "Prompts_IA", "Config_SEO"
     ];
     
@@ -52,10 +75,19 @@ function doGet(e) {
           return obj;
         });
         
-        const exempt = ["Config_Empresas", "Prompts_IA", "Usuarios"];
-        if (businessId && mapped.length > 0 && mapped[0].hasOwnProperty('id_empresa') && !exempt.includes(name)) {
-          mapped = mapped.filter(item => (item.id_empresa || "").toString().trim().toUpperCase() === businessId.toUpperCase() || (item.id_empresa || "").toString().trim().toUpperCase() === "GLOBAL");
-        }
+        // TABLAS COMPARTIDAS (Visibles para el HUB o portales públicos)
+        const sharedTables = ["Config_Empresas", "Config_Roles", "Prompts_IA"];
+
+        // SEGURIDAD: Filtrado multi-inquilino inteligente
+        mapped = mapped.filter(item => {
+           const itemCo = (item.id_empresa || "").toString().trim().toUpperCase();
+           
+           // 1. Si la tabla es compartida, permitimos ver todo (El Hub necesita esto)
+           if (sharedTables.includes(name)) return true; 
+
+           // 2. Si es privada, solo permitimos ver lo que pertenece a la empresa actual o GLOBAL
+           return itemCo === businessId || itemCo === "GLOBAL";
+        });
         
         data[name] = mapped;
       } else { data[name] = []; }
@@ -74,47 +106,107 @@ function doPost(e) {
         if(!e || !e.postData) return jsonResponse({error: "No data sent"});
         const data = JSON.parse(e.postData.contents);
         const action = data.action;
+        const token = data.token; // Nuevo campo obligatorio
+        
+        // Security Check
+        if (token !== CONFIG.API_AUTH_TOKEN) {
+          return jsonResponse({error: "No autorizado. Token inválido.", success: false});
+        }
+        
         const ss = SpreadsheetApp.getActiveSpreadsheet();
         let result = { success: true };
 
         // --- 0. INITIALIZATION & REPAIR ---
         if(action === "initializeRbac") {
-            // Ensure Tables Exist
             const tables = {
                 "Usuarios": ["id_usuario", "id_empresa", "nombre", "email", "password", "rol", "nivel_acceso", "creditos", "fecha_limite_acceso", "activo", "fecha_creacion"],
                 "Config_Roles": ["id_empresa", "id_rol", "nombre_rol", "nivel_acceso", "creditos_base", "vigencia_dias", "modulos_visibles"],
                 "Prompts_IA": ["id_agente", "id_empresa", "nombre", "prompt_base", "habilitado", "nivel_acceso", "recibe_files"],
                 "Atencion_Cliente": ["id_reporte", "id_empresa", "nombre", "telefono", "email", "queja", "estado", "fecha_creacion"],
                 "Config_SEO": ["id_empresa", "division", "id_cluster", "titulo", "icono", "keywords_coma"],
-                "Catalogo": ["id_empresa", "id_producto", "nombre", "descripcion", "precio", "stock", "activo"],
-                "Leads": ["id_empresa", "id_lead", "nombre", "email", "telefono", "estado", "activo"],
-                "Proyectos": ["id_empresa", "id_proyecto", "id_lead", "nombre", "status", "line_items", "activo"]
+                "Config_Empresas": ["id_empresa", "nomempresa", "logo_url", "color_tema", "eslogan", "descripcion", "tipo_negocio", "usa_features_estandar", "costo_envio"],
+                "Catalogo": ["id_empresa", "id_producto", "nombre", "descripcion", "precio", "stock", "activo", "categoria", "Etiqueta_Promo"],
+                "Leads": ["id_empresa", "id_lead", "nombre", "email", "telefono", "estado", "activo", "direccion"],
+                "Proyectos": ["id_empresa", "id_proyecto", "id_cliente", "nombre_proyecto", "status", "line_items", "activo", "descripcion", "fecha_inicio", "codigo_otp"],
+                "Proyectos_Pagos": ["id_empresa", "id_proyecto", "monto", "metodo_pago", "folio", "fecha_pago", "concepto", "referencia"],
+                "Pagos": ["id_empresa", "id_proyecto", "monto", "metodo_pago", "folio", "fecha_pago"]
             };
 
             for (let name in tables) {
                 crearTabla(ss, name, tables[name]);
-                // Ensure columns like 'activo' or 'id_empresa' for existing tables
                 const s = ss.getSheetByName(name);
                 const currentHeaders = s.getRange(1,1,1,s.getLastColumn()).getValues()[0];
                 tables[name].forEach(h => {
                     if (currentHeaders.indexOf(h) === -1) s.getRange(1, s.getLastColumn() + 1).setValue(h);
                 });
             }
-
-            // --- SYNC SEEDS ---
-            ensureSeed(ss, "Config_Roles", "id_rol", [
-                ["GLOBAL", "ADMIN", "Administrador Principal", 10, 999, 365, "dashboard,leads,projects,catalog,knowledge,agents,reports,pos,staff-pos"],
-                ["GLOBAL", "CAJERO", "Cajero POS", 3, 100, 365, "dashboard,staff-pos,pos"]
-            ]);
-
-            ensureSeed(ss, "Prompts_IA", "id_agente", [
-                ["AGT-001", "GLOBAL", "Soporte Técnico", "Recopila nombre, teléfono y queja del cliente. Una vez tengas los datos, confirma el reporte.", true, 0, false]
-            ]);
-
-            return jsonResponse({ success: true, msg: "v3.3.7 Integrity Verified." });
+            return jsonResponse({ success: true, msg: "v3.4.0 (Full Alimentos) Integrity Verified." });
         }
 
-        // --- 1. AGENTES IA ---
+        // --- 1. DATA ACTIONS (Food & Projects) ---
+        else if(action === "createLead") {
+            const sh = ss.getSheetByName("Leads");
+            const newId = "LEAD-" + (sh.getLastRow() + 1);
+            const leadData = { ...data.lead, id_lead: newId, activo: "TRUE", estado: data.lead.estado || "NUEVO" };
+            appendToSheetByHeader(sh, leadData);
+            return jsonResponse({success: true, newId: newId});
+        }
+
+        else if(action === "createProject") {
+            const sh = ss.getSheetByName("Proyectos");
+            const newId = "ORD-" + (sh.getLastRow() + 1);
+            const projData = { ...data.project, id_proyecto: newId, activo: "TRUE", status: data.project.status || data.project.estado || "PEDIDO-RECIBIDO" };
+            appendToSheetByHeader(sh, projData);
+            return jsonResponse({success: true, newId: newId});
+        }
+
+        else if(action === "addProjectPayment") {
+            const paymentData = { ...data.payment, fecha_pago: new Date() };
+            // Save to Proyectos_Pagos (VTS Standard)
+            const shPP = ss.getSheetByName("Proyectos_Pagos");
+            if(shPP) appendToSheetByHeader(shPP, paymentData);
+            // Also Save to Pagos (Legacy/Repeat Support as requested)
+            const shP = ss.getSheetByName("Pagos");
+            if(shP) appendToSheetByHeader(shP, paymentData);
+            
+            return jsonResponse({success: true});
+        }
+
+        else if(action === "updateProduct") {
+          const sh = ss.getSheetByName("Catalogo");
+          const rows = sh.getDataRange().getValues();
+          const headers = rows[0];
+          const colIdProd = headers.indexOf("id_producto");
+          const colIdEmp = headers.indexOf("id_empresa");
+          const colStock = headers.indexOf("stock");
+
+          if (colIdProd === -1 || colStock === -1) return jsonResponse({error: "Columnas no encontradas"});
+
+          // Support for Batch Updates (Array) or Single Update
+          const updates = Array.isArray(data.products) ? data.products : [data.product];
+          let updatedCount = 0;
+
+          updates.forEach(update => {
+            const pId = String(update.id_producto || "").trim();
+            const eId = String(update.id_empresa || app.state?.companyId || "").trim();
+            const newStock = update.stock;
+
+            for(let i=1; i<rows.length; i++) {
+              const rowIdProd = String(rows[i][colIdProd] || "").trim();
+              const rowIdEmp = colIdEmp !== -1 ? String(rows[i][colIdEmp] || "").trim() : "";
+              
+              if(rowIdProd === pId && (eId === "" || rowIdEmp === eId)) {
+                sh.getRange(i+1, colStock + 1).setValue(newStock); 
+                updatedCount++;
+                break;
+              }
+            }
+          });
+          
+          return jsonResponse({success: true, updated: updatedCount});
+        }
+
+        // --- 2. EXISTING ACTIONS ---
         else if(action === "askGemini") {
             const apiKey = (CONFIG.GEMINI_API_KEY || "").trim();
             const history = data.history || [];
@@ -217,4 +309,25 @@ function ensureSeed(ss, sheetName, idColName, seeds) {
             s.appendRow(rowToTable);
         }
     });
+}
+
+/**
+ * Robust Appender: Maps object keys to sheet headers.
+ * Ensures data lands in correct columns regardless of spreadsheet order.
+ */
+function appendToSheetByHeader(sh, dataObj) {
+    const headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
+    const rowContent = new Array(headers.length).fill("");
+    
+    headers.forEach((header, i) => {
+        const key = header.toLowerCase().trim();
+        // Check for direct match or variations
+        if (dataObj[header] !== undefined) rowContent[i] = dataObj[header];
+        else if (dataObj[key] !== undefined) rowContent[i] = dataObj[key];
+        else if (key === "status" && dataObj.estado) rowContent[i] = dataObj.estado;
+        else if (key === "estado" && dataObj.status) rowContent[i] = dataObj.status;
+        else if (key === "fecha_pago" || key === "fecha_creacion") rowContent[i] = new Date();
+    });
+    
+    sh.appendRow(rowContent);
 }

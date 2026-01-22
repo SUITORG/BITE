@@ -2,3 +2,25 @@
 .DS_Store
 .env
 *.log
+
+# Backend y Configuración Sensible
+backend_schema.gs
+appsscript.json
+mock_data.json
+
+# Documentos Estratégicos, Operativos y Workflows
+tech_manual.md
+roadmap.md
+.agent/
+.gemini/
+.agent/workflows/
+
+# Respaldos y Archivos Locales
+BACKUP_*/
+BACKUP_v2_7_5_SuitOrg_2026_01_15/
+.agent/memory/
+memory/
+*.zip
+*.rar
+*.7z
+tmp/

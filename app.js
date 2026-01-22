@@ -6,7 +6,8 @@
 
 const app = {
     // CONFIGURATION
-    apiUrl: "https://script.google.com/macros/s/AKfycbyK4ptE0cf8-lcgCIGjB6U5yBkq0O-B34IyoG0g-7RdmBIqXfeIXMj_06A1WmChVJsENg/exec",
+    apiUrl: "https://script.google.com/macros/s/AKfycbwB-uyIxKCSr0LNYHDgRjXUOzhdE2jY4Dv13Y3dBbRgFrK1NEqnXEP1CJ04dUCE8DJyzw/exec",
+    apiToken: "SUITORG_DEFAULT_TOKEN", // TOKEN DE SEGURIDAD (Debe coincidir con el backend)
 
     data: {
         Config_Empresas: [],
@@ -31,6 +32,7 @@ const app = {
         currentAgent: null,
         chatHistory: [],
         cart: [],
+        deliveryMethod: 'PICKUP', // 'PICKUP' o 'DOMICILIO'
         posFilter: 'TODOS',
         reportPaymentFilter: 'TODOS',
         _consoleStarted: false
@@ -61,6 +63,12 @@ const app = {
             const off = parseFloat(p.precio_oferta || p.Precio_Oferta) || 0;
             if (reg > 0 && off > 0) return Math.min(reg, off);
             return off || reg || 0;
+        },
+        sanitize: (str) => {
+            if (typeof str !== 'string') return str;
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
         }
     },
 
@@ -92,7 +100,7 @@ const app = {
                 method: 'POST',
                 redirect: "follow",
                 headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify({ action: 'logicalDelete', type: type, id: id })
+                body: JSON.stringify({ action: 'logicalDelete', type: type, id: id, token: app.apiToken })
             });
         } catch (e) {
             console.error(e);
@@ -112,6 +120,9 @@ const app = {
         // Load AI Config
         app.state._aiModel = localStorage.getItem('evasol_ai_model');
         if (!app.state._aiModel) console.warn("No persistent AI model found. Please run Diagnosis.");
+
+        // Reset persistent states
+        app.state.deliveryMethod = 'PICKUP';
 
         // deep link company selection
         const urlParams = new URLSearchParams(window.location.search);
@@ -204,7 +215,7 @@ const app = {
 
     loadData: async () => {
         try {
-            const url = `${app.apiUrl}?action=getAll&id_empresa=${app.state.companyId || ''}`;
+            const url = `${app.apiUrl}?action=getAll&id_empresa=${app.state.companyId || ''}&token=${app.apiToken}`;
             const response = await fetch(url);
             const data = await response.json();
 
@@ -345,7 +356,7 @@ const app = {
                         fetch(app.apiUrl, {
                             method: 'POST',
                             headers: { "Content-Type": "text/plain" },
-                            body: JSON.stringify({ action: 'updateUser', user: { id_usuario: user.id_usuario, creditos: user.creditos, ultimo_acceso: today } })
+                            body: JSON.stringify({ action: 'updateUser', user: { id_usuario: user.id_usuario, creditos: user.creditos, ultimo_acceso: today }, token: app.apiToken })
                         }).catch(e => console.error("DIARIO sync fail:", e));
                     } else {
                         currentCredits = effectiveCredits; // No deduction today, just load current
@@ -377,7 +388,7 @@ const app = {
                 await fetch(app.apiUrl, {
                     method: 'POST',
                     headers: { "Content-Type": "text/plain" },
-                    body: JSON.stringify(body)
+                    body: JSON.stringify({ ...body, token: app.apiToken })
                 });
             } catch (e) {
                 console.error("Error persistiendo crédito:", e);
@@ -462,6 +473,7 @@ const app = {
 
             // PMP/PFM/HMP SPECIFIC OVERRIDES (FOOD & POS ENGINE)
             const isFood = company.id_empresa === 'PMP' || company.id_empresa === 'PFM' || company.id_empresa === 'HMP' || company.tipo_negocio === 'Alimentos';
+            app.state.isFood = isFood; // Store for router
             const sloganEl = document.getElementById('hero-slogan');
             const subEl = document.getElementById('hero-sub');
             const heroBanner = document.getElementById('hero-banner-main');
@@ -488,20 +500,44 @@ const app = {
                 if (foodTitle) foodTitle.innerText = sloganText;
                 if (foodSubtitle) foodSubtitle.innerText = subText;
 
-                actions.innerHTML = `
-                    <button class="btn-primary" onclick="window.location.hash='#home'"><i class="fas fa-motorcycle"></i> PEDIDO EXPRESS</button>
-                    <button class="btn-secondary" onclick="app.ui.showLogin()"><i class="fas fa-user-lock"></i> STAFF</button>
-                `;
+                actions.innerHTML = ``;
+
+                // --- CUSTOM HEADER FOR PFM ---
+                const menuPublic = document.getElementById('menu-public');
+                if (menuPublic) {
+                    menuPublic.innerHTML = `
+                        <li><a href="#orbit"><i class="fas fa-planet-ring"></i> Hub</a></li>
+                        <li><a href="#home">Inicio</a></li>
+                        <li>
+                            <a href="#food-app-area" style="background: var(--accent-color); color: #000; padding: 5px 15px; border-radius: 50px; font-weight: bold; display: flex; align-items: center; gap: 5px; text-decoration: none;">
+                                <i class="fas fa-utensils"></i> Pedido Express
+                            </a>
+                        </li>
+                        <li><a href="#contact">Contacto</a></li>
+                        <li><a href="#pos" id="nav-pos"><i class="fas fa-desktop"></i> Monitor</a></li>
+                        <li><a href="#login" onclick="app.ui.showLogin(); return false;"><i class="fas fa-user-lock"></i> Staff</a></li>
+                    `;
+                }
 
                 if (standardFeatures) standardFeatures.classList.add('hidden');
                 if (industrialSeo) industrialSeo.classList.add('hidden');
-                if (foodAreaSpec) foodAreaSpec.style.display = 'block';
+                if (foodAreaSpec) foodAreaSpec.style.display = 'none'; // Hidden by default, router will show if needed
 
                 app.ui.renderFoodMenu();
 
                 const footerCopy = document.getElementById('footer-copy');
                 if (footerCopy) footerCopy.innerText = `© 2026 ${company.nomempresa} | ${company.id_empresa} - Monterrey, NL.`;
             } else {
+                // Restore standard menu for non-food companies
+                const menuPublic = document.getElementById('menu-public');
+                if (menuPublic) {
+                    menuPublic.innerHTML = `
+                        <li><a href="#orbit"><i class="fas fa-planet-ring"></i> Hub</a></li>
+                        <li><a href="#home">Inicio</a></li>
+                        <li><a href="#contact">Contacto</a></li>
+                        <li><a href="#login" onclick="app.ui.showLogin(); return false;"><i class="fas fa-user-lock"></i> Staff</a></li>
+                    `;
+                }
                 // Industrial Defaults
                 heroBanner.style.backgroundImage = "";
                 heroBanner.style.backgroundAttachment = 'fixed';
@@ -538,85 +574,135 @@ const app = {
 
         renderFoodMenu: () => {
             const container = document.getElementById('food-menu-grid');
+            const tabsContainer = document.getElementById('food-category-tabs');
+            const searchInput = document.getElementById('food-search-input');
             if (!container) return;
-            container.innerHTML = '';
 
-            // Enhanced Filter: Case-insensitive ID and Flexible "Active" flag
-            const items = (app.data.Catalogo || []).filter(p => {
-                const pCo = (p.id_empresa || "").toString().trim().toUpperCase();
-                const sCo = (app.state.companyId || "").toString().trim().toUpperCase();
+            const render = (searchTerm = "") => {
+                container.innerHTML = '';
+                if (tabsContainer) tabsContainer.innerHTML = '';
 
-                // Lenient check: If 'activo' is empty, null or undefined, default to true.
-                const val = (p.activo || "").toString().trim().toUpperCase();
-                const isActive = (val === "" || val === "TRUE" || val === "1" || p.activo === true || p.activo === 1);
+                let items = (app.data.Catalogo || []).filter(p => {
+                    const pCo = (p.id_empresa || "").toString().trim().toUpperCase();
+                    const sCo = (app.state.companyId || "").toString().trim().toUpperCase();
+                    const val = (p.activo || "").toString().trim().toUpperCase();
+                    const isActive = (val === "" || val === "TRUE" || val === "1" || p.activo === true || p.activo === 1);
 
-                return pCo === sCo && isActive;
-            });
+                    const matchesSearch = !searchTerm ||
+                        p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        (p.descripcion || "").toLowerCase().includes(searchTerm.toLowerCase());
 
-            if (items.length === 0) {
-                app.ui.updateConsole(`MENU_EMPTY: 0 PROD_ACTIVOS PARA ${app.state.companyId}`, true);
-                container.innerHTML = `
-                    <div style="grid-column: 1 / -1; text-align:center; padding:60px 20px; color:#555; background:rgba(255,255,255,0.05); border:2px dashed var(--primary-color); border-radius:15px; backdrop-filter: blur(5px);">
-                        <i class="fas fa-tools fa-3x" style="margin-bottom:20px; color:var(--primary-color); opacity: 0.8;"></i>
-                        <h3 style="font-size: 1.5rem; margin-bottom: 10px;">🚧 Sección en Remodelación</h3>
-                        <p style="font-size: 1.1rem; opacity: 0.8;">Estamos preparando un menú increíble para ti.</p>
-                        <p style="font-size: 0.9rem; margin-top: 15px; opacity: 0.6;">Vuelve pronto para descubrir nuestras delicias.</p>
-                    </div>
-                `;
-                return;
-            }
+                    return pCo === sCo && isActive && matchesSearch;
+                });
 
-            app.ui.updateConsole(`MENU_SYNC: ${items.length} ITEMS_OK_`);
-
-            items.forEach(p => {
-                const card = document.createElement('div');
-                card.className = 'food-card';
-
-                // Ribbon logic
-                let ribbon = '';
-                const tag = (p.Etiqueta_Promo || "").toString().trim().toUpperCase();
-                if (tag) {
-                    const tagClass = tag.includes('OFERTA') ? 'oferta' : (tag.includes('NUEVO') ? 'nuevo' : '');
-                    ribbon = `<div class="ribbon ${tagClass}">${tag}</div>`;
+                if (items.length === 0) {
+                    container.innerHTML = `<div style="text-align:center; padding:40px; color:#999;">No se encontraron productos.</div>`;
+                    return;
                 }
 
-                // Case-Insensitive imagen_url
-                const imgRaw = p.imagen_url || p.Imagen_Url || p.IMAGEN_URL || p.url_imagen;
-                const imgFallback = 'https://docs.google.com/uc?export=view&id=1t6BmvpGTCR6-OZ3Nnx-yOmpohe5eCKvv';
-                const img = imgRaw ? app.utils.fixDriveUrl(imgRaw) : imgFallback;
-
-                const effectivePrice = app.utils.getEffectivePrice(p);
-                const hasOffer = parseFloat(p.precio_oferta || p.Precio_Oferta) > 0 && parseFloat(p.precio) > 0;
+                // Group by category
+                const categories = {};
+                items.forEach(p => {
+                    const cat = (p.categoria || p.Categoria || "General").toString().trim();
+                    if (!categories[cat]) categories[cat] = [];
+                    categories[cat].push(p);
+                });
 
                 const userRole = (app.state.currentUser?.id_rol || "").toString().toUpperCase();
                 const isDelivery = userRole === 'DELIVERY' || (app.state.currentUser?.nombre || "").toUpperCase().includes('REPARTIDOR');
 
-                card.innerHTML = `
-                    ${ribbon}
-                    <div class="food-img-container">
-                        <img src="${img}" class="food-img">
-                    </div>
-                    <div class="food-info">
-                        <div class="food-title-row">
-                            <h3>${p.nombre}</h3>
-                            <div style="display:flex; flex-direction:column; align-items:flex-end;">
-                                <span class="price">$${effectivePrice.toFixed(2)}</span>
-                                ${hasOffer ? `<span style="font-size:0.75rem; text-decoration:line-through; color:#aaa; margin-top:-2px;">$${p.precio}</span>` : ''}
+                Object.keys(categories).forEach(catName => {
+                    // Category Tab
+                    if (tabsContainer) {
+                        const tab = document.createElement('div');
+                        tab.className = 'food-tab';
+                        tab.innerText = catName;
+                        tab.onclick = () => {
+                            document.getElementById(`cat-${catName}`).scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        };
+                        tabsContainer.appendChild(tab);
+                    }
+
+                    // Section container
+                    const section = document.createElement('div');
+                    section.id = `cat-${catName}`;
+                    section.className = 'food-category-section';
+
+                    // Section Title
+                    const title = document.createElement('h3');
+                    title.className = 'food-category-title';
+                    title.innerText = catName;
+                    section.appendChild(title);
+
+                    // Slider Container
+                    const grid = document.createElement('div');
+                    grid.className = 'food-grid';
+                    section.appendChild(grid);
+
+                    categories[catName].forEach(p => {
+                        const card = document.createElement('div');
+                        card.className = 'food-card';
+
+                        let ribbon = '';
+                        const tag = (p.Etiqueta_Promo || "").toString().trim().toUpperCase();
+                        if (tag) {
+                            const tagClass = tag.includes('OFERTA') ? 'oferta' : (tag.includes('NUEVO') ? 'nuevo' : '');
+                            ribbon = `<div class="ribbon ${tagClass}">${tag}</div>`;
+                        }
+
+                        const imgRaw = p.imagen_url || p.Imagen_Url || p.IMAGEN_URL || p.url_imagen;
+                        const img = imgRaw ? app.utils.fixDriveUrl(imgRaw) : 'https://docs.google.com/uc?export=view&id=1t6BmvpGTCR6-OZ3Nnx-yOmpohe5eCKvv';
+                        const effectivePrice = app.utils.getEffectivePrice(p);
+                        const hasOffer = p.precio_oferta && parseFloat(p.precio_oferta) > 0;
+
+                        const stock = parseInt(p.stock) || 0;
+                        const stockColor = stock <= 5 ? '#e74c3c' : (stock <= 15 ? '#f39c12' : '#27ae60');
+
+                        const isGuest = !app.state.currentUser;
+                        const stockBadge = !isGuest ? `
+                            <div style="position:absolute; top:8px; left:8px; background:${stockColor}; color:white; padding:3px 8px; border-radius:4px; font-size:0.65rem; font-weight:bold; box-shadow:0 2px 4px rgba(0,0,0,0.2); z-index:5;">
+                                ${stock} DISP.
                             </div>
-                        </div>
-                        <p class="food-desc">${p.descripcion || ''}</p>
-                        <div class="food-actions-container ${isDelivery ? 'hidden' : ''}">
-                            <div class="food-actions">
-                                <button onclick="app.pos.removeFromCart('${p.id_producto}')" class="btn-rem-food"><i class="fas fa-minus"></i></button>
-                                <span id="qty-${p.id_producto}" class="food-qty">0</span>
-                                <button onclick="app.pos.addToCart('${p.id_producto}')" class="btn-add-food"><i class="fas fa-plus"></i></button>
+                        ` : '';
+
+                        card.innerHTML = `
+                            ${ribbon}
+                            <div class="food-img-container" style="position:relative;">
+                                <img src="${img}" alt="${p.nombre}" class="food-img" loading="lazy">
+                                ${stockBadge}
                             </div>
-                        </div>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-            app.pos.updateCartVisuals();
+                            <div class="food-info">
+                                <div class="food-title-row">
+                                    <h3>${p.nombre}</h3>
+                                    <div class="price">
+                                        $${effectivePrice}
+                                        ${hasOffer ? `<span style="text-decoration:line-through; color:#999; font-size:0.7rem; margin-left:4px;">$${p.precio}</span>` : ''}
+                                    </div>
+                                </div>
+                                <p class="food-desc">${p.descripcion || ''}</p>
+                                <div class="food-actions-container ${isDelivery ? 'hidden' : ''}">
+                                    <div class="food-actions">
+                                        <button onclick="app.pos.removeFromCart('${p.id_producto}')"><i class="fas fa-minus"></i></button>
+                                        <span class="food-qty" id="qty-${p.id_producto}">${app.state.cart.find(i => i.id === p.id_producto)?.qty || 0}</span>
+                                        <button onclick="app.pos.addToCart('${p.id_producto}')"><i class="fas fa-plus"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        grid.appendChild(card);
+                    });
+                    container.appendChild(section);
+                });
+                app.pos.updateCartVisuals();
+            };
+
+            // Initial render
+            render();
+
+            // Search functionality
+            if (searchInput) {
+                searchInput.oninput = (e) => render(e.target.value);
+            }
         },
 
         renderOrbit: () => {
@@ -626,7 +712,16 @@ const app = {
 
             const companies = app.data.Config_Empresas || [];
             if (companies.length === 0) {
-                container.innerHTML = '<div style="color:white; font-family: monospace;">[!] NO BUBBLES FOUND_</div>';
+                container.innerHTML = `
+                    <div style="color:white; font-family: 'Roboto', sans-serif; text-align:center; padding:40px; background: rgba(255,255,255,0.05); border-radius: 20px; border: 1px dashed rgba(255,255,255,0.2);">
+                        <i class="fas fa-satellite-dish fa-3x" style="margin-bottom:20px; color:var(--accent-color); opacity:0.8;"></i>
+                        <h3 style="margin-bottom:10px;">Buscando Señal...</h3>
+                        <p style="font-size:0.9rem; opacity:0.7; max-width:300px; margin:0 auto 20px;">No hemos detectado empresas activas en el Hub. Por favor, verifica tu conexión o sincroniza el backend.</p>
+                        <button class="btn-primary" onclick="app.init()" style="padding:10px 25px; border-radius:50px;">
+                            <i class="fas fa-sync-alt"></i> Reintentar Conexión
+                        </button>
+                    </div>
+                `;
                 return;
             }
 
@@ -714,6 +809,14 @@ const app = {
             });
         },
 
+        toggleMobileTicket: (show) => {
+            const sidebar = document.getElementById('pos-ticket-sidebar');
+            if (sidebar) {
+                if (show) sidebar.classList.add('mobile-active');
+                else sidebar.classList.remove('mobile-active');
+            }
+        },
+
         renderFooter: (company) => {
             const btn = document.getElementById('whatsapp-float');
             if (btn && company.telefonowhatsapp) {
@@ -732,23 +835,23 @@ const app = {
 
                 // Facebook
                 if (fb && fb.trim() !== "") {
-                    socialHtml += `<a href="${fb}" target="_blank" title="Facebook"><i class="fab fa-facebook"></i></a>`;
+                    socialHtml += `<a href="${fb}" target="_blank" title="Facebook" class="social-fb"><i class="fab fa-facebook"></i></a>`;
                 } else {
-                    socialHtml += `<a href="#" onclick="event.preventDefault(); alert('Facebook en construcción');" title="Facebook en construcción" class="under-construction"><i class="fab fa-facebook"></i></a>`;
+                    socialHtml += `<a href="#" onclick="event.preventDefault(); alert('Facebook en construcción');" title="Facebook en construcción" class="under-construction social-fb"><i class="fab fa-facebook"></i></a>`;
                 }
 
                 // Instagram
                 if (ig && ig.trim() !== "") {
-                    socialHtml += `<a href="${ig}" target="_blank" title="Instagram"><i class="fab fa-instagram"></i></a>`;
+                    socialHtml += `<a href="${ig}" target="_blank" title="Instagram" class="social-ig"><i class="fab fa-instagram"></i></a>`;
                 } else {
-                    socialHtml += `<a href="#" onclick="event.preventDefault(); alert('Instagram en construcción');" title="Instagram en construcción" class="under-construction"><i class="fab fa-instagram"></i></a>`;
+                    socialHtml += `<a href="#" onclick="event.preventDefault(); alert('Instagram en construcción');" title="Instagram en construcción" class="under-construction social-ig"><i class="fab fa-instagram"></i></a>`;
                 }
 
                 // TikTok
                 if (tk && tk.trim() !== "") {
-                    socialHtml += `<a href="${tk}" target="_blank" title="TikTok"><i class="fab fa-tiktok"></i></a>`;
+                    socialHtml += `<a href="${tk}" target="_blank" title="TikTok" class="social-tk"><i class="fab fa-tiktok"></i></a>`;
                 } else {
-                    socialHtml += `<a href="#" onclick="event.preventDefault(); alert('TikTok en construcción');" title="TikTok en construcción" class="under-construction"><i class="fab fa-tiktok"></i></a>`;
+                    socialHtml += `<a href="#" onclick="event.preventDefault(); alert('TikTok en construcción');" title="TikTok en construcción" class="under-construction social-tk"><i class="fab fa-tiktok"></i></a>`;
                 }
 
                 socialHtml += '</div>';
@@ -796,6 +899,20 @@ const app = {
                 if (bankDisplay) bankDisplay.classList.add('hidden');
                 document.getElementById('pos-pay-folio').value = '';
             }
+        },
+
+        setPosPaymentMethod: (method) => {
+            const input = document.getElementById('pos-pay-method');
+            if (!input) return;
+            input.value = method;
+
+            // Update button visual state
+            document.querySelectorAll('.pay-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-value') === method);
+            });
+
+            // Trigger folio/bank info logic
+            app.ui.togglePosFolio();
         },
 
         handleReportTypeChange: () => {
@@ -1426,7 +1543,7 @@ const app = {
                 const res = await fetch(app.apiUrl, {
                     method: 'POST',
                     headers: { "Content-Type": "text/plain" },
-                    body: JSON.stringify({ action: 'initializeRbac' })
+                    body: JSON.stringify({ action: 'initializeRbac', token: app.apiToken })
                 });
                 const data = await res.json();
                 if (data.success) {
@@ -1691,7 +1808,7 @@ const app = {
                 await fetch(app.apiUrl, {
                     method: 'POST',
                     headers: { "Content-Type": "text/plain" },
-                    body: JSON.stringify({ action: 'updateProjectStage', stage: stage })
+                    body: JSON.stringify({ action: 'updateProjectStage', stage: stage, token: app.apiToken })
                 });
             } catch (e) { console.error(e); }
         },
@@ -1713,7 +1830,7 @@ const app = {
                 await fetch(app.apiUrl, {
                     method: 'POST',
                     headers: { "Content-Type": "text/plain" },
-                    body: JSON.stringify({ action: 'updateProjectStage', stage: s })
+                    body: JSON.stringify({ action: 'updateProjectStage', stage: s, token: app.apiToken })
                 });
             } catch (e) { console.error(e); }
         },
@@ -1732,7 +1849,7 @@ const app = {
                 await fetch(app.apiUrl, {
                     method: 'POST',
                     headers: { "Content-Type": "text/plain" },
-                    body: JSON.stringify({ action: 'addProjectPayment', payment: pay })
+                    body: JSON.stringify({ action: 'addProjectPayment', payment: pay, token: app.apiToken })
                 });
             } catch (e) { console.error(e); }
         },
@@ -1764,7 +1881,7 @@ const app = {
                 await fetch(app.apiUrl, {
                     method: 'POST',
                     headers: { "Content-Type": "text/plain" },
-                    body: JSON.stringify({ action: 'addProjectLog', log: log })
+                    body: JSON.stringify({ action: 'addProjectLog', log: log, token: app.apiToken })
                 });
             } catch (e) { console.error(e); }
         },
@@ -1786,7 +1903,8 @@ const app = {
                     body: JSON.stringify({
                         action: 'updateProjectStatus',
                         id: pId,
-                        status: newStatus
+                        status: newStatus,
+                        token: app.apiToken
                     })
                 });
                 app.ui.updateConsole(`PROJECT_STATUS_SYNC: ${pId} -> ${newStatus}`);
@@ -1882,7 +2000,7 @@ const app = {
                 const res = await fetch(app.apiUrl, {
                     method: 'POST',
                     headers: { "Content-Type": "text/plain" },
-                    body: JSON.stringify({ action: 'getFileText', fileId: fileId })
+                    body: JSON.stringify({ action: 'getFileText', fileId: fileId, token: app.apiToken })
                 });
                 const data = await res.json();
                 if (data.success) {
@@ -1930,7 +2048,8 @@ const app = {
                         id_empresa: app.state.companyId,
                         title: title,
                         text: text,
-                        img: img
+                        img: img,
+                        token: app.apiToken
                     })
                 });
                 const data = await res.json();
@@ -2069,64 +2188,109 @@ const app = {
 
         renderStaffPOS: () => {
             const container = document.getElementById('staff-pos-grid');
+            const sideNav = document.getElementById('staff-pos-side-nav');
             if (!container) return;
             container.innerHTML = '';
+            if (sideNav) sideNav.innerHTML = '';
 
-            const items = app.data.Catalogo.filter(p => {
+            const items = (app.data.Catalogo || []).filter(p => {
                 const pCo = (p.id_empresa || "").toString().trim().toUpperCase();
-                const sCo = app.state.companyId.toUpperCase();
+                const sCo = (app.state.companyId || "").toString().trim().toUpperCase();
                 const isActive = (p.activo == true || p.activo == 1 || p.activo === "TRUE" || p.activo === "1");
                 return pCo === sCo && isActive;
             });
 
             if (items.length === 0) {
-                container.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px;">No hay productos para vender.</div>';
+                container.innerHTML = '<div style="text-align:center; padding:50px; color:#999; grid-column:1/-1;">No hay productos para vender.</div>';
                 return;
             }
 
+            // Group by category
+            const categories = {};
             items.forEach(p => {
-                const card = document.createElement('div');
-                card.className = 'food-card';
-                const stock = parseInt(p.stock) || 0;
-                const stockColor = stock <= 5 ? '#e74c3c' : (stock <= 15 ? '#f39c12' : '#27ae60');
+                const cat = (p.categoria || p.Categoria || "General").toString().trim();
+                if (!categories[cat]) categories[cat] = [];
+                categories[cat].push(p);
+            });
 
-                const imgRaw = p.imagen_url || p.Imagen_Url || p.IMAGEN_URL || p.url_imagen;
-                const img = imgRaw ? app.utils.fixDriveUrl(imgRaw) : 'https://docs.google.com/uc?export=view&id=1t6BmvpGTCR6-OZ3Nnx-yOmpohe5eCKvv';
+            Object.keys(categories).forEach((catName, index) => {
+                const catId = `staff-cat-${index}`;
 
-                const effectivePrice = app.utils.getEffectivePrice(p);
-
-                // Ribbon logic
-                let ribbon = '';
-                const tag = (p.Etiqueta_Promo || "").toString().trim().toUpperCase();
-                if (tag) {
-                    const tagClass = tag.includes('OFERTA') ? 'oferta' : (tag.includes('NUEVO') ? 'nuevo' : '');
-                    ribbon = `<div class="ribbon ${tagClass}">${tag}</div>`;
+                // Sidebar item
+                if (sideNav) {
+                    const navItem = document.createElement('div');
+                    navItem.className = 'pos-cat-item' + (index === 0 ? ' active' : '');
+                    navItem.id = `nav-${catId}`;
+                    navItem.innerText = catName;
+                    navItem.onclick = () => {
+                        document.querySelectorAll('.pos-cat-item').forEach(el => el.classList.remove('active'));
+                        navItem.classList.add('active');
+                        document.getElementById(catId).scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    };
+                    sideNav.appendChild(navItem);
                 }
 
-                card.innerHTML = `
-                    ${ribbon}
-                    <div class="food-img-container" style="position:relative;">
-                        <img src="${img}" class="food-img">
-                        <div style="position:absolute; top:8px; right:8px; background:${stockColor}; color:white; padding:3px 8px; border-radius:4px; font-size:0.65rem; font-weight:bold; box-shadow:0 2px 4px rgba(0,0,0,0.2);">
-                            ${stock} DISP.
-                        </div>
-                    </div>
-                    <div class="food-info">
-                        <div class="food-title-row">
-                            <h3>${p.nombre}</h3>
-                            <span class="price">$${effectivePrice.toFixed(2)}</span>
-                        </div>
-                        <div class="food-actions-container">
-                            <div class="food-actions">
-                                <button onclick="app.pos.removeFromCart('${p.id_producto}')" class="btn-rem-food"><i class="fas fa-minus"></i></button>
-                                <span id="qty-${p.id_producto}" class="food-qty">0</span>
-                                <button onclick="app.pos.addToCart('${p.id_producto}')" class="btn-add-food"><i class="fas fa-plus"></i></button>
+                // Category Section Header
+                const section = document.createElement('div');
+                section.id = catId;
+                section.className = 'staff-pos-section';
+
+                const title = document.createElement('h3');
+                title.className = 'food-category-title';
+                title.innerText = catName;
+                section.appendChild(title);
+
+                // Slider Container
+                const grid = document.createElement('div');
+                grid.className = 'food-grid';
+                section.appendChild(grid);
+
+                categories[catName].forEach(p => {
+                    const card = document.createElement('div');
+                    card.className = 'food-card';
+
+                    const stock = parseInt(p.stock) || 0;
+                    const stockColor = stock <= 5 ? '#e74c3c' : (stock <= 15 ? '#f39c12' : '#27ae60');
+
+                    const imgRaw = p.imagen_url || p.Imagen_Url || p.IMAGEN_URL || p.url_imagen;
+                    const img = imgRaw ? app.utils.fixDriveUrl(imgRaw) : 'https://docs.google.com/uc?export=view&id=1t6BmvpGTCR6-OZ3Nnx-yOmpohe5eCKvv';
+                    const effectivePrice = app.utils.getEffectivePrice(p);
+
+                    // Ribbon logic
+                    let ribbon = '';
+                    const tag = (p.Etiqueta_Promo || "").toString().trim().toUpperCase();
+                    if (tag) {
+                        const tagClass = tag.includes('OFERTA') ? 'oferta' : (tag.includes('NUEVO') ? 'nuevo' : '');
+                        ribbon = `<div class="ribbon ${tagClass}">${tag}</div>`;
+                    }
+
+                    card.innerHTML = `
+                        ${ribbon}
+                        <div class="food-img-container" style="position:relative;">
+                            <img src="${img}" class="food-img">
+                            <div style="position:absolute; top:8px; left:8px; background:${stockColor}; color:white; padding:3px 8px; border-radius:4px; font-size:0.65rem; font-weight:bold; box-shadow:0 2px 4px rgba(0,0,0,0.2); z-index:5;">
+                                ${stock} DISP.
                             </div>
                         </div>
-                    </div>
-                `;
-                container.appendChild(card);
+                        <div class="food-info">
+                            <div class="food-title-row">
+                                <h3>${p.nombre}</h3>
+                                <span class="price">$${effectivePrice}</span>
+                            </div>
+                            <div class="food-actions-container">
+                                <div class="food-actions">
+                                    <button onclick="app.pos.removeFromCart('${p.id_producto}')"><i class="fas fa-minus"></i></button>
+                                    <span id="qty-${p.id_producto}" class="food-qty" data-id="${p.id_producto}">${app.state.cart.find(i => i.id === p.id_producto)?.qty || 0}</span>
+                                    <button onclick="app.pos.addToCart('${p.id_producto}')"><i class="fas fa-plus"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+                container.appendChild(section);
             });
+
             app.pos.updateCartVisuals();
             app.pos.updateLastSaleDisplay();
         },
@@ -2152,7 +2316,7 @@ const app = {
                 const res = await fetch(app.apiUrl, {
                     method: 'POST',
                     headers: { "Content-Type": "text/plain" },
-                    body: JSON.stringify({ action: 'updateProduct', product: { id_producto: id, stock: newStock } })
+                    body: JSON.stringify({ action: 'updateProduct', product: { id_producto: id, stock: newStock }, token: app.apiToken })
                 });
                 const data = await res.json();
                 if (data.success) {
@@ -2427,7 +2591,7 @@ const app = {
                         method: 'POST',
                         redirect: "follow",
                         headers: { "Content-Type": "text/plain;charset=utf-8" },
-                        body: JSON.stringify({ action: action, lead: leadData })
+                        body: JSON.stringify({ action: action, lead: leadData, token: app.apiToken })
                     });
 
                     const result = await response.json();
@@ -2515,7 +2679,7 @@ const app = {
                         method: 'POST',
                         redirect: "follow",
                         headers: { "Content-Type": "text/plain;charset=utf-8" },
-                        body: JSON.stringify({ action: 'createProduct', product: newProd })
+                        body: JSON.stringify({ action: 'createProduct', product: newProd, token: app.apiToken })
                     });
                     const res = await response.json();
                     if (res.newId) {
@@ -2579,7 +2743,7 @@ const app = {
                         method: 'POST',
                         redirect: "follow",
                         headers: { "Content-Type": "text/plain;charset=utf-8" },
-                        body: JSON.stringify({ action: 'createProject', project: newProj })
+                        body: JSON.stringify({ action: 'createProject', project: newProj, token: app.apiToken })
                     });
                     const res = await response.json();
                     if (res.newId) {
@@ -2636,7 +2800,7 @@ const app = {
                         method: 'POST',
                         redirect: "follow",
                         headers: { "Content-Type": "text/plain;charset=utf-8" },
-                        body: JSON.stringify({ action: 'createLead', lead: newLead })
+                        body: JSON.stringify({ action: 'createLead', lead: newLead, token: app.apiToken })
                     });
 
                     const result = await response.json();
@@ -2743,7 +2907,7 @@ const app = {
                 const res = await fetch(app.apiUrl, {
                     method: 'POST',
                     headers: { "Content-Type": "text/plain" },
-                    body: JSON.stringify({ action: 'listAiModels' })
+                    body: JSON.stringify({ action: 'listAiModels', token: app.apiToken })
                 });
                 const data = await res.json();
                 if (data.success) {
@@ -2795,7 +2959,8 @@ const app = {
                         promptBase: app.state.currentAgent.prompt_base,
                         history: app.state.chatHistory,
                         message: text,
-                        model: app.state._aiModel || localStorage.getItem('evasol_ai_model') || "gemini-1.5-flash"
+                        model: app.state._aiModel || localStorage.getItem('evasol_ai_model') || "gemini-1.5-flash",
+                        token: app.apiToken
                     })
                 });
 
@@ -2879,7 +3044,8 @@ const app = {
                             telefono: ticketData.telefono,
                             email: ticketData.email || currentCo?.email || "n/a",
                             queja: ticketData.queja || ticketData.reporte
-                        }
+                        },
+                        token: app.apiToken
                     })
                 });
                 const res = await response.json();
@@ -2916,7 +3082,18 @@ const app = {
             document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
 
             // Show target section
-            if (hash === '#home') document.getElementById('view-home').classList.remove('hidden');
+            if (hash === '#home' || hash === '#food-app-area') {
+                document.getElementById('view-home').classList.remove('hidden');
+                const foodArea = document.getElementById('food-app-area');
+                if (foodArea) {
+                    if (hash === '#food-app-area' && app.state.isFood) {
+                        foodArea.style.display = 'block';
+                        foodArea.scrollIntoView({ behavior: 'smooth' });
+                    } else if (app.state.isFood) {
+                        foodArea.style.display = 'none';
+                    }
+                }
+            }
             if (hash === '#pillars') {
                 document.getElementById('view-pillars').classList.remove('hidden');
                 const company = app.data.Config_Empresas.find(c => c.id_empresa === app.state.companyId);
@@ -3066,21 +3243,42 @@ const app = {
 
         clearCart: () => {
             app.state.cart = [];
+            app.state.deliveryMethod = 'PICKUP';
+
+            // Reset Payment & Field Defaults
+            app.ui.setPosPaymentMethod('Efectivo');
+
+            const pFolio = document.getElementById('pos-pay-folio');
+            if (pFolio) pFolio.value = '';
+
+            // Sync UI buttons (Reset to Local)
+            document.querySelectorAll('.delivery-opt, .delivery-opt-staff').forEach(btn => {
+                if (btn.id === 'staff-delivery-pickup' || btn.dataset.method === 'PICKUP') btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+
             app.pos.updateCartVisuals();
+            app.pos.renderExpressTicket();
         },
 
         updateCartVisuals: () => {
-            let total = 0;
+            let subtotal = 0;
             let count = 0;
 
             document.querySelectorAll('.food-qty').forEach(el => el.innerText = '0');
 
             app.state.cart.forEach(item => {
-                total += item.price * item.qty;
+                subtotal += item.price * item.qty;
                 count += item.qty;
-                const qtyDisplay = document.getElementById(`qty-${item.id}`);
-                if (qtyDisplay) qtyDisplay.innerText = item.qty;
+                const qtyDisplays = document.querySelectorAll(`[id="qty-${item.id}"]`);
+                qtyDisplays.forEach(el => el.innerText = item.qty);
             });
+
+            // Delivery Logic
+            const company = app.data.Config_Empresas.find(c => c.id_empresa === app.state.companyId);
+            const deliveryFee = parseFloat(company?.costo_envio || 0);
+            const isDelivery = app.state.deliveryMethod === 'DOMICILIO';
+            const total = subtotal + (isDelivery ? deliveryFee : 0);
 
             // Standard POS Visuals (Mobile/Client)
             const totalEl = document.getElementById('cart-total');
@@ -3096,8 +3294,34 @@ const app = {
             const ticketTotalEl = document.getElementById('ticket-total');
             if (ticketTotalEl) ticketTotalEl.innerText = `$${total.toFixed(2)}`;
 
+            const ticketSubtotalEl = document.getElementById('ticket-subtotal');
+            if (ticketSubtotalEl) ticketSubtotalEl.innerText = `$${subtotal.toFixed(2)}`;
+
             const ticketCountEl = document.getElementById('ticket-count');
             if (ticketCountEl) ticketCountEl.innerText = count;
+
+            const staffDevFeeEl = document.getElementById('staff-delivery-fee');
+            if (staffDevFeeEl) staffDevFeeEl.innerText = `$${deliveryFee.toFixed(2)}`;
+
+            const staffDevRow = document.getElementById('staff-delivery-row');
+            if (staffDevRow) staffDevRow.classList.toggle('hidden', !isDelivery);
+
+            // Mobile Floating Trigger Visuals (PFM)
+            const mobileTrigger = document.getElementById('mobile-ticket-trigger');
+            if (mobileTrigger) {
+                mobileTrigger.classList.remove('cart-pulse');
+                void mobileTrigger.offsetWidth; // Trigger reflow
+                mobileTrigger.classList.add('cart-pulse');
+            }
+
+            const mobileTotalEl = document.getElementById('mobile-cart-total');
+            if (mobileTotalEl) mobileTotalEl.innerText = `$${total.toFixed(2)}`;
+
+            const mobileBadgeEl = document.getElementById('mobile-cart-badge');
+            if (mobileBadgeEl) {
+                mobileBadgeEl.innerText = count;
+                mobileBadgeEl.classList.toggle('hidden', count === 0);
+            }
 
             app.pos.renderTicketContent();
             app.pos.updateLastSaleDisplay();
@@ -3139,11 +3363,21 @@ const app = {
         checkoutStaff: async () => {
             if (app.state.cart.length === 0) return alert("Elegir productos primero.");
 
+            const isPickup = app.state.deliveryMethod === 'PICKUP';
+
             // Get Express/Customer data from staff sidebar
-            const sName = document.getElementById('pos-cust-name').value || "Venta en Mostrador";
-            const sPhone = document.getElementById('pos-cust-phone').value || "5218120731000";
-            const sAddress = document.getElementById('pos-cust-address').value || "MOSTRADOR";
+            const sName = document.getElementById('pos-cust-name').value;
+            const sPhone = document.getElementById('pos-cust-phone').value;
+            const sAddress = document.getElementById('pos-cust-address').value;
             const sNotes = document.getElementById('pos-cust-notes')?.value || "";
+
+            if (!isPickup && (!sName || !sAddress)) {
+                return alert("Para envíos es necesario el nombre y dirección del cliente.");
+            }
+
+            const finalName = sName || "Venta en Mostrador";
+            const finalPhone = sPhone || "N/A";
+            const finalAddress = sAddress || (isPickup ? "Venta Local" : "");
 
             // Map to main checkout inputs (modal inputs are used as bridge)
             const mainName = document.getElementById('cust-name');
@@ -3151,9 +3385,9 @@ const app = {
             const mainAddress = document.getElementById('cust-address');
             const mainNotes = document.getElementById('cust-notes');
 
-            if (mainName) mainName.value = sName;
-            if (mainPhone) mainPhone.value = sPhone;
-            if (mainAddress) mainAddress.value = sAddress;
+            if (mainName) mainName.value = finalName;
+            if (mainPhone) mainPhone.value = finalPhone;
+            if (mainAddress) mainAddress.value = finalAddress;
             if (mainNotes) mainNotes.value = sNotes;
 
             const method = document.getElementById('pos-pay-method').value;
@@ -3162,7 +3396,15 @@ const app = {
             document.getElementById('pay-method').value = method;
             document.getElementById('pay-confirm').value = folio;
 
-            await app.pos.checkout();
+            const isStaffSale = true; // Hardcoded here because we ARE in checkoutStaff
+
+            const btn = document.getElementById('btn-pos-checkout');
+            if (btn) {
+                btn.classList.add('blink-confirm');
+                setTimeout(() => btn.classList.remove('blink-confirm'), 600);
+            }
+
+            await app.pos.checkout(true);
 
             // Clear sidebar fields after success
             document.getElementById('pos-cust-name').value = '';
@@ -3170,25 +3412,56 @@ const app = {
             document.getElementById('pos-cust-address').value = '';
             const nEl = document.getElementById('pos-cust-notes');
             if (nEl) nEl.value = '';
+
+            // Ensure folio is also cleared here just in case
+            const pFolio = document.getElementById('pos-pay-folio');
+            if (pFolio) pFolio.value = '';
+
+            // Re-sync UI (Reset to Efectivo)
+            app.ui.setPosPaymentMethod('Efectivo');
+            app.pos.setDeliveryMethod('PICKUP');
+
+            // Auto-close staff sidebar after 10s if on mobile
+            const sidebar = document.querySelector('.pos-sidebar');
+            if (sidebar && sidebar.classList.contains('mobile-active')) {
+                setTimeout(() => {
+                    sidebar.classList.remove('mobile-active');
+                }, 5000);
+            }
         },
 
         updateLastSaleDisplay: () => {
             const el = document.getElementById('ticket-last-val');
             if (!el) return;
 
-            const myProjectIds = app.data.Proyectos
+            // Use the standard table name Proyectos_Pagos
+            const myProjectIds = (app.data.Proyectos || [])
                 .filter(p => p.id_empresa === app.state.companyId)
                 .map(p => p.id_proyecto);
 
             const payments = (app.data.Proyectos_Pagos || [])
-                .filter(pay => myProjectIds.includes(pay.id_proyecto))
-                .sort((a, b) => new Date(b.fecha_pago || 0) - new Date(a.fecha_pago || 0));
+                .filter(pay => myProjectIds.includes(pay.id_proyecto));
 
-            const lastOne = payments[0];
+            if (payments.length === 0) {
+                el.innerText = "$0.00";
+                return;
+            }
+
+            // Robust Sort: Date first, then index in original array (for same-second sales)
+            const sorted = [...payments].sort((a, b) => {
+                const dateA = new Date(a.fecha_pago || 0).getTime();
+                const dateB = new Date(b.fecha_pago || 0).getTime();
+                if (dateB !== dateA) return dateB - dateA;
+                return payments.indexOf(b) - payments.indexOf(a);
+            });
+
+            const lastOne = sorted[0];
             el.innerText = lastOne ? `$${parseFloat(lastOne.monto).toFixed(2)}` : "$0.00";
         },
 
-        checkout: async () => {
+
+
+        checkout: async (forcedStaff = false) => {
             if (app.state.cart.length === 0) return alert("El carrito está vacío.");
 
             const name = document.getElementById('cust-name').value;
@@ -3197,10 +3470,14 @@ const app = {
             const notes = document.getElementById('cust-notes')?.value || '';
             const method = document.getElementById('pay-method').value;
             const confirmNum = document.getElementById('pay-confirm')?.value || '';
-            const isStaffSale = (name === "Venta en Mostrador");
 
-            if (!name || (!isStaffSale && !phone) || (!isStaffSale && !address)) {
-                return alert("Por favor ingresa nombre, teléfono y dirección.");
+            // Priority for staff detection: manually forced or via URL hash
+            const isStaffSale = forcedStaff || (window.location.hash === '#staff-pos') || (name === "Venta en Mostrador");
+
+            const isPickup = app.state.deliveryMethod === 'PICKUP';
+
+            if (!name || (!isStaffSale && !phone) || (!isStaffSale && !isPickup && !address)) {
+                return alert("Por favor completa los campos obligatorios (*).");
             }
 
             // UI Feedback: Detect which button to animate (Public vs Staff)
@@ -3223,9 +3500,10 @@ const app = {
                 origen: isStaffSale ? 'APP-POS-COUNTER' : 'APP-ORDER'
             };
 
-            const cartTotal = parseFloat(document.getElementById('ticket-total')?.innerText.replace('$', '')) ||
-                parseFloat(document.getElementById('staff-cart-total')?.innerText.replace('$', '')) ||
-                parseFloat(document.getElementById('cart-total')?.innerText.replace('$', '')) || 0;
+            const cartSubtotal = app.state.cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+            const company = app.data.Config_Empresas.find(c => c.id_empresa === app.state.companyId);
+            const deliveryFee = isPickup ? 0 : (parseFloat(company?.costo_envio) || 0);
+            const cartTotal = cartSubtotal + deliveryFee;
 
             app.ui.updateConsole("CREATING_ORDER...");
 
@@ -3234,7 +3512,7 @@ const app = {
                 const lRes = await fetch(app.apiUrl, {
                     method: 'POST',
                     headers: { "Content-Type": "text/plain" },
-                    body: JSON.stringify({ action: 'createLead', lead: leadData })
+                    body: JSON.stringify({ action: 'createLead', lead: leadData, token: app.apiToken })
                 });
                 const lData = await lRes.json();
 
@@ -3245,7 +3523,7 @@ const app = {
 
                 if (useOtp) {
                     generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
-                    app.state._currentOrderOtp = generatedOtp; // Temp store for step 3
+                    app.state._currentOrderOtp = generatedOtp;
                 }
 
                 const orderData = {
@@ -3262,7 +3540,7 @@ const app = {
                 const oRes = await fetch(app.apiUrl, {
                     method: 'POST',
                     headers: { "Content-Type": "text/plain" },
-                    body: JSON.stringify({ action: 'createProject', project: orderData })
+                    body: JSON.stringify({ action: 'createProject', project: orderData, token: app.apiToken })
                 });
                 const oData = await oRes.json();
 
@@ -3280,72 +3558,41 @@ const app = {
                 await fetch(app.apiUrl, {
                     method: 'POST',
                     headers: { "Content-Type": "text/plain" },
-                    body: JSON.stringify({ action: 'addProjectPayment', payment: payData })
+                    body: JSON.stringify({ action: 'addProjectPayment', payment: payData, token: app.apiToken })
                 });
 
-                // 4. Send WhatsApp Notification
-                // We use app.state.cart (Items_JSON source) to build a beautiful summary
-                const itemsText = app.state.cart.map(c => `• *${c.name}* x${c.qty} _($${(c.price * c.qty).toFixed(2)})_`).join('\n');
+                // 4. Batch Stock Update
+                app.ui.updateConsole("UPDATING_STOCK...");
+                const stockUpdates = [];
+                app.state.cart.forEach(item => {
+                    const prod = app.data.Catalogo.find(p => String(p.id_producto) === String(item.id));
+                    if (prod) {
+                        const newStock = Math.max(0, (parseInt(prod.stock) || 0) - item.qty);
+                        prod.stock = newStock;
+                        stockUpdates.push({ id_producto: String(item.id), id_empresa: app.state.companyId, stock: newStock });
+                    }
+                });
 
-                let waMsg =
-                    `🚀 *NUEVA ORDEN RECIBIDA*\n` +
-                    `----------------------------\n` +
-                    `👤 *Cliente:* ${name}\n` +
-                    `📞 *Tel:* ${phone}\n` +
-                    `📍 *Dir:* ${address}\n` +
-                    (notes ? `📝 *Notas:* ${notes}\n` : "") +
-                    `💳 *Pago:* ${method}\n`;
-
-                if (generatedOtp) {
-                    waMsg += `🔑 *CÓDIGO DE ENTREGA:* ${generatedOtp}\n`;
+                if (stockUpdates.length > 0) {
+                    await fetch(app.apiUrl, {
+                        method: 'POST',
+                        headers: { "Content-Type": "text/plain" },
+                        body: JSON.stringify({ action: 'updateProduct', products: stockUpdates, token: app.apiToken })
+                    });
                 }
 
-                waMsg +=
-                    `----------------------------\n` +
-                    `📦 *PRODUCTOS:*\n${itemsText}\n` +
-                    `----------------------------\n` +
-                    `💰 *TOTAL A PAGAR: $${cartTotal.toFixed(2)}*\n\n` +
-                    `_Enviado desde el sistema SuitOrg POS Express._`;
-
-                const encodedMsg = encodeURIComponent(waMsg);
-                const waBase = "https://wa.me/5218120731000"; // Dynamic or PFM business link
-
-                /* Automatic send removed to favor Step 3 Manual Trigger per user request
-                if (phone && phone !== "N/A" && phone !== "0000000000") {
-                    console.log("SENDING_AUTO_WA:", waMsg);
-                    window.open(`${waBase}?text=${encodedMsg}`, '_blank');
-                } else {
-                    console.log("ORDER_STORED_WITHOUT_WA_NOTIF");
-                }
-                */
-
-
-                // alert(isStaffSale ? "¡Venta registrada con éxito!" : "¡Pedido recibido con éxito! En breve recibirás confirmación por WhatsApp.");
-
+                // 5. Success UI & Cleanup
                 if (isStaffSale) {
-                    alert("¡Venta registrada con éxito!");
-                    app.pos.clearCart();
-                    app.pos.closeCheckout(); // Clean all fields
+                    alert("¡Pedido registrado con éxito!");
+                    app.pos.closeCheckout();
                 } else {
-                    // Move to Step 3 (Success/WhatsApp) - DO NOT clear cart yet so WhatsApp message can be built
                     app.pos.nextStep(3);
                 }
 
-                // 5. UPDATE STOCK ON BACKEND
-                for (const item of app.state.cart) {
-                    const prod = app.data.Catalogo.find(p => p.id_producto === item.id);
-                    if (prod) {
-                        const newStock = (parseInt(prod.stock) || 0) - item.qty;
-                        fetch(app.apiUrl, {
-                            method: 'POST',
-                            headers: { "Content-Type": "text/plain" },
-                            body: JSON.stringify({ action: 'updateProduct', product: { id_producto: item.id, stock: newStock } })
-                        }).catch(e => console.error("Stock update fail:", e));
-                        prod.stock = newStock; // Local update
-                    }
-                }
+                app.pos.clearCart();
+                app.ui.updateConsole("ORDER_SUCCESS");
 
-                // Refresh data (async)
+                // Refresh Data
                 app.loadData().then(() => {
                     if (window.location.hash === '#pos') app.ui.renderPOS();
                     if (window.location.hash === '#staff-pos') app.ui.renderStaffPOS();
@@ -3434,7 +3681,8 @@ const app = {
         openCheckout: () => {
             if (app.state.cart.length === 0) return alert("El carrito está vacío.");
 
-            // Reset to Step 1
+            // Reset to Step 1 and defaults
+            app.pos.setDeliveryMethod('PICKUP');
             app.pos.nextStep(1);
 
             document.getElementById('checkout-modal').classList.remove('hidden');
@@ -3498,6 +3746,9 @@ const app = {
         renderExpressTicket: () => {
             const container = document.getElementById('express-ticket-items');
             const totalEl = document.getElementById('express-ticket-total');
+            const subtotalEl = document.getElementById('express-ticket-subtotal');
+            const deliveryFeeEl = document.getElementById('express-delivery-fee');
+            const deliveryRow = document.getElementById('express-delivery-row');
             const dateEl = document.getElementById('express-ticket-date');
             const logoEl = document.getElementById('express-ticket-logo');
 
@@ -3519,10 +3770,10 @@ const app = {
             }
 
             // Items
-            let total = 0;
+            let subtotal = 0;
             container.innerHTML = app.state.cart.map(item => {
                 const sub = item.price * item.qty;
-                total += sub;
+                subtotal += sub;
                 return `
                     <div class="ticket-item-express">
                         <span class="ticket-item-name">${item.name} x${item.qty}</span>
@@ -3531,7 +3782,37 @@ const app = {
                 `;
             }).join('');
 
+            const deliveryFee = parseFloat(co?.costo_envio || 0);
+            const isDelivery = app.state.deliveryMethod === 'DOMICILIO';
+
+            if (subtotalEl) subtotalEl.innerText = `$${subtotal.toFixed(2)}`;
+            if (deliveryFeeEl) deliveryFeeEl.innerText = `$${deliveryFee.toFixed(2)}`;
+            if (deliveryRow) deliveryRow.classList.toggle('hidden', !isDelivery);
+
+            const total = subtotal + (isDelivery ? deliveryFee : 0);
             if (totalEl) totalEl.innerText = `$${total.toFixed(2)}`;
+        },
+
+        setDeliveryMethod: (method) => {
+            app.state.deliveryMethod = method;
+
+            // Update UI buttons (Public & Staff)
+            document.querySelectorAll('.delivery-opt, .delivery-opt-staff').forEach(btn => {
+                if (btn.id === 'staff-delivery-pickup') btn.classList.toggle('active', method === 'PICKUP');
+                else if (btn.id === 'staff-delivery-dom') btn.classList.toggle('active', method === 'DOMICILIO');
+                else btn.classList.toggle('active', btn.dataset.method === method);
+            });
+
+            // Toggle address field visibility in checkout (Public)
+            const addressField = document.getElementById('address-block');
+            if (addressField) addressField.classList.toggle('hidden', method === 'PICKUP');
+
+            // Toggle address field visibility in POS (Staff)
+            const posAddress = document.getElementById('pos-cust-address');
+            if (posAddress) posAddress.classList.toggle('hidden', method === 'PICKUP');
+
+            app.pos.updateCartVisuals();
+            app.pos.renderExpressTicket();
         },
 
         sendWhatsApp: () => {
@@ -3596,19 +3877,14 @@ const app = {
         updateOrderStatus: async (id, newStatus, skipOtp = false) => {
             console.log(`[POS_UPDATE] ${id} -> ${newStatus} (skipOtp: ${skipOtp})`);
 
-            // Check for OTP if heading to ENTREGADO and not already verified
             if (newStatus === 'ENTREGADO' && !skipOtp) {
                 const company = app.data.Config_Empresas.find(c => c.id_empresa === app.state.companyId);
                 const order = app.data.Proyectos.find(p => p.id_proyecto === id);
                 const useOtp = company?.usa_otp_entrega === true || company?.usa_otp_entrega === "TRUE" || company?.usa_otp_entrega === "1";
 
                 if (useOtp && order?.codigo_otp) {
-                    console.log(`[OTP_REQUIRED] Order: ${id}, Expected: ${order.codigo_otp}`);
-                    // Open Premium OTP Modal
                     app.ui.showOtpEntry(id, newStatus, String(order.codigo_otp).trim());
                     return;
-                } else {
-                    console.log(`[OTP_NOT_REQUIRED] UseOtp: ${useOtp}, OrderOtp: ${order?.codigo_otp}`);
                 }
             }
 
@@ -3620,11 +3896,11 @@ const app = {
                     body: JSON.stringify({
                         action: 'updateProjectStatus',
                         id: id,
-                        status: newStatus
+                        status: newStatus,
+                        token: app.apiToken
                     })
                 });
 
-                // Optimistic UI update or reload
                 const order = app.data.Proyectos.find(p => p.id_proyecto === id);
                 if (order) order.estado = newStatus;
 
@@ -3633,33 +3909,6 @@ const app = {
             } catch (e) {
                 console.error(e);
                 app.ui.updateConsole("UPDATE_FAIL", true);
-            }
-        },
-
-        clearCart: () => {
-            app.state.cart = [];
-            app.pos.updateCartVisuals();
-        },
-
-        updateLastSaleDisplay: () => {
-            const el = document.getElementById('ticket-last-val');
-            if (!el) return;
-
-            // Find project IDs for current company
-            const myProjectIds = app.data.Proyectos
-                .filter(p => p.id_empresa === app.state.companyId)
-                .map(p => p.id_proyecto);
-
-            // Filter payments for those projects and sort by date desc
-            const payments = (app.data.Proyectos_Pagos || [])
-                .filter(pay => myProjectIds.includes(pay.id_proyecto))
-                .sort((a, b) => new Date(b.fecha_pago || 0) - new Date(a.fecha_pago || 0));
-
-            const lastOne = payments[0];
-            if (lastOne) {
-                el.innerText = `$${parseFloat(lastOne.monto).toFixed(2)}`;
-            } else {
-                el.innerText = "$0.00";
             }
         },
 

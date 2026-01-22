@@ -46,6 +46,12 @@
     <!-- MAIN HEADER (Dynamic) -->
     <header id="main-header">
         <div class="logo-area">
+            <!-- WhatsApp Floating Button (Moved to Header) -->
+            <a href="https://wa.me/" id="whatsapp-float" class="whatsapp-float" target="_blank"
+                title="Contáctanos por WhatsApp">
+                <i class="fab fa-whatsapp"></i>
+                <span>WhatsApp</span>
+            </a>
             <div id="logo-container" class="logo-container hidden">
                 <img src="" alt="Logo" id="header-logo">
             </div>
@@ -58,7 +64,8 @@
                 <li><a href="#home">Inicio</a></li>
                 <li><a href="#pos" id="nav-pos"><i class="fas fa-desktop"></i> Monitor</a></li>
                 <li><a href="#contact">Contacto</a></li>
-                <li><a href="#login" id="btn-login-trigger">Acceso Staff</a></li>
+                <li><a href="#login" id="btn-login-trigger" onclick="app.ui.showLogin(); return false;">Acceso Staff</a>
+                </li>
             </ul>
             <!-- Staff Menu (Hidden by default) -->
             <ul id="menu-staff" class="nav-list hidden">
@@ -104,7 +111,21 @@
                     <p id="food-menu-subtitle">Selecciona tus favoritos y haz tu pedido en segundos.</p>
                 </div>
 
-                <div id="food-menu-grid" class="food-grid"></div>
+                <!-- Food Search & Navigation -->
+                <div class="food-nav-container" style="margin-bottom: 20px;">
+                    <div class="food-search-box" style="position: relative; margin-bottom: 20px;">
+                        <i class="fas fa-search"
+                            style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #999;"></i>
+                        <input type="text" id="food-search-input" placeholder="Buscar productos..."
+                            style="width: 100%; padding: 12px 15px 12px 45px; border-radius: 50px; border: 1px solid #eee; font-size: 1rem; outline: none; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                    </div>
+                    <div id="food-category-tabs" class="food-tabs"
+                        style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none;">
+                        <!-- Category tabs injected via JS -->
+                    </div>
+                </div>
+
+                <div id="food-menu-grid" class="food-grid-container"></div>
 
                 <!-- Floating Cart Bar -->
                 <div id="cart-float-bar" class="cart-bar">
@@ -415,7 +436,12 @@
         <!-- SECTION: STAFF POS (PFM Internal Sales) -->
         <section id="view-staff-pos" class="view-section hidden">
             <div class="pos-layout">
-                <!-- Left Side: Product Grid -->
+                <!-- Left Side: Category Navigator -->
+                <div class="pos-nav" id="staff-pos-side-nav">
+                    <!-- Categories injected via JS -->
+                </div>
+
+                <!-- Middle: Product Grid -->
                 <div class="pos-main">
                     <div class="section-header">
                         <h2><i class="fas fa-cash-register"></i> Catálogo de Venta</h2>
@@ -426,7 +452,11 @@
                 </div>
 
                 <!-- Right Side: Ticket Sidebar -->
-                <div class="pos-sidebar">
+                <div class="pos-sidebar" id="pos-ticket-sidebar">
+                    <button class="close-ticket-btn" onclick="app.ui.toggleMobileTicket(false)"
+                        style="display:none; position:absolute; top:15px; right:15px; border:none; background:none; font-size:1.5rem; color:#999; cursor:pointer; z-index:100;">
+                        <i class="fas fa-times"></i>
+                    </button>
                     <div class="ticket">
                         <div class="ticket-header">
                             <img src="" id="ticket-logo" style="max-width: 80px; margin-bottom: 10px;" class="hidden">
@@ -444,7 +474,16 @@
                                 <span>Items:</span>
                                 <span id="ticket-count">0</span>
                             </div>
-                            <div class="ticket-row total">
+                            <div class="ticket-row" style="color: #888; border-top: 1px dashed #eee; padding-top: 5px;">
+                                <span>SUBTOTAL:</span>
+                                <span id="ticket-subtotal">$0.00</span>
+                            </div>
+                            <div id="staff-delivery-row" class="ticket-row hidden" style="color: #ee5253;">
+                                <span>ENVÍO:</span>
+                                <span id="staff-delivery-fee">$0.00</span>
+                            </div>
+                            <div class="ticket-row total"
+                                style="margin-top:5px; border-top: 2px solid #333; padding-top: 5px;">
                                 <span>TOTAL:</span>
                                 <span id="ticket-total">$0.00</span>
                             </div>
@@ -452,10 +491,26 @@
 
                         <!-- Customer Express Data for Staff 📦 -->
                         <div class="pos-customer-data"
-                            style="background: #f8f9fa; border: 1px solid #dee2e6; padding: 12px; border-radius: 8px; margin-bottom: 15px; margin-top: 15px;">
+                            style="background: #f8f9fa; border: 1px solid #dee2e6; padding: 8px; border-radius: 8px; margin-bottom: 10px; margin-top: 10px;">
                             <h4
-                                style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; color: #6c757d;">
-                                <i class="fas fa-shipping-fast"></i> Datos del Cliente
+                                style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; color: #6c757d;">
+                                <i class="fas fa-shipping-fast"></i> Tipo de Entrega
+                            </h4>
+                            <div class="delivery-selector-mini" style="display: flex; gap: 5px; margin-bottom: 8px;">
+                                <button class="delivery-opt-staff active" id="staff-delivery-pickup"
+                                    onclick="app.pos.setDeliveryMethod('PICKUP')"
+                                    style="flex:1; padding: 8px; font-size: 0.75rem; border: 1px solid #ddd; border-radius: 6px; background: white; cursor:pointer;">
+                                    <i class="fas fa-store"></i> Local
+                                </button>
+                                <button class="delivery-opt-staff" id="staff-delivery-dom"
+                                    onclick="app.pos.setDeliveryMethod('DOMICILIO')"
+                                    style="flex:1; padding: 8px; font-size: 0.75rem; border: 1px solid #ddd; border-radius: 6px; background: white; cursor:pointer;">
+                                    <i class="fas fa-truck"></i> Envío
+                                </button>
+                            </div>
+                            <h4
+                                style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; color: #6c757d;">
+                                <i class="fas fa-user-tag"></i> Datos del Cliente
                             </h4>
                             <input type="text" id="pos-cust-name" placeholder="Nombre completo"
                                 style="width: 100%; border: 1px solid #ced4da; border-radius: 4px; padding: 6px 10px; font-size: 0.85rem; margin-bottom: 8px;">
@@ -468,12 +523,25 @@
                         </div>
 
                         <div class="ticket-payment">
-                            <label>Método de Pago</label>
-                            <select id="pos-pay-method" onchange="app.ui.togglePosFolio()">
-                                <option value="Efectivo">Efectivo</option>
-                                <option value="Terminal">Terminal (Tarjeta)</option>
-                                <option value="Transferencia">Transferencia</option>
-                            </select>
+                            <label
+                                style="display:block; margin-bottom: 5px; font-size: 0.7rem; text-transform: uppercase; color: #6c757d; letter-spacing: 0.5px;">Método
+                                de Pago</label>
+                            <div class="pay-method-grid">
+                                <button type="button" class="pay-btn active" data-value="Efectivo"
+                                    onclick="app.ui.setPosPaymentMethod('Efectivo')">
+                                    <i class="fas fa-money-bill-wave"></i> Efectivo
+                                </button>
+                                <button type="button" class="pay-btn" data-value="Terminal"
+                                    onclick="app.ui.setPosPaymentMethod('Terminal')">
+                                    <i class="fas fa-credit-card"></i> Card
+                                </button>
+                                <button type="button" class="pay-btn" data-value="Transferencia"
+                                    onclick="app.ui.setPosPaymentMethod('Transferencia')">
+                                    <i class="fas fa-university"></i> Transf.
+                                </button>
+                            </div>
+                            <!-- Hidden input to maintain compatibility with existing logic -->
+                            <input type="hidden" id="pos-pay-method" value="Efectivo">
 
                             <div id="pos-folio-container" class="hidden" style="margin-top: 10px;">
                                 <label>Folio / Referencia</label>
@@ -492,10 +560,14 @@
                                     <i class="fas fa-check-circle"></i> CONFIRMAR VENTA
                                 </button>
 
-                                <button class="btn-ticket-secondary" onclick="app.pos.clearCart()">
-                                    <i class="fas fa-trash"></i> Limpiar Carrito
+                                <button class="btn-ticket-secondary"
+                                    style="border-color: #ff8a80; color: #d32f2f; background: #ffebee; font-weight: bold;"
+                                    onclick="app.pos.clearCart()">
+                                    <i class="fas fa-ban"></i> CANCELAR PEDIDO
                                 </button>
                             </div>
+
+
 
                             <div class="ticket-last-sale">
                                 ÚLTIMA VENTA:
@@ -509,6 +581,14 @@
                     </div>
                 </div>
             </div>
+
+            <button id="mobile-ticket-trigger" class="mobile-ticket-trigger" onclick="app.ui.toggleMobileTicket(true)">
+                <div class="trigger-icon-container">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span id="mobile-cart-badge" class="badge">0</span>
+                </div>
+                <span id="mobile-cart-total" class="trigger-total">$0.00</span>
+            </button>
         </section>
 
         <!-- SECTION: REPORTS (New) -->
@@ -731,6 +811,24 @@
                 <div class="modal-body">
                     <!-- STEP 1: RESUMEN / TICKET -->
                     <div id="checkout-step-1" class="checkout-step">
+                        <div style="margin-bottom: 20px;">
+                            <label
+                                style="font-size: 0.8rem; font-weight: bold; color: #666; text-transform: uppercase;">¿Cómo
+                                quieres recibir tu pedido?</label>
+                            <div class="delivery-selector" style="display: flex; gap: 10px; margin-top: 8px;">
+                                <button class="delivery-opt active" data-method="PICKUP"
+                                    onclick="app.pos.setDeliveryMethod('PICKUP')"
+                                    style="flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 12px; background: white; cursor: pointer; transition: all 0.3s;">
+                                    <i class="fas fa-store"></i><br>Recoger en Local
+                                </button>
+                                <button class="delivery-opt" data-method="DOMICILIO"
+                                    onclick="app.pos.setDeliveryMethod('DOMICILIO')"
+                                    style="flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 12px; background: white; cursor: pointer; transition: all 0.3s;">
+                                    <i class="fas fa-truck-loading"></i><br>A Domicilio
+                                </button>
+                            </div>
+                        </div>
+
                         <div class="ticket-container-express">
                             <div class="ticket-header">
                                 <img src="" id="express-ticket-logo"
@@ -743,17 +841,33 @@
                                 <!-- Itemsjected via JS -->
                             </div>
                             <div class="ticket-footer" style="padding: 10px 0 0 0;">
-                                <div class="ticket-row total" style="margin-top:0;">
+                                <div class="ticket-row"
+                                    style="margin-top:0; color:#888; border-top: 1px dashed #eee; padding-top: 5px;">
+                                    <span>SUBTOTAL:</span>
+                                    <span id="express-ticket-subtotal">$0.00</span>
+                                </div>
+                                <div id="express-delivery-row" class="ticket-row hidden"
+                                    style="margin-top:0; color:#ee5253;">
+                                    <span>CARGO ENVÍO:</span>
+                                    <span id="express-delivery-fee">$0.00</span>
+                                </div>
+                                <div class="ticket-row total"
+                                    style="margin-top:5px; border-top: 2px solid #333; padding-top: 5px;">
                                     <span>TOTAL:</span>
                                     <span id="express-ticket-total">$0.00</span>
                                 </div>
                             </div>
                         </div>
-                        <div class="modal-footer" style="padding: 0;">
+                        <div class="modal-footer" style="padding: 0; display: flex; flex-direction: column; gap: 8px;">
                             <button class="btn-primary w-100"
-                                style="height: 50px; font-size: 1.1rem; border-radius: 50px;"
+                                style="height: 45px; font-size: 1.1rem; border-radius: 50px;"
                                 onclick="app.pos.nextStep(2)">Continuar al Pago <i class="fas fa-arrow-right"
                                     style="margin-left: 10px;"></i></button>
+                            <button class="btn-secondary w-100"
+                                style="height: 35px; border-radius: 50px; font-size: 0.8rem; background: #fff; color: #999; border: 1px solid #eee;"
+                                onclick="app.pos.clearCart(); app.pos.closeCheckout();">
+                                <i class="fas fa-times-circle"></i> Cancelar Pedido
+                            </button>
                         </div>
                     </div>
 
@@ -767,9 +881,9 @@
                             <label>Teléfono (WhatsApp) *</label>
                             <input type="tel" id="cust-phone" required placeholder="Ej. 521234567890">
                         </div>
-                        <div class="form-group">
+                        <div id="address-block" class="form-group hidden">
                             <label>Dirección de Entrega *</label>
-                            <input type="text" id="cust-address" required placeholder="Calle, Número, Colonia...">
+                            <input type="text" id="cust-address" placeholder="Calle, Número, Colonia...">
                         </div>
                         <div class="form-group">
                             <label>Notas Especiales (Opcional)</label>
@@ -801,11 +915,20 @@
                             <input type="text" id="pay-confirm" placeholder="Ej. 1234">
                         </div>
 
-                        <div class="modal-footer" style="padding: 10px 0 0 0; display: flex; gap: 10px;">
-                            <button class="btn-secondary" style="flex: 1;" onclick="app.pos.nextStep(1)"><i
-                                    class="fas fa-arrow-left"></i> Volver</button>
-                            <button class="btn-primary" id="btn-confirm-order" style="flex: 2;"
-                                onclick="app.pos.checkout()">Finalizar Pedido <i class="fas fa-check"></i></button>
+                        <div class="modal-footer"
+                            style="padding: 10px 0 0 0; display: flex; flex-direction: column; gap: 8px;">
+                            <div style="display: flex; gap: 10px; width: 100%;">
+                                <button class="btn-secondary" style="flex: 1; height: 45px; border-radius: 50px;"
+                                    onclick="app.pos.nextStep(1)"><i class="fas fa-arrow-left"></i> Volver</button>
+                                <button class="btn-primary" id="btn-confirm-order"
+                                    style="flex: 2; height: 45px; border-radius: 50px;"
+                                    onclick="app.pos.checkout()">Finalizar Pedido <i class="fas fa-check"></i></button>
+                            </div>
+                            <button class="btn-secondary w-100"
+                                style="height: 35px; border-radius: 50px; font-size: 0.8rem; background: #fff; color: #999; border: 1px solid #eee;"
+                                onclick="app.pos.clearCart(); app.pos.closeCheckout();">
+                                <i class="fas fa-times-circle"></i> Cancelar Pedido
+                            </button>
                         </div>
                     </div>
 
@@ -1179,12 +1302,6 @@
         </div>
     </div>
 
-    <!-- WhatsApp Floating Button -->
-    <a href="https://wa.me/" id="whatsapp-float" class="whatsapp-float" target="_blank"
-        title="Contáctanos por WhatsApp">
-        <i class="fab fa-whatsapp"></i>
-        <span>WhatsApp</span>
-    </a>
 
     <script src="app.js"></script>
 

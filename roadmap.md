@@ -29,6 +29,11 @@ Este documento rastrea el cumplimiento de las reglas fundamentales y la visión 
     - [x] **Roles:** Sistema jerárquico (ADMIN, VENTAS, DIOS).
     - [x] **Modo DIOS:** Superusuario con créditos infinitos y acceso total.
 
+5.  **Seguridad Avanzada (v3.3.8)**
+    - [x] **Blindaje de API Tokens:** Todas las peticiones al backend requieren firma de token.
+    - [x] **Protección de Secretos:** Eliminación de API Keys del código fuente.
+    - [x] **Filtrado Multi-Tenant Estricto:** Privacidad absoluta entre empresas.
+
 5.  **Reglas de Negocio**
     - [x] **Sistema de Créditos:** Consumo por acciones (crear lead, etc.).
     - [x ] **Auto-Logoff:** Timeout de seguridad por inactividad.
@@ -64,7 +69,8 @@ Este documento rastrea el cumplimiento de las reglas fundamentales y la visión 
     - [x] **Seguridad UX:** Botones de "Volver" obligatorios en modales.
     - [x] **Agentes IA:** Integración estable con Gemini 2.0 Flash.
 
-- [ ] **Checkout Express (Público):** Refinar estabilidad del flujo de 3 pasos, integración de WhatsApp y visualización de ticket estilo térmico. (Pendiente por estabilidad).
+- [x] **Checkout Express (Público):** Refinar estabilidad del flujo de 3 pasos, integración de WhatsApp y visualización de ticket estilo térmico.
+    - [x] **Cargo por Envío Dinámico (v3.4.0):** Implementación de selector de método (Recoger/Domicilio) con cargo configurable desde `Config_Empresas`.
 - [ ] **Asistente IA Premium (Voice & Function Calling):**
     - [ ] **Interacción por Voz:** Soporte para dictado (Speech-to-Text) y respuestas habladas (Text-to-Speech) para manos libres en cocina/campo.
     - [ ] **Function Calling Operativo:** Capacidad de ejecutar comandos reales (Consultar stock PFM, Ventas del día, Auditoría de créditos EVASOL).
@@ -74,12 +80,15 @@ Este documento rastrea el cumplimiento de las reglas fundamentales y la visión 
     - [ ] **Servidor de Herramientas:** Crear un servidor MCP independiente para centralizar las habilidades de la IA (Ventas, Stock, CRM).
     - [ ] **Compatibilidad Universal:** Permitir que cualquier interfaz (Web, Desktop, WhatsApp) use el mismo catálogo de funciones de EVASOL.
     - [ ] **Bridge Cloud:** Configurar el enlace seguro entre el protocolo MCP y el Google Apps Script Backend.
-- [ ] **Respaldo en la Nube (GitHub):** Crear repositorio oficial y realizar el primer push (Carga de versión estable 3.3.7).
-- [ ] **Despliegue Externo (Producción Gratis):** Implementar GitHub Pages o Vercel para acceso externo sin costo.
+- [ ] **Respaldo en la Nube (GitHub):** Asegurar privacidad del repositorio (Regresar a modo PRIVADO) para proteger el archivo `backend_schema.gs` y la lógica de seguridad.
+- [ ] **Despliegue Externo (Vercel):** Configurar despliegue seguro desde el repositorio privado hacia Vercel para evitar la exposición del código fuente en la web.
+    - [ ] **Fix de Renderizado en Prod:** Corregir rutas de imágenes (C:// drive local -> Drive URL).
+    - [ ] **Fix de Conexión API (CORS):** Asegurar conexión estable con Google Apps Script desde HTTPS.
+    - [ ] **Optimización de Estilos:** Corregir alineación de header y botón WhatsApp en producción.
 
 - [ ] **Módulo de Soporte en Landing:** Reactivar y optimizar el botón de "Atención y Soporte" (AGT-001) en la página principal para usuarios públicos.
 - [x] **Módulo de Atención al Cliente (CRM Quejas):** Generación de tickets automática vía IA, alertas por email al negocio y cierre de chat post-reporte.
 
 ---
 ---
-*Última actualización: v3.3.6 (Seed Verification & Support UI)*
+*Última actualización: v3.4.0 (Delivery Engine Stage)*

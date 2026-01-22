@@ -12,4 +12,7 @@
 | `UI_CHAT_HTML_SPACES` | El chat mostraba etiquetas HTML literales ("códigos raros"). | Eliminar espacios accidentales tras `<` y antes de `>` en los template literals de `app.js`. | ✅ Resuelto | 10 min |
 | `BACKEND_MISSING_SEEDS` | Nuevos agentes o roles no se creaban si la tabla ya existía pero estaba incompleta. | Implementar lógica de "Upsert" en la inicialización para verificar registros uno por uno en lugar de solo tablas vacías. | ✅ Resuelto | 20 min |
 | `SEED_LOGIC_INDEX_FAIL` | La verificación de seeds fallaba por depender de índices fijos o nombres de tabla incorrectos. | Refactorizar a función `ensureSeed` que busca dinámicamente el encabezado 'id' para insertar con precisión. | ✅ Resuelto | 15 min |
+| `UI_LOGIN_TRIGGER_LOST` | Al cambiar de empresa, el botón 'Staff' perdía el evento de clic por el reemplazo del DOM en `applyTheme`. | Migración a `onclick` en línea dentro del template lateral para persistencia universal del evento. | ✅ Resuelto | 10 min |
+| `DB_PAYMENTS_COL_SHIFT` | Los datos de pagos se "corrían" de columna al insertar o por diferencias entre `Pagos` y `Proyectos_Pagos`. | Implementación de `appendToSheetByHeader` para mapeo dinámico por nombre de columna y doble escritura. | ✅ Resuelto | 30 min |
+| `POS_LAST_SALE_SYNC` | El widget de última venta no se actualizaba tras el flujo de checkout. | Refactor de `updateLastSaleDisplay` con ordenamiento robusto por fecha y posición de arreglo tras `loadData`. | ✅ Resuelto | 15 min |
 
