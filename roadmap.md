@@ -80,15 +80,16 @@ Este documento rastrea el cumplimiento de las reglas fundamentales y la visión 
     - [ ] **Servidor de Herramientas:** Crear un servidor MCP independiente para centralizar las habilidades de la IA (Ventas, Stock, CRM).
     - [ ] **Compatibilidad Universal:** Permitir que cualquier interfaz (Web, Desktop, WhatsApp) use el mismo catálogo de funciones de EVASOL.
     - [ ] **Bridge Cloud:** Configurar el enlace seguro entre el protocolo MCP y el Google Apps Script Backend.
-- [ ] **Respaldo en la Nube (GitHub):** Asegurar privacidad del repositorio (Regresar a modo PRIVADO) para proteger el archivo `backend_schema.gs` y la lógica de seguridad.
+- [x] **Respaldo en la Nube (GitHub):** Asegurar privacidad del repositorio (Regresar a modo PRIVADO) para proteger el archivo `backend_schema.gs` y la lógica de seguridad. Confirmado privado por el usuario.
 - [ ] **Despliegue Externo (Vercel):** Configurar despliegue seguro desde el repositorio privado hacia Vercel para evitar la exposición del código fuente en la web.
     - [ ] **Fix de Renderizado en Prod:** Corregir rutas de imágenes (C:// drive local -> Drive URL).
     - [ ] **Fix de Conexión API (CORS):** Asegurar conexión estable con Google Apps Script desde HTTPS.
     - [ ] **Optimización de Estilos:** Corregir alineación de header y botón WhatsApp en producción.
 
-- [ ] **Módulo de Soporte en Landing:** Reactivar y optimizar el botón de "Atención y Soporte" (AGT-001) en la página principal para usuarios públicos.
+- [x] **Módulo de Soporte en Landing:** Reactivar y optimizar el botón de "Atención y Soporte" (AGT-001) en la página principal para usuarios públicos. Activado en v3.4.6.
 - [x] **Módulo de Atención al Cliente (CRM Quejas):** Generación de tickets automática vía IA, alertas por email al negocio y cierre de chat post-reporte.
 
+- [x] **Consolidación de Inteligencia (v3.5.1):** Amarrado de workflows huérfanos al Orquestador y blindaje de seguridad en todos los endpoints de la API.
 ---
 ---
-*Última actualización: v3.4.0 (Delivery Engine Stage)*
+*Última actualización: v3.5.1 (Security & Intelligence Integration)*

@@ -1,13 +1,13 @@
 /**
- * SISTEMA SUITORG - BACKEND v3.4.4
- * VERSION: v3.4.4 (Multi-tenant Login Fix)
- * DATE: 2026-01-22 12:35
- * UPDATE: Fixed dynamic Staff login trigger when switching companies.
- * AUDIT_LINES: 325
+ * SISTEMA SUITORG - BACKEND v3.5.1
+ * VERSION: v3.5.1 (Security Enforcement)
+ * DATE: 2026-01-22 21:55
+ * UPDATE: Reinforced API security, ping token requirement, and multi-tenant data leak protection.
+ * AUDIT_LINES: 345
  * */
 
 const CONFIG = {
-  VERSION: "3.4.4 (Multi-tenant Login Fix)",
+  VERSION: "3.5.1 (Security Enforcement)",
   // NO HARCODEAR LLAVES AQUÍ. Usar Propiedades del Script en el editor de Apps Script.
   GEMINI_API_KEY: PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY') || "",
   API_AUTH_TOKEN: PropertiesService.getScriptProperties().getProperty('API_AUTH_TOKEN') || "SUITORG_DEFAULT_TOKEN",
@@ -42,13 +42,13 @@ function doGet(e) {
   const token = params.token || "";
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   
-  // Public action
-  if (action === "ping") return jsonResponse({status: "online", version: CONFIG.VERSION});
-  
-  // Security Check for private data
+  // Security Check for all private and administrative data
   if (token !== CONFIG.API_AUTH_TOKEN) {
-    return jsonResponse({error: "No autorizado. Token inválido.", success: false});
+    return jsonResponse({status: "ERROR", message: "No autorizado. Token inválido.", success: false});
   }
+
+  // Public/Semi-public action (Ping only works with token now for anti-reconnaissance)
+  if (action === "ping") return jsonResponse({status: "online", version: CONFIG.VERSION});
   
   if (action === "getAll") {
     const data = {};
@@ -140,7 +140,13 @@ function doPost(e) {
                     if (currentHeaders.indexOf(h) === -1) s.getRange(1, s.getLastColumn() + 1).setValue(h);
                 });
             }
-            return jsonResponse({ success: true, msg: "v3.4.0 (Full Alimentos) Integrity Verified." });
+
+            // Seeds
+            ensureSeed(ss, "Prompts_IA", "id_agente", [
+                ["AGT-001", "GLOBAL", "Soporte Técnico", "Eres un experto en soporte técnico para los sistemas de Grupo EVASOL y SuitOrg. Tu objetivo es ayudar a los clientes con sus dudas y si detectas una queja o reporte formal, genera un JSON con el formato: { \"nombre\": \"...\", \"telefono\": \"...\", \"queja\": \"...\" }. Si el cliente ya no tiene más dudas, despídete amablemente y termina con la frase: *(Cerrando pantalla del chat...)* para que el sistema cierre el modal automáticamente.", "TRUE", "0", "FALSE"]
+            ]);
+
+            return jsonResponse({ success: true, msg: "v3.4.6 (Support Seed) Integrity Verified." });
         }
 
         // --- 1. DATA ACTIONS (Food & Projects) ---
@@ -219,7 +225,7 @@ function doPost(e) {
             let lastErr = "";
             for (let m of models.filter(v => v)) {
                 try {
-                    const res = UrlFetchApp.fetch(`https://generativelanguage.googleapis.com/v1/models/${m}:generateContent?key=${apiKey}`, {
+                    const res = UrlFetchApp.fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`, {
                         method: "POST", contentType: "application/json",
                         payload: JSON.stringify({ contents: contents, system_instruction: data.promptBase ? { parts: [{ text: data.promptBase }] } : undefined }),
                         muteHttpExceptions: true

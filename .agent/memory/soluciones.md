@@ -15,4 +15,5 @@
 | `UI_LOGIN_TRIGGER_LOST` | Al cambiar de empresa, el botón 'Staff' perdía el evento de clic por el reemplazo del DOM en `applyTheme`. | Migración a `onclick` en línea dentro del template lateral para persistencia universal del evento. | ✅ Resuelto | 10 min |
 | `DB_PAYMENTS_COL_SHIFT` | Los datos de pagos se "corrían" de columna al insertar o por diferencias entre `Pagos` y `Proyectos_Pagos`. | Implementación de `appendToSheetByHeader` para mapeo dinámico por nombre de columna y doble escritura. | ✅ Resuelto | 30 min |
 | `POS_LAST_SALE_SYNC` | El widget de última venta no se actualizaba tras el flujo de checkout. | Refactor de `updateLastSaleDisplay` con ordenamiento robusto por fecha y posición de arreglo tras `loadData`. | ✅ Resuelto | 15 min |
+| `RBAC_DASHBOARD_GRANULAR` | Usuarios Nivel 5 (Staff) veían herramientas administrativas como Mantenimiento o Agentes IA. | Implementación de IDs únicos (`btn-dash-maintenance`) y filtrado estricto por `nivel_acceso` y `modulos_visibles` en `setLoggedInState`. | ✅ Resuelto | 20 min |
 

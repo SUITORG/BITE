@@ -6,7 +6,7 @@
 
 const app = {
     // CONFIGURATION
-    apiUrl: "https://script.google.com/macros/s/AKfycbwB-uyIxKCSr0LNYHDgRjXUOzhdE2jY4Dv13Y3dBbRgFrK1NEqnXEP1CJ04dUCE8DJyzw/exec",
+    apiUrl: "https://script.google.com/macros/s/AKfycbylsoZpEZkVGOaf_MP5N_s-4Wu-Sp-lu9lpZf1ICthQgmEbQpHAflag793LjuA6vWRGGg/exec",
     apiToken: "SUITORG_DEFAULT_TOKEN", // TOKEN DE SEGURIDAD (Debe coincidir con el backend)
 
     data: {
@@ -35,7 +35,8 @@ const app = {
         deliveryMethod: 'PICKUP', // 'PICKUP' o 'DOMICILIO'
         posFilter: 'TODOS',
         reportPaymentFilter: 'TODOS',
-        _consoleStarted: false
+        _consoleStarted: false,
+        _lastChatActivity: 0
     },
 
     utils: {
@@ -192,7 +193,7 @@ const app = {
         if (!text) return;
 
         try {
-            const res = await fetch(app.apiUrl + "?action=ping");
+            const res = await fetch(`${app.apiUrl}?action=ping&token=${app.apiToken}`);
             const data = await res.json();
             if (data.version) {
                 text.innerText = "V: " + data.version;
@@ -220,6 +221,7 @@ const app = {
             const data = await response.json();
 
             if (data.error) throw new Error(data.error);
+            if (data.status === 'ERROR') throw new Error(data.message || 'Error de autenticación API');
 
             // Merge / Assign Data
             app.data = data;
@@ -500,7 +502,9 @@ const app = {
                 if (foodTitle) foodTitle.innerText = sloganText;
                 if (foodSubtitle) foodSubtitle.innerText = subText;
 
-                actions.innerHTML = ``;
+                actions.innerHTML = `
+                    <button class="btn-support" onclick="app.agents.select('AGT-001')"><i class="fas fa-headset"></i> Atención y Soporte</button>
+                `;
 
                 // --- CUSTOM HEADER FOR PFM ---
                 const menuPublic = document.getElementById('menu-public');
@@ -545,6 +549,7 @@ const app = {
                 subEl.innerText = company.descripcion || "Soluciones integrales para tu hogar y negocio.";
                 actions.innerHTML = `
                     <button class="btn-primary" onclick="window.location.hash='#contact'">Cotizar Ahora</button>
+                    <button class="btn-support" onclick="app.agents.select('AGT-001')"><i class="fas fa-headset"></i> Atención y Soporte</button>
                     <button class="btn-secondary" onclick="app.ui.showLogin()"><i class="fas fa-user-lock"></i> Staff</button>
                 `;
 
@@ -1180,12 +1185,21 @@ const app = {
                 (s.id_empresa || "").toString().trim().toUpperCase() === currentCoId || (s.id_empresa || "").toString().trim().toUpperCase() === "GLOBAL"
             );
 
+            // SHOW section if there is data, but hide the Title for non-SuitOrg companies to keep it clean.
             if (seoData.length === 0) {
                 section.classList.add('hidden');
                 return;
             }
 
             section.classList.remove('hidden');
+            const seoTitle = document.getElementById('seo-main-title');
+            if (seoTitle) {
+                if (app.state.isFood || app.state.companyId !== "SuitOrg") {
+                    seoTitle.classList.add('hidden');
+                } else {
+                    seoTitle.classList.remove('hidden');
+                }
+            }
             container.innerHTML = seoData.map(s => `
                 <div class="solution-cluster">
                     <h4><i class="${s.icono || 'fas fa-check-circle'}"></i> ${s.titulo}</h4>
@@ -1403,6 +1417,8 @@ const app = {
             document.getElementById('menu-public').classList.add('hidden');
             document.getElementById('menu-staff').classList.remove('hidden');
             document.getElementById('login-modal-overlay').classList.add('hidden');
+            document.getElementById('main-footer')?.classList.add('hidden');
+            document.getElementById('whatsapp-float')?.classList.add('hidden');
 
             // Dynamic Menu Filtering (RBAC) 🧭
             const userRole = getVal(user, ['id_rol', 'rol', 'role']).toUpperCase();
@@ -1419,7 +1435,7 @@ const app = {
             const modulesArray = visibleModulesRaw.split(/[\s,;]+/).map(m => m.replace('#', '').trim()).filter(m => m !== "");
 
             let isAdmin = parseInt(user.nivel_acceso) >= 10 || userRole === 'DIOS';
-            let isStaff = parseInt(user.nivel_acceso) >= 5 || userRole === 'DIOS';
+            let isStaff = parseInt(user.nivel_acceso) >= 2 || userRole === 'DIOS';
             const isDelivery = userRole === 'DELIVERY' || userRole === 'REPARTIDOR';
 
             const menuItems = document.querySelectorAll('#menu-staff li');
@@ -1476,22 +1492,31 @@ const app = {
             document.getElementById('dash-credit-mode').innerText = isGlobal ? "Pool Global de Empresa" : "Créditos Personales";
             document.getElementById('dash-leads').innerText = app.data.Leads.length;
 
-            // Dynamic Agents Button - Visible for Level 5+ (Staff/Admin) or DIOS
-            const hasAIAccess = user.rol === 'DIOS' || (user.nivel_acceso && user.nivel_acceso >= 5) || modulesArray.includes('knowledge');
+            // Dynamic Agents Button - Granular RBAC
+            const level = parseInt(user.nivel_acceso) || 0;
+            const isGod = user.rol === 'DIOS' || level >= 10;
+            const canMaintain = isGod || level >= 9 || modulesArray.includes('mantenimiento');
+            const hasAIAccess = isGod || (level >= 5 && (modulesArray.includes('agents') || modulesArray.includes('knowledge')));
+
             const godTools = document.getElementById('god-tools');
             if (godTools) {
-                if (hasAIAccess) {
+                // The container is visible if ANY tool is allowed
+                if (hasAIAccess || canMaintain) {
                     godTools.classList.remove('hidden');
                     godTools.querySelector('h3').innerText = user.rol === 'DIOS' ? 'GOD MODE' : 'HERRAMIENTAS IA';
+
+                    // Controlled buttons inside
+                    const btnMnt = document.getElementById('btn-dash-maintenance');
+                    const btnAgt = document.getElementById('btn-dash-agents');
+
+                    if (btnMnt) canMaintain ? btnMnt.classList.remove('hidden') : btnMnt.classList.add('hidden');
+                    if (btnAgt) hasAIAccess ? btnAgt.classList.remove('hidden') : btnAgt.classList.add('hidden');
                 } else {
                     godTools.classList.add('hidden');
                 }
             }
 
             // GATED ACTION BUTTONS (Granular RBAC)
-            const level = parseInt(user.nivel_acceso) || 0;
-            const isGod = user.rol === 'DIOS' || level >= 10;
-            const canMaintain = isGod || level >= 9 || modulesArray.includes('mantenimiento');
             const isSenior = isGod || level >= 8 || modulesArray.includes('projects');
             const isJunior = isGod || level >= 7 || modulesArray.includes('leads');
             const isStaffButtons = isGod || level >= 5 || modulesArray.includes('pos');
@@ -1529,6 +1554,12 @@ const app = {
             document.getElementById('menu-public').classList.remove('hidden');
             document.getElementById('menu-staff').classList.add('hidden');
             document.getElementById('god-tools').classList.add('hidden');
+            document.getElementById('main-footer')?.classList.remove('hidden');
+            document.getElementById('whatsapp-float')?.classList.remove('hidden');
+        },
+
+        openAgentsModal: () => {
+            window.location.hash = '#agents';
         },
 
         repairDatabase: async () => {
@@ -2876,14 +2907,20 @@ const app = {
         },
 
         select: (agtId) => {
-            const agt = app.data.Prompts_IA.find(a => a.id_agente === agtId);
-            if (!agt) return;
+            const agt = (app.data.Prompts_IA || []).find(a => a.id_agente === agtId);
+            if (!agt) {
+                console.error(`AGENT_NOT_FOUND: ${agtId}. Please run Repair DB in Maintenance.`);
+                if (agtId === 'AGT-001') {
+                    alert("El sistema de soporte se está inicializando. Por favor, asegúrate de haber 'Reparado la Base de Datos' en el panel de Staff.");
+                }
+                return;
+            }
 
             app.state.currentAgent = agt;
             app.state.chatHistory = []; // Reset history for new session
 
             document.getElementById('agent-display-name').innerText = agt.nombre;
-            document.getElementById('ai-chat-container').classList.remove('hidden');
+            document.getElementById('ai-chat-modal').classList.remove('hidden');
 
             const historyDiv = document.getElementById('chat-history');
             historyDiv.innerHTML = `
@@ -2892,12 +2929,26 @@ const app = {
     </div>
     `;
 
-            // Scroll to agent list or chat
-            document.getElementById('ai-chat-container').scrollIntoView({ behavior: 'smooth' });
+            // Scroll to chat top
+            historyDiv.scrollTop = 0;
+
+            // Inactivity monitor for the chat specifically
+            app.state._lastChatActivity = Date.now();
+            const checkInactivity = setInterval(() => {
+                if (!app.state.currentAgent) {
+                    clearInterval(checkInactivity);
+                    return;
+                }
+                const idleSeconds = (Date.now() - app.state._lastChatActivity) / 1000;
+                if (idleSeconds > 45) { // 45 seconds of idle in chat = auto close
+                    app.agents.closeChat();
+                    clearInterval(checkInactivity);
+                }
+            }, 5000);
         },
 
         closeChat: () => {
-            document.getElementById('ai-chat-container').classList.add('hidden');
+            document.getElementById('ai-chat-modal').classList.add('hidden');
             app.state.currentAgent = null;
         },
 
@@ -2939,6 +2990,7 @@ const app = {
             // 1. Add User Message to UI
             app.agents.addMessageToUI('user', text);
             input.value = '';
+            app.state._lastChatActivity = Date.now();
 
             // 2. Prepare History for AI
             app.state.chatHistory.push({ role: 'user', content: text });
@@ -3015,6 +3067,15 @@ const app = {
                             return;
                         }
                     } catch (e) { }
+                }
+
+                // Close chat automatically if AI says a closing phrase
+                const lowerText = text.toLowerCase();
+                const closePhrases = ["cerrando pantalla", "cerrando chat", "finalizar esta sesión", "finalizar la sesión", "hasta pronto", "que tengas un excelente día"];
+                if (closePhrases.some(p => lowerText.includes(p))) {
+                    setTimeout(() => {
+                        if (app.state.currentAgent) app.agents.closeChat();
+                    }, 5000);
                 }
 
                 msgDiv.innerHTML = text.replace(/\n/g, '<br>'); // Simple break formatting

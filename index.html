@@ -254,7 +254,8 @@
             <!-- SECTION: SPECIALIZED SOLUTIONS (Long-Tail SEO) -->
             <div id="industrial-solutions-seo" class="specialized-solutions hidden"
                 style="margin-top: 50px; padding: 40px 20px; background: rgba(0,0,0,0.03); border-radius: 12px; clear: both;">
-                <h2 style="text-align: center; margin-bottom: 30px; color: var(--primary-color);">Soluciones
+                <h2 id="seo-main-title" style="text-align: center; margin-bottom: 30px; color: var(--primary-color);">
+                    Soluciones
                     Especializadas por División</h2>
                 <div class="solutions-grid"
                     style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px;">
@@ -292,8 +293,9 @@
                 <div id="god-tools" class="stat-card hidden" style="border-color: gold;">
                     <h3>GOD MODE</h3>
                     <div style="display:flex; gap:10px; justify-content:center; margin-top:10px;">
-                        <button class="btn-primary" onclick="alert('Mantenimiento DB: OK')">Mantenimiento</button>
-                        <button class="btn-primary" onclick="app.ui.openAgentsModal()"
+                        <button id="btn-dash-maintenance" class="btn-primary"
+                            onclick="alert('Mantenimiento DB: OK')">Mantenimiento</button>
+                        <button id="btn-dash-agents" class="btn-primary" onclick="app.ui.openAgentsModal()"
                             style="background: linear-gradient(45deg, #d4af37, #f7d794); color:#000;">🤖 Agentes
                             AI</button>
                     </div>
@@ -704,45 +706,7 @@
                 </div>
             </div>
 
-            <!-- MODERN AI CHAT INTERFACE -->
-            <div id="ai-chat-container" class="form-container hidden"
-                style="margin-top:20px; max-width:900px; display: flex; flex-direction: column; height: 500px; padding: 0; overflow: hidden; border: 1px solid var(--primary-color);">
-                <div class="modal-header"
-                    style="padding: 15px; background: var(--primary-color); color: white; display: flex; justify-content: space-between; align-items: center;">
-                    <h3 style="margin:0;"><i class="fas fa-robot"></i> <span id="agent-display-name">Agente</span>
-                    </h3>
-                    <button class="btn-small" onclick="app.agents.closeChat()"
-                        style="background:rgba(255,255,255,0.2); color:white; border:none;">&times;</button>
-                </div>
-
-                <!-- Chat History Area -->
-                <div id="chat-history"
-                    style="flex: 1; overflow-y: auto; padding: 20px; background: #f9f9f9; display: flex; flex-direction: column; gap: 15px;">
-                    <!-- Messages will appear here -->
-                    <div class="ai-msg"
-                        style="background: white; padding: 12px; border-radius: 8px; border-left: 4px solid var(--primary-color); max-width: 80%; align-self: flex-start; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                        Hola, soy tu asistente AI. ¿En qué puedo apoyarte hoy?
-                    </div>
-                </div>
-
-                <!-- Input Area -->
-                <div id="chat-input-area"
-                    style="padding: 15px; background: white; border-top: 1px solid #ddd; display: flex; gap: 10px; align-items: center;">
-                    <textarea id="chat-user-input" placeholder="Escribe tu mensaje aquí..."
-                        style="flex: 1; height: 60px; padding: 10px; border-radius: 8px; border: 1px solid #ccc; resize: none; font-family: inherit;"></textarea>
-                    <button id="btn-send-chat" class="btn-primary"
-                        style="height: 60px; width: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center;"
-                        onclick="app.agents.sendMessage()">
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
-                </div>
-
-                <!-- Loading Indicator -->
-                <div id="ai-loading" class="hidden"
-                    style="padding: 5px 15px; background: #eee; font-size: 0.8rem; color: #666;">
-                    <i class="fas fa-spinner fa-spin"></i> La IA está procesando...
-                </div>
-            </div>
+            <!-- MODERN AI CHAT MODAL (Moved out and made modal) -->
         </section>
 
         <!-- SECTION: POS / STAFF ORDERS (PFM) -->
@@ -1333,6 +1297,44 @@
                         <button type="submit" class="btn-primary w-100">Guardar en Base de Datos</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODERN AI CHAT MODAL (Global Overlay) -->
+    <div id="ai-chat-modal" class="modal-overlay hidden" style="z-index: 10000;">
+        <div class="modal"
+            style="max-width: 600px; width: 95%; height: 80vh; display: flex; flex-direction: column; padding: 0; overflow: hidden; border: 1px solid var(--primary-color); border-radius: 12px;">
+            <div class="modal-header"
+                style="padding: 15px; background: var(--primary-color); color: white; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin:0;"><i class="fas fa-robot"></i> <span id="agent-display-name">Agente de Apoyo</span>
+                </h3>
+                <span class="close-modal" onclick="app.agents.closeChat()"
+                    style="color: white; opacity: 0.8;">&times;</span>
+            </div>
+
+            <!-- Chat History Area -->
+            <div id="chat-history"
+                style="flex: 1; overflow-y: auto; padding: 20px; background: #f9f9f9; display: flex; flex-direction: column; gap: 15px;">
+                <!-- Messages will appear here -->
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="ai-loading" class="hidden"
+                style="padding: 5px 15px; background: #fff; font-size: 0.8rem; color: #666; border-top: 1px solid #eee;">
+                <i class="fas fa-spinner fa-spin"></i> La IA está procesando...
+            </div>
+
+            <!-- Input Area -->
+            <div id="chat-input-area"
+                style="padding: 15px; background: white; border-top: 1px solid #eee; display: flex; gap: 10px; align-items: center;">
+                <textarea id="chat-user-input" placeholder="Escribe tu mensaje aquí..."
+                    style="flex: 1; height: 50px; padding: 8px 12px; border-radius: 25px; border: 1px solid #ddd; resize: none; font-family: inherit; font-size: 0.9rem; outline: none;"></textarea>
+                <button id="btn-send-chat" class="btn-primary"
+                    style="height: 45px; width: 45px; min-width: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; padding: 0;"
+                    onclick="app.agents.sendMessage()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
             </div>
         </div>
     </div>

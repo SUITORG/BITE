@@ -152,6 +152,15 @@ Para agilizar el ciclo de vida del desarrollo, el sistema utiliza un protocolo d
 - **Estándar de Seguridad:** Todas las APIs deben cumplir con el flujo `/seguridad-api`, que incluye sanitización, autenticación por tokens y blindaje contra XSS/SQLi.
 
 ---
+- **v3.5.0**: **Total Staff Focus**. Ocultamiento automático de Footer y Botón de WhatsApp al iniciar sesión para maximizar el área de trabajo operativa.
+- **v3.4.9**: **Staff UI Focus**. Ocultamiento dinámico del footer principal tras iniciar sesión.
+- **v3.4.8**: **AI Chat Auto-Close**. Cierre automático del modal de chat tras frase de despedida o 45 segundos de inactividad.
+- **v3.4.7**: **Ai Fix & SEO Refine**. Upgrade de API Gemini a v1beta y ocultamiento quirúrgico del título de SEO en Landing.
+- **v3.4.6**: **Support Agent Activation**. Seed de AGT-001 restaurado e indicador visual de soporte en Landing Page y Menú PFM.
+- **v3.4.5**: **Dashboard Granular (Blindaje)**. Control estricto de visibilidad para 'Mantenimiento' e 'IA Tools' mediante IDs únicos y lógica de Nivel/Módulo.
+- **v3.4.4**: **Fix Transición Inquilino**. Persistencia de eventos `onclick` al cambiar de empresa; corrección de triggers de login perdidos.
+- **v3.4.3**: **Mapeo de Cabeceras Robusto**. El backend ahora es resiliente a cambios de orden en Google Sheets mediante el uso de `appendToSheetByHeader`.
+- **v3.4.2**: **Synchronized Payments**. Doble escritura en `Pagos` y `Proyectos_Pagos` para asegurar integridad de datos.
 - **v3.4.0**: **Delivery Engine Stage**. Implementación de cargo por envío dinámico y selector de método de entrega (Recoger/Domicilio) en Checkout Express. Optimización visual de tarjetas de catálogo.
 - **v3.3.9**: **Desbloqueo de Flujo de Desarrollo**. Implementación de **Modo Turbo** en Workflows and automatización de políticas de ejecución para Node.js/NPM. Documentación de infraestructura de desarrollo.
 - **v3.3.8**: Parche de Estabilidad y Seguridad. Implementación de Blindaje de Tokens en todas las llamadas API (app.js) y protección de secretos en el backend. Filtrado estricto multi-inquilino.
@@ -176,17 +185,15 @@ Para agilizar el ciclo de vida del desarrollo, el sistema utiliza un protocolo d
 - **v2.7.0:** Implementación de "Temperatura de Negocio" (Flujo Dinámico) y Consola de Sistema.
 
 ## 8. Estadísticas del Proyecto (Auditoría de Código)
-*Última actualización: 2026-01-19*
-
-| `app.js` | Lógica central, UI dinámico y Auth. | 3,210 |
-| `style.css` | Diseño visual, Glassmorphism y Animaciones. | 1,694 |
-| `index.html` | Estructura base y contenedores de vistas. | 1,142 |
-| `backend_schema.gs` | API, Seguridad y Gestión de Base de Datos. | 221 |
+| `app.js` | Lógica central, UI dinámico y Auth. | 3,448 |
+| `style.css` | Diseño visual, Glassmorphism y Animaciones. | 2,397 |
+| `index.html` | Estructura base y contenedores de vistas. | 1,254 |
+| `backend_schema.gs` | API, Seguridad y Gestión de Base de Datos. | 307 |
 | `appsscript.json` | Configuración del entorno de Apps Script. | 25 |
 | `mock_data.json` | Datos de prueba para simulación local. | 105 |
-| `tech_manual.md` | Documentación técnica y reglas de negocio. | 175 |
-| `roadmap.md` | Seguimiento de objetivos y tareas. | 78 |
-| **TOTAL** | **Volumen total de código fuente** | **6,650** |
+| `tech_manual.md` | Documentación técnica y reglas de negocio. | 205 |
+| `roadmap.md` | Seguimiento de objetivos y tareas. | 100 |
+| **TOTAL** | **Volumen total de código fuente** | **8,485** |
 
 ---
 *Manual generado automáticamente por Antigravity AI.*

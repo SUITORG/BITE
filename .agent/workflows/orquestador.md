@@ -14,7 +14,8 @@ Antes de actuar, el agente debe categorizar la solicitud en uno de los siguiente
 | **Pregunta General** | Consultas sobre cómo funciona el sistema o información del negocio. | Consulta `Base de Conocimientos` o `tech_manual.md`. |
 | **Solicitud de Nueva Función** | Pedido de creación de módulos, botones, lógica o cambios de UI. | `/estandar-crud`, `/barra-estado`, o `/multi-inquilino`. |
 | **Error / No funciona** | Comportamiento inesperado, bugs, etiquetas raras o fallos de conexión. | `/optimizacion-recursos` (Memoria) + `/multi-inquilino`. |
-| **Mantenimiento / Sync** | Cambios en el backend o necesidad de actualizar versiones. | `/integridad-total`. |
+| **Mantenimiento / Sync** | Cambios en el backend o necesidad de actualizar versiones. | `/integridad-total` + `/arquitectura-tablas`. |
+| **Limpieza de UI** | Ajustes de visibilidad para staff o reducción de ruido. | `/foco-staff`. |
 
 ### 2. Protocolo de Ejecución
 
@@ -29,7 +30,9 @@ Antes de actuar, el agente debe categorizar la solicitud en uno de los siguiente
 1. **Activar `/planeacion` (OBLIGATORIO)**: Antes de tocar el código, realizar el análisis de sesgos, dependencias y adaptación semántica multi-inquilino. Presentar el Plan de Acción al usuario.
 2. **Validar Permisos**: Consultar `/niveles-acceso` si la función implica roles (RBAC).
 3. **Aislamiento**: Seguir `/multi-inquilino` para que la función sea configurable y no hardcodeada.
-4. **Implementar**: Seguir `/estandar-crud` para módulos de datos o `/barra-estado` para el UI header.
+4. **Base de Datos**: Consultar `/arquitectura-tablas` para asegurar consistencia en las columnas de Sheets.
+5. **Implementar**: Seguir `/estandar-crud` para módulos de datos o `/barra-estado` para el UI header.
+6. **Limpieza Automatizada**: Aplicar `/foco-staff` si la función implica estados de login.
 5. **Control de Créditos**: Validar disponibilidad con `/politicas-creditos`.
 
 #### C. Si es una PREGUNTA (Saber):
@@ -49,6 +52,11 @@ Una vez completada la acción principal, el Orquestador **siempre** debe verific
 - **Persistencia de Contenido**: Verificar que las secciones de información críticas (como `Config_SEO`) permanezcan visibles en el landing independientemente del tema aplicado (Industria o Comida).
 - **Ejecutar `/checkpoint` (CRÍTICO)**: Registrar la solicitud, actualizar versión de backend si aplica, y solicitar el "Visto Bueno" del usuario para congelar la función.
 - **Calibración con `/evaluador`**: Analizar el resultado final para actualizar la memoria de lecciones aprendidas y mejorar la siguiente interacción.
+- **Resumen Ejecutivo Final (OBLIGATORIO)**: El agente debe cerrar su respuesta con un bloque de texto que especifique:
+    1. **Workflows participantes**: Lista de archivos `.md` en `.agent/workflows/` que se consultaron o ejecutaron.
+    2. **Workflows/Agentes NO participantes**: Breve mención de qué lógica se descartó y por qué (ej: "No se usó `/politicas-creditos` porque la función no implica consumo de saldo").
+    3. **Resultado del Evaluador**: Resumen de la calificación de la tarea (ej: "Puntaje: 10/10 - Cumple con estética BK-Style y multi-inquilino").
+    4. **Sugerencias de Mejora**: 2-3 acciones proactivas para el USER.
 
 ---
 *Este workflow debe ser consultado al inicio de cada nueva interacción con el agente.*
