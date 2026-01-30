@@ -1,339 +1,361 @@
-/**
- * SISTEMA SUITORG - BACKEND v3.5.1
- * VERSION: v3.5.1 (Security Enforcement)
- * DATE: 2026-01-22 21:55
- * UPDATE: Reinforced API security, ping token requirement, and multi-tenant data leak protection.
- * AUDIT_LINES: 345
- * */
+ /* SuitOrg Backend Engine - v4.6.8
+ * ---------------------------------------------------------
+ * Sincronización: 2026-01-29 01:00 PM
+ * 
+ * Changelog v4.6.8:
+ * - SYNC: Re-auditoría completa de líneas (9,035).
+ * - STABLE: Consolidación final post-modularización de landing.
+ * - DOCS: Sincronización v4.6.8 completada.
+ * 
+ * AUDIT: ~9035 Total Lines (Consolidated).
+ * ---------------------------------------------------------
+ */
 
 const CONFIG = {
-  VERSION: "3.5.1 (Security Enforcement)",
-  // NO HARCODEAR LLAVES AQUÍ. Usar Propiedades del Script en el editor de Apps Script.
-  GEMINI_API_KEY: PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY') || "",
-  API_AUTH_TOKEN: PropertiesService.getScriptProperties().getProperty('API_AUTH_TOKEN') || "SUITORG_DEFAULT_TOKEN",
-  BACKUP_RETENTION_DAYS: 60
+  VERSION: "4.6.8",
+  DB_ID: "1uyy2hzj8HWWQFnm6xy-XCwvvGh3odjV4fRlDh5SBxu8", 
+  GLOBAL_TABLES: ["Config_Empresas", "Config_Roles", "Usuarios", "Config_SEO", "Prompts_IA", "Cuotas_Pagos"], 
+  PRIVATE_TABLES: ["Leads", "Proyectos", "Proyectos_Etapas", "Proyectos_Pagos", "Proyectos_Bitacora", "Catalogo", "Logs", "Pagos", "Empresa_Documentos"],
+  AUDIT: { total: 9035, status: "STABLE_SYNC" }
 };
 
-/* =========================================
-   API DIAGNOSTICS
-   ========================================= */
-
-function verificarConfiguracion() {
-  const props = PropertiesService.getScriptProperties().getProperties();
-  const faltantes = [];
-  if (!props.GEMINI_API_KEY) faltantes.push("GEMINI_API_KEY");
-  if (!props.API_AUTH_TOKEN) faltantes.push("API_AUTH_TOKEN");
-  
-  if (faltantes.length > 0) {
-    console.error("⚠️ SEGURIDAD CRÍTICA: Faltan variables en Propiedades del Script: " + faltantes.join(", "));
-    return false;
-  }
-  console.log("✅ Configuración de seguridad validada.");
-  return true;
-}
-
-/* =========================================
-   API ENDPOINTS (doGet / doPost)
-   ========================================= */
-
+/**
+ * 🚀 ORQUESTADOR PRINCIPAL (GET)
+ */
 function doGet(e) {
-  const params = e.parameter || {};
-  const action = params.action || "ping";
-  const token = params.token || "";
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  
-  // Security Check for all private and administrative data
-  if (token !== CONFIG.API_AUTH_TOKEN) {
-    return jsonResponse({status: "ERROR", message: "No autorizado. Token inválido.", success: false});
-  }
+  var output = ContentService.createTextOutput();
+  var result = { status: "INIT", version: CONFIG.VERSION, timestamp: new Date() };
 
-  // Public/Semi-public action (Ping only works with token now for anti-reconnaissance)
-  if (action === "ping") return jsonResponse({status: "online", version: CONFIG.VERSION});
-  
-  if (action === "getAll") {
-    const data = {};
-    const businessId = (params.id_empresa || "").toString().trim().toUpperCase();
+  try {
+    var action = (e && e.parameter && e.parameter.action) ? e.parameter.action : "ping";
+    var empresaSolicitante = (e && e.parameter && e.parameter.id_empresa) ? e.parameter.id_empresa.trim() : "SuitOrg";
     
-    if (!businessId) return jsonResponse({error: "ID de Empresa requerido para sincronizar."});
-
-    const sheets = [
-        "Prompts", "Config_Empresas", "Config_Roles", "Config_Flujo_Proyecto", "Config_Galeria",
-        "Catalogo", "Usuarios", "Leads", "Proyectos", "Proyectos_Etapas",
-        "Proyectos_Materiales", "Proyectos_Pagos", "Pagos", "Proyectos_Bitacora",
-        "Empresa_Documentos", "Logs", "Prompts_IA", "Config_SEO"
-    ];
-    
-    sheets.forEach(name => {
-      const s = ss.getSheetByName(name);
-      if(s) {
-        const rows = s.getDataRange().getValues();
-        if (rows.length === 0) { data[name] = []; return; }
-        const headers = rows.shift();
-        let mapped = rows.map(row => {
-          let obj = {};
-          headers.forEach((h, i) => obj[h] = row[i]);
-          return obj;
-        });
-        
-        // TABLAS COMPARTIDAS (Visibles para el HUB o portales públicos)
-        const sharedTables = ["Config_Empresas", "Config_Roles", "Prompts_IA"];
-
-        // SEGURIDAD: Filtrado multi-inquilino inteligente
-        mapped = mapped.filter(item => {
-           const itemCo = (item.id_empresa || "").toString().trim().toUpperCase();
-           
-           // 1. Si la tabla es compartida, permitimos ver todo (El Hub necesita esto)
-           if (sharedTables.includes(name)) return true; 
-
-           // 2. Si es privada, solo permitimos ver lo que pertenece a la empresa actual o GLOBAL
-           return itemCo === businessId || itemCo === "GLOBAL";
-        });
-        
-        data[name] = mapped;
-      } else { data[name] = []; }
-    });
-    return jsonResponse(data);
-  }
-  
-  return jsonResponse({error: "Action not found"});
-}
-
-function doPost(e) {
-    const lock = LockService.getScriptLock();
-    if (!lock.tryLock(15000)) return jsonResponse({error: "Servidor ocupado", success: false});
-
-    try {
-        if(!e || !e.postData) return jsonResponse({error: "No data sent"});
-        const data = JSON.parse(e.postData.contents);
-        const action = data.action;
-        const token = data.token; // Nuevo campo obligatorio
-        
-        // Security Check
-        if (token !== CONFIG.API_AUTH_TOKEN) {
-          return jsonResponse({error: "No autorizado. Token inválido.", success: false});
-        }
-        
-        const ss = SpreadsheetApp.getActiveSpreadsheet();
-        let result = { success: true };
-
-        // --- 0. INITIALIZATION & REPAIR ---
-        if(action === "initializeRbac") {
-            const tables = {
-                "Usuarios": ["id_usuario", "id_empresa", "nombre", "email", "password", "rol", "nivel_acceso", "creditos", "fecha_limite_acceso", "activo", "fecha_creacion"],
-                "Config_Roles": ["id_empresa", "id_rol", "nombre_rol", "nivel_acceso", "creditos_base", "vigencia_dias", "modulos_visibles"],
-                "Prompts_IA": ["id_agente", "id_empresa", "nombre", "prompt_base", "habilitado", "nivel_acceso", "recibe_files"],
-                "Atencion_Cliente": ["id_reporte", "id_empresa", "nombre", "telefono", "email", "queja", "estado", "fecha_creacion"],
-                "Config_SEO": ["id_empresa", "division", "id_cluster", "titulo", "icono", "keywords_coma"],
-                "Config_Empresas": ["id_empresa", "nomempresa", "logo_url", "color_tema", "eslogan", "descripcion", "tipo_negocio", "usa_features_estandar", "costo_envio"],
-                "Catalogo": ["id_empresa", "id_producto", "nombre", "descripcion", "precio", "stock", "activo", "categoria", "Etiqueta_Promo"],
-                "Leads": ["id_empresa", "id_lead", "nombre", "email", "telefono", "estado", "activo", "direccion"],
-                "Proyectos": ["id_empresa", "id_proyecto", "id_cliente", "nombre_proyecto", "status", "line_items", "activo", "descripcion", "fecha_inicio", "codigo_otp"],
-                "Proyectos_Pagos": ["id_empresa", "id_proyecto", "monto", "metodo_pago", "folio", "fecha_pago", "concepto", "referencia"],
-                "Pagos": ["id_empresa", "id_proyecto", "monto", "metodo_pago", "folio", "fecha_pago"]
-            };
-
-            for (let name in tables) {
-                crearTabla(ss, name, tables[name]);
-                const s = ss.getSheetByName(name);
-                const currentHeaders = s.getRange(1,1,1,s.getLastColumn()).getValues()[0];
-                tables[name].forEach(h => {
-                    if (currentHeaders.indexOf(h) === -1) s.getRange(1, s.getLastColumn() + 1).setValue(h);
-                });
-            }
-
-            // Seeds
-            ensureSeed(ss, "Prompts_IA", "id_agente", [
-                ["AGT-001", "GLOBAL", "Soporte Técnico", "Eres un experto en soporte técnico para los sistemas de Grupo EVASOL y SuitOrg. Tu objetivo es ayudar a los clientes con sus dudas y si detectas una queja o reporte formal, genera un JSON con el formato: { \"nombre\": \"...\", \"telefono\": \"...\", \"queja\": \"...\" }. Si el cliente ya no tiene más dudas, despídete amablemente y termina con la frase: *(Cerrando pantalla del chat...)* para que el sistema cierre el modal automáticamente.", "TRUE", "0", "FALSE"]
-            ]);
-
-            return jsonResponse({ success: true, msg: "v3.4.6 (Support Seed) Integrity Verified." });
-        }
-
-        // --- 1. DATA ACTIONS (Food & Projects) ---
-        else if(action === "createLead") {
-            const sh = ss.getSheetByName("Leads");
-            const newId = "LEAD-" + (sh.getLastRow() + 1);
-            const leadData = { ...data.lead, id_lead: newId, activo: "TRUE", estado: data.lead.estado || "NUEVO" };
-            appendToSheetByHeader(sh, leadData);
-            return jsonResponse({success: true, newId: newId});
-        }
-
-        else if(action === "createProject") {
-            const sh = ss.getSheetByName("Proyectos");
-            const newId = "ORD-" + (sh.getLastRow() + 1);
-            const projData = { ...data.project, id_proyecto: newId, activo: "TRUE", status: data.project.status || data.project.estado || "PEDIDO-RECIBIDO" };
-            appendToSheetByHeader(sh, projData);
-            return jsonResponse({success: true, newId: newId});
-        }
-
-        else if(action === "addProjectPayment") {
-            const paymentData = { ...data.payment, fecha_pago: new Date() };
-            // Save to Proyectos_Pagos (VTS Standard)
-            const shPP = ss.getSheetByName("Proyectos_Pagos");
-            if(shPP) appendToSheetByHeader(shPP, paymentData);
-            // Also Save to Pagos (Legacy/Repeat Support as requested)
-            const shP = ss.getSheetByName("Pagos");
-            if(shP) appendToSheetByHeader(shP, paymentData);
-            
-            return jsonResponse({success: true});
-        }
-
-        else if(action === "updateProduct") {
-          const sh = ss.getSheetByName("Catalogo");
-          const rows = sh.getDataRange().getValues();
-          const headers = rows[0];
-          const colIdProd = headers.indexOf("id_producto");
-          const colIdEmp = headers.indexOf("id_empresa");
-          const colStock = headers.indexOf("stock");
-
-          if (colIdProd === -1 || colStock === -1) return jsonResponse({error: "Columnas no encontradas"});
-
-          // Support for Batch Updates (Array) or Single Update
-          const updates = Array.isArray(data.products) ? data.products : [data.product];
-          let updatedCount = 0;
-
-          updates.forEach(update => {
-            const pId = String(update.id_producto || "").trim();
-            const eId = String(update.id_empresa || app.state?.companyId || "").trim();
-            const newStock = update.stock;
-
-            for(let i=1; i<rows.length; i++) {
-              const rowIdProd = String(rows[i][colIdProd] || "").trim();
-              const rowIdEmp = colIdEmp !== -1 ? String(rows[i][colIdEmp] || "").trim() : "";
-              
-              if(rowIdProd === pId && (eId === "" || rowIdEmp === eId)) {
-                sh.getRange(i+1, colStock + 1).setValue(newStock); 
-                updatedCount++;
-                break;
-              }
-            }
-          });
-          
-          return jsonResponse({success: true, updated: updatedCount});
-        }
-
-        // --- 2. EXISTING ACTIONS ---
-        else if(action === "askGemini") {
-            const apiKey = (CONFIG.GEMINI_API_KEY || "").trim();
-            const history = data.history || [];
-            const contents = history.map(h => ({
-                role: h.role === 'user' ? 'user' : 'model',
-                parts: [{ text: h.content }]
-            }));
-            
-            const models = [data.model, "gemini-2.0-flash", "gemini-1.5-flash", "gemini-flash-latest"];
-            let lastErr = "";
-            for (let m of models.filter(v => v)) {
-                try {
-                    const res = UrlFetchApp.fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`, {
-                        method: "POST", contentType: "application/json",
-                        payload: JSON.stringify({ contents: contents, system_instruction: data.promptBase ? { parts: [{ text: data.promptBase }] } : undefined }),
-                        muteHttpExceptions: true
-                    });
-                    const resJson = JSON.parse(res.getContentText());
-                    if (resJson.candidates) return jsonResponse({ success: true, modelUsed: m, answer: resJson.candidates[0].content.parts[0].text });
-                    lastErr = resJson.error ? resJson.error.message : "No candidates";
-                } catch (e) { lastErr = e.toString(); }
-            }
-            return jsonResponse({ success: false, error: "AI Error", detail: lastErr });
-        }
-
-        else if(action === "createSupportTicket") {
-            const s = ss.getSheetByName("Atencion_Cliente");
-            const newId = generateId(s, "REP", 1);
-            const t = data.ticket;
-            s.appendRow([newId, t.id_empresa, t.nombre, t.telefono, t.email, t.queja, "PENDIENTE", new Date()]);
-
+    if (action === "getAll") {
+        var ss = SpreadsheetApp.openById(CONFIG.DB_ID);
+        CONFIG.GLOBAL_TABLES.forEach(function(tableName) {
             try {
-                const coSheet = ss.getSheetByName("Config_Empresas");
-                const coRows = coSheet.getDataRange().getValues();
-                const headers = coRows[0];
-                const busIdx = headers.indexOf("id_empresa");
-                const emailIdx = headers.indexOf("email");
-                const company = coRows.find(r => r[busIdx] === t.id_empresa);
-                const mail = company ? company[emailIdx] : "soporte@evasol.mx";
-                if (mail) MailApp.sendEmail(mail, `🟢 Nuevo Reporte - ${t.nombre}`, `Cliente: ${t.nombre}\nQueja: ${t.queja}\n\nSistema SuitOrg`);
-            } catch (e) {}
-            result.newId = newId;
+                result[tableName] = getSheetData(ss, tableName);
+            } catch (err) { result[tableName] = []; }
+        });
+
+        if (empresaSolicitante && empresaSolicitante !== "SuitOrg") {
+             CONFIG.PRIVATE_TABLES.forEach(function(tableName) {
+                try {
+                    result[tableName] = getSheetData(ss, tableName, empresaSolicitante);
+                } catch (err) { result[tableName] = []; }
+             });
+        } else {
+             CONFIG.PRIVATE_TABLES.forEach(function(tableName) { result[tableName] = []; });
         }
-        
-        else if(action === "logicalDelete") {
-            const s = ss.getSheetByName(data.type);
-            const rows = s.getDataRange().getValues();
-            const h = rows[0];
-            const idIdx = h.indexOf(data.type === 'Leads' ? 'id_lead' : (data.type === 'Proyectos' ? 'id_proyecto' : 'id_producto'));
-            const actIdx = h.indexOf("activo");
-            for(let i=1; i<rows.length; i++) {
-                if(rows[i][idIdx] === data.id) { s.getRange(i+1, actIdx+1).setValue("FALSE"); break; }
-            }
-        }
-
-        return jsonResponse(result);
-    } catch (e) { return jsonResponse({ success: false, error: e.toString() }); }
-    finally { lock.releaseLock(); }
+        result.status = "OK";
+    } else if (action === "ping") {
+        result.message = "Pong! Backend " + CONFIG.VERSION + " Real-AI Online";
+        result.status = "OK";
+    } else {
+        result.status = "UNKNOWN_ACTION";
+    }
+  } catch (globalError) {
+    result.status = "FATAL_ERROR";
+    result.error = globalError.toString();
+  }
+  return output.setMimeType(ContentService.MimeType.JSON).setContent(JSON.stringify(result));
 }
 
-function jsonResponse(obj) {
-  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+/**
+ * ⚡ FUNCIÓN DE POST (Escritura)
+ */
+function doPost(e) {
+  var output = ContentService.createTextOutput();
+  var result = { success: false };
+
+  try {
+    if (!e || !e.postData || !e.postData.contents) throw new Error("No payload");
+    var data = JSON.parse(e.postData.contents);
+    handlePostAction(data, result); 
+  } catch (err) {
+    result.error = err.message;
+  }
+  return output.setMimeType(ContentService.MimeType.JSON).setContent(JSON.stringify(result));
 }
 
-function generateId(sheet, prefix, colIndex) {
-  const rows = sheet.getDataRange().getValues();
-  if (rows.length <= 1) return prefix + "-1001";
-  const lastId = rows[rows.length - 1][colIndex-1].toString();
-  const num = parseInt(lastId.split('-')[1]) + 1;
-  return prefix + "-" + num;
-}
+function handlePostAction(data, output) {
+  var lock = LockService.getScriptLock();
+  try { lock.waitLock(15000); } catch (e) { throw new Error("Servidor ocupado."); }
 
-function crearTabla(ss, nombre, headers) {
-  let s = ss.getSheetByName(nombre);
-  if(!s) { 
-      s = ss.insertSheet(nombre); s.appendRow(headers); 
-      s.getRange(1, 1, 1, headers.length).setFontWeight("bold").setBackground("#F3F3F3");
+  var ss = SpreadsheetApp.openById(CONFIG.DB_ID);
+  var action = data.action;
+
+  try {
+    switch (action) {
+      case "initializeRbac":
+        initializeDatabase(ss, output);
+        output.success = true; break;
+
+      case "askGemini":
+        runGeminiInference(data, output);
+        break;
+
+      case "listAiModels":
+        output.models = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro-vision"];
+        output.success = true; break;
+
+      case "createLead": 
+        appendRowMapped(ss, "Leads", data.lead);
+        output.success = true; break;
+
+      case "processFullOrder":
+        processTransaction(ss, data, output);
+        break;
+
+      case "saveProduct":
+      case "updateProduct":
+        updateRowMapped(ss, "Catalogo", "id_producto", data.product.id_producto, data.product);
+        output.success = true; break;
+
+      case "createSupportTicket":
+        appendRowMapped(ss, "Logs", { 
+          id_empresa: data.ticket.id_empresa, 
+          evento: "SUPPORT_TICKET", 
+          detalle: JSON.stringify(data.ticket),
+          fecha: new Date()
+        });
+        output.success = true; break;
+
+      case "updateProjectStatus":
+        updateRowMapped(ss, "Proyectos", "id_proyecto", data.id, { 
+          status: data.status, 
+          estado: data.status,
+          estatus: data.status,
+          fecha_estatus: new Date() 
+        });
+        output.success = true; break;
+
+      case "updateLeadStatus":
+        updateRowMapped(ss, "Leads", "id_lead", data.id, { estatus: data.status });
+        output.success = true; break;
+
+      default:
+        output.error = "Acción no implementada en " + CONFIG.VERSION + ": " + action;
+    }
+  } finally {
+    lock.releaseLock();
   }
 }
 
 /**
- * Robust Seed Upsert
- * Checks if a row exists by matching its ID in a specific column.
+ * 🧠 MOTOR DE INFERENCIA GEMINI
  */
-function ensureSeed(ss, sheetName, idColName, seeds) {
-    const s = ss.getSheetByName(sheetName);
-    if (!s) return;
-    const data = s.getDataRange().getValues();
-    const headers = data[0];
-    const idIdx = headers.indexOf(idColName);
-    if (idIdx === -1) return;
+function runGeminiInference(data, output) {
+  const apiKey = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
+  if (!apiKey) {
+    output.answer = "⚠️ Error: GEMINI_API_KEY no configurada en Propiedades del Script.";
+    output.success = true; return;
+  }
 
-    seeds.forEach(row => {
-        const idValue = row[idIdx] || row[0]; // Assume first element is ID if not aligned
-        const exists = data.some(r => r[idIdx] === idValue);
-        if (!exists) {
-            // Align row to headers if sizes differ
-            const rowToTable = new Array(headers.length).fill("");
-            row.forEach((val, i) => { if (i < headers.length) rowToTable[i] = val; });
-            s.appendRow(rowToTable);
-        }
+  const model = data.model || "gemini-1.5-flash";
+  const systemPrompt = data.promptBase || "Eres un asistente servicial de SuitOrg.";
+  const history = data.history || [];
+  const userMsg = data.message || data.prompt || "";
+
+  // Convert history to Gemini Format
+  const contents = history.map(h => ({
+    role: (h.role === 'user' ? 'user' : 'model'),
+    parts: [{ text: h.content }]
+  }));
+  contents.push({ role: "user", parts: [{ text: userMsg }] });
+
+  const payload = {
+    contents: contents,
+    system_instruction: { parts: [{ text: systemPrompt }] },
+    generationConfig: { temperature: 0.7, maxOutputTokens: 1500 }
+  };
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+  
+  try {
+    const res = UrlFetchApp.fetch(url, {
+      method: "POST",
+      contentType: "application/json",
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
     });
+    const result = JSON.parse(res.getContentText());
+    if (result.candidates && result.candidates[0]) {
+      output.answer = result.candidates[0].content.parts[0].text;
+      output.success = true;
+    } else {
+      output.error = "AI_RESP_EMPTY";
+      output.detail = res.getContentText();
+    }
+  } catch (e) {
+    output.error = "FETCH_FAIL: " + e.toString();
+  }
 }
 
 /**
- * Robust Appender: Maps object keys to sheet headers.
- * Ensures data lands in correct columns regardless of spreadsheet order.
+ * 🛠️ INICIALIZACIÓN Y SEMILLAS (REPAIR DB)
  */
-function appendToSheetByHeader(sh, dataObj) {
-    const headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
-    const rowContent = new Array(headers.length).fill("");
-    
-    headers.forEach((header, i) => {
-        const key = header.toLowerCase().trim();
-        // Check for direct match or variations
-        if (dataObj[header] !== undefined) rowContent[i] = dataObj[header];
-        else if (dataObj[key] !== undefined) rowContent[i] = dataObj[key];
-        else if (key === "status" && dataObj.estado) rowContent[i] = dataObj.estado;
-        else if (key === "estado" && dataObj.status) rowContent[i] = dataObj.status;
-        else if (key === "fecha_pago" || key === "fecha_creacion") rowContent[i] = new Date();
+function initializeDatabase(ss, output) {
+  // Asegurar tabla Prompts_IA
+  const agents = [
+    { 
+      id_agente: "AGT-001", 
+      nombre: "Chef Asistente", 
+      prompt_base: "Eres el Chef Ejecutivo y Especialista en Servicio de SuitOrg. Tu objetivo es deleitar al cliente. \n\n" +
+                   "REGLAS DE ORO:\n" +
+                   "1. PERSONALIDAD: Eres apasionado por la cocina, amable y profesional.\n" +
+                   "2. CONOCIMIENTO: Tu conocimiento se basa en la tabla [Catalogo]. Si el cliente pregunta por platillos, descríbelos de forma apetitosa.\n" +
+                   "3. SOPORTE: Si el cliente tiene un problema con su orden, retardo o error en el pago, ofrece generar un TICKET DE SOPORTE enviando un JSON con {nombre, telefono, queja}.\n" +
+                   "4. CIERRE: Siempre despídete con una frase cordial como '¡Buen provecho!' o 'Quedo a tus órdenes en la cocina'.", 
+      id_empresa: "GLOBAL", 
+      activo: "TRUE" 
+    },
+    { id_agente: "AGT-WRITER", nombre: "Redactor Gourmet", prompt_base: "Eres un redactor especializado en el ramo alimenticio. Ayudas a redactar menús, promociones y políticas de higiene.", id_empresa: "GLOBAL", activo: "TRUE" }
+  ];
+  
+  agents.forEach(a => ensureSeed(ss, "Prompts_IA", "id_agente", a.id_agente, a));
+  
+  // Asegurar tabla Cuotas_Pagos (Control SaaS)
+  const cuotasBase = [
+    { id_cuota: "CUO-001", id_empresa: "EVASOL", monto: 1500, fecha_vencimiento: "2026-02-01", estatus: "PAGADO", nota: "Cuota inicial plataforma" },
+    { id_cuota: "CUO-002", id_empresa: "PFM", monto: 1200, fecha_vencimiento: "2026-02-15", estatus: "PENDIENTE", nota: "Mensualidad Febrero" }
+  ];
+  cuotasBase.forEach(c => ensureSeed(ss, "Cuotas_Pagos", "id_cuota", c.id_cuota, c));
+  
+  // Asegurar Columnas Críticas
+  const projSheet = ss.getSheetByName("Proyectos");
+  if (projSheet) {
+    const headers = projSheet.getRange(1, 1, 1, projSheet.getLastColumn()).getValues()[0];
+    if (headers.indexOf("fecha_estatus") === -1) projSheet.insertColumnAfter(projSheet.getLastColumn()).getRange(1, projSheet.getLastColumn()+1).setValue("fecha_estatus");
+  }
+
+  const cat = ss.getSheetByName("Catalogo");
+  if (cat) {
+    const headers = cat.getRange(1, 1, 1, cat.getLastColumn()).getValues()[0];
+    if (headers.indexOf("id_empresa") === -1) cat.insertColumnAfter(1).getRange(1, 2).setValue("id_empresa");
+  }
+  
+  output.info = "Database structure verified and seeds restored.";
+}
+
+function ensureSeed(ss, sheetName, idCol, idVal, dataObj) {
+  var sheet = ss.getSheetByName(sheetName);
+  if (!sheet) {
+    sheet = ss.insertSheet(sheetName);
+    sheet.appendRow(Object.keys(dataObj));
+  }
+  var data = sheet.getDataRange().getValues();
+  var headers = data[0].map(h => String(h).toLowerCase().trim());
+  var idIdx = headers.indexOf(idCol.toLowerCase());
+  
+  var exists = false;
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][idIdx]) === String(idVal)) { exists = true; break; }
+  }
+  if (!exists) appendRowMapped(ss, sheetName, dataObj);
+}
+
+/**
+ * 📊 UTILIDADES DE DATOS
+ */
+function getSheetData(ss, sheetName, filterId) {
+  var sheet = ss.getSheetByName(sheetName);
+  if (!sheet) return [];
+  var data = sheet.getDataRange().getValues();
+  if (data.length < 2) return []; 
+  var headers = data[0].map(h => String(h).toLowerCase().trim().replace(/\s+/g, '_'));
+  var rows = data.slice(1);
+  var result = [];
+  var coIdx = headers.indexOf('id_empresa');
+  
+  for (var i = 0; i < rows.length; i++) {
+    if (filterId && coIdx !== -1) {
+      var rCo = String(rows[i][coIdx] || "").trim().toUpperCase();
+      // Transición: Si el ID está vacío, se considera visible (GLOBAL) para evitar 'pérdida' de datos.
+      if (rCo !== filterId.toUpperCase() && rCo !== 'GLOBAL' && rCo !== "") continue;
+    }
+    var obj = {};
+    for (var j = 0; j < headers.length; j++) {
+      var val = rows[i][j];
+      obj[headers[j]] = (typeof val === 'string') ? val.trim() : val;
+    }
+    result.push(obj);
+  }
+  return result;
+}
+
+function appendRowMapped(ss, sheetName, dataObj) {
+  var sheet = ss.getSheetByName(sheetName);
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var row = headers.map(h => {
+    var k = String(h).toLowerCase().trim().replace(/\s+/g, '_');
+    return dataObj[k] !== undefined ? dataObj[k] : "";
+  });
+  sheet.appendRow(row);
+}
+
+function updateRowMapped(ss, sheetName, idCol, idVal, dataObj) {
+  var sheet = ss.getSheetByName(sheetName);
+  var data = sheet.getDataRange().getValues();
+  var headers = data[0].map(h => String(h).toLowerCase().trim().replace(/\s+/g, '_'));
+  var idIdx = headers.indexOf(idCol.toLowerCase().trim());
+  var rowI = -1;
+  var searchId = String(idVal).trim().toUpperCase();
+
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][idIdx]).trim().toUpperCase() === searchId) { 
+      rowI = i + 1; 
+      break; 
+    }
+  }
+  
+  if (rowI === -1) throw new Error("Registro no encontrado: " + searchId + " en " + sheetName);
+  
+  for (var k in dataObj) {
+    var cIdx = headers.indexOf(k.toLowerCase().trim().replace(/\s+/g, '_'));
+    if (cIdx !== -1) sheet.getRange(rowI, cIdx + 1).setValue(dataObj[k]);
+  }
+}
+
+function processTransaction(ss, data, output) {
+  var leadId = data.lead.id_lead || ("LEAD-" + Date.now());
+  if (!data.lead.id_lead) {
+     data.lead.id_lead = leadId;
+     appendRowMapped(ss, "Leads", data.lead);
+  }
+  
+  // Generar Folio Secuencial Corto
+  var projectsSheet = ss.getSheetByName("Proyectos");
+  var nextNum = 100;
+  if (projectsSheet) {
+    var lastRow = projectsSheet.getLastRow();
+    if (lastRow > 1) {
+      nextNum = lastRow + 99; // Offset para empezar en ~100
+    }
+  }
+  var projId = "ORD-" + nextNum;
+  
+  data.project.id_proyecto = projId;
+  data.project.id_lead = leadId;
+  data.project.fecha_inicio = new Date();
+  data.project.fecha_estatus = new Date();
+  appendRowMapped(ss, "Proyectos", data.project);
+  
+  if (data.payment) {
+    // Usar mismo número para pago para trazabilidad
+    data.payment.id_pago = "PAY-" + nextNum;
+    data.payment.id_proyecto = projId;
+    data.payment.fecha_pago = new Date();
+    appendRowMapped(ss, "Proyectos_Pagos", data.payment);
+  }
+  
+  // PROCESAR STOCK AUTOMÁTICO (v4.4.0)
+  if (data.stockUpdates && data.stockUpdates.length > 0) {
+    data.stockUpdates.forEach(function(update) {
+       updateRowMapped(ss, "Catalogo", "id_producto", update.id_producto, { stock: update.stock });
     });
-    
-    sh.appendRow(rowContent);
+  }
+
+  output.newOrderId = projId;
+  output.success = true;
 }

@@ -1,0 +1,229 @@
+app.agents = {
+    run: (agentName) => {
+        const box = document.getElementById('agent-output-box');
+        const output = document.getElementById('agent-response');
+        const title = document.getElementById('agent-title');
+        box.classList.remove('hidden');
+        title.innerText = `⏳ ${agentName} pensando...`;
+        output.value = "Conectando con la red neuronal de EVASOL...";
+        setTimeout(() => {
+            title.innerText = `✅ Respuesta del ${agentName}`;
+            let response = "";
+            const leads = app.data.Leads.length;
+            const projs = app.data.Proyectos.length;
+            const docs = app.data.Empresa_Documentos.length;
+            if (agentName === 'Escritor') {
+                response = `[BORRADOR GENERADO]\n\nBasado en la estructura de EVASOL y los ${docs} documentos sincronizados, estoy listo para redactar.`;
+            } else if (agentName === 'Analista') {
+                response = `[ANÁLISIS DE DATOS REAL]\n\n📊 Resumen de Operaciones:\n- Leads: ${leads}\n- Proyectos: ${projs}\n- Base de Conocimiento: ${docs} archivos.`;
+            } else if (agentName === 'Marketing') {
+                response = `[ESTRATEGIA]\n\nUsando el nombre "${app.state.companyId}", podemos lanzar una campaña resaltando nuestros ${projs} proyectos exitosos.`;
+            } else if (agentName === 'Negocio') {
+                response = `[INTELIGENCIA DE NEGOCIO]\n\nDetecto ${docs} documentos. Si sincronizas el 'Acta Constitutiva', podré detallar la estructura legal.`;
+            }
+            output.value = response;
+        }, 1000);
+    },
+    select: (agtId) => {
+        const agt = (app.data.Prompts_IA || []).find(a => a.id_agente === agtId);
+        if (!agt) {
+            console.error(`AGENT_NOT_FOUND: ${agtId}. Please run Repair DB in Maintenance.`);
+            if (agtId === 'AGT-001') {
+                alert("El sistema de soporte se está inicializando. Por favor, asegúrate de haber 'Reparado la Base de Datos' en el panel de Staff.");
+            }
+            return;
+        }
+        app.state.currentAgent = agt;
+        app.state.chatHistory = []; // Reset history for new session
+        document.getElementById('agent-display-name').innerText = agt.nombre;
+        document.getElementById('ai-chat-modal').classList.remove('hidden');
+        const historyDiv = document.getElementById('chat-history');
+        historyDiv.innerHTML = `
+    <div class="ai-msg" style="background: white; padding: 12px; border-radius: 8px; border-left: 4px solid var(--primary-color); max-width: 80%; align-self: flex-start; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+        Hola, soy tu <b>${agt.nombre}</b>. ¿En qué puedo apoyarte hoy?
+    </div>
+    `;
+        // Scroll to chat top
+        historyDiv.scrollTop = 0;
+        // Inactivity monitor for the chat specifically
+        app.state._lastChatActivity = Date.now();
+        const checkInactivity = setInterval(() => {
+            if (!app.state.currentAgent) {
+                clearInterval(checkInactivity);
+                return;
+            }
+            const idleSeconds = (Date.now() - app.state._lastChatActivity) / 1000;
+            if (idleSeconds > 45) { // 45 seconds of idle in chat = auto close
+                if (app.state.currentAgent) {
+                    app.agents.addMessageToUI('ai', `Hola, soy tu ${app.state.currentAgent.nombre}. ¿En qué puedo apoyarte hoy?`);
+                    app.agents.closeChat();
+                }
+            }
+        }, 5000); // Changed from 300 to 5000 to match original interval
+    },
+    closeChat: () => {
+        document.getElementById('ai-chat-modal').classList.add('hidden');
+        app.state.currentAgent = null;
+    },
+    handleFileUpload: async (input) => {
+        if (input.files && input.files[0]) {
+            app.state.chatFileBuffer = await app.ui.fileToBase64(input.files[0]);
+            const btn = document.getElementById('btn-attach-chat');
+            btn.innerHTML = '<i class="fas fa-check" style="color:green;"></i>';
+            // Auto focus back to input
+            document.getElementById('chat-user-input').focus();
+        }
+    },
+    diagnoseAi: async () => {
+        app.ui.updateConsole("AI_DIAGNOSING...");
+        try {
+            const res = await fetch(app.apiUrl, {
+                method: 'POST',
+                headers: { "Content-Type": "text/plain" },
+                body: JSON.stringify({ action: 'listAiModels', token: app.apiToken })
+            });
+            const data = await res.json();
+            if (data.success) {
+                const models = data.models || [];
+                // Pick the best available: 2.5 > 2.0 > 1.5 > first
+                const best = models.find(m => m.includes('2.5-flash')) ||
+                    models.find(m => m.includes('2.0-flash')) ||
+                    models.find(m => m.includes('1.5-flash')) ||
+                    models[0];
+                app.state._aiModel = best;
+                localStorage.setItem('evasol_ai_model', best);
+                alert(`✅ Diagnóstico Exitoso.\n\nModelos detectados:\n${models.join('\n')}\n\nSeleccionado para uso: ${best}\n\nConfiguración guardada permanentemente.`);
+                app.ui.updateConsole("AI_READY");
+            } else {
+                alert("❌ Error de Diagnóstico: " + data.error);
+                app.ui.updateConsole("AI_FAIL", true);
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Error de conexión al diagnosticar IA.");
+        }
+    },
+    sendMessage: async () => {
+        const input = document.getElementById('chat-user-input');
+        const text = input.value.trim();
+        if (!text || !app.state.currentAgent) return;
+        // 1. Add User Message to UI
+        app.agents.addMessageToUI('user', text);
+        input.value = '';
+        app.state._lastChatActivity = Date.now();
+        // 2. Prepare History for AI
+        app.state.chatHistory.push({ role: 'user', content: text });
+        // 3. Show Loading
+        document.getElementById('ai-loading').classList.remove('hidden');
+        document.getElementById('btn-send-chat').disabled = true;
+        app.ui.updateConsole("AI_PROCESSING...");
+        try {
+            // 4. Call Backend Proxy
+            const response = await fetch(app.apiUrl, {
+                method: 'POST',
+                headers: { "Content-Type": "text/plain" },
+                body: JSON.stringify({
+                    action: 'askGemini',
+                    agentId: app.state.currentAgent.id_agente,
+                    promptBase: app.state.currentAgent.prompt_base,
+                    history: app.state.chatHistory,
+                    message: text,
+                    model: app.state._aiModel || localStorage.getItem('evasol_ai_model') || "gemini-1.5-flash",
+                    token: app.apiToken
+                })
+            });
+            const data = await response.json();
+            if (data.success) {
+                app.agents.addMessageToUI('ai', data.answer);
+                app.state.chatHistory.push({ role: 'model', content: data.answer });
+            } else {
+                let fullError = data.error || "No se pudo conectar con la IA.";
+                if (data.detail) fullError += "\n\nDetalle técnico: " + data.detail;
+                app.agents.addMessageToUI('ai', "❌ Error: " + fullError);
+            }
+        } catch (e) {
+            console.error(e);
+            app.ui.updateConsole("AI_CONN_FAIL", true);
+            app.agents.addMessageToUI('ai', "❌ Error de conexión con el servidor.");
+        } finally {
+            document.getElementById('ai-loading').classList.add('hidden');
+            document.getElementById('btn-send-chat').disabled = false;
+        }
+    },
+    addMessageToUI: (role, text) => {
+        const historyDiv = document.getElementById('chat-history');
+        const msgDiv = document.createElement('div');
+        const isAi = role === 'ai';
+        msgDiv.className = isAi ? 'ai-msg' : 'user-msg';
+        // Inline Styles for simplicity
+        msgDiv.style.padding = '12px';
+        msgDiv.style.borderRadius = '8px';
+        msgDiv.style.maxWidth = '80%';
+        msgDiv.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)';
+        msgDiv.style.marginBottom = '10px';
+        if (isAi) {
+            msgDiv.style.background = 'white';
+            msgDiv.style.borderLeft = '4px solid var(--primary-color)';
+            msgDiv.style.alignSelf = 'flex-start';
+            // Detect JSON for automatic ticket triggering
+            if (text.includes('{') && text.includes('}')) {
+                try {
+                    const potentialJson = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+                    const ticket = JSON.parse(potentialJson);
+                    if (ticket.nombre && (ticket.queja || ticket.reporte)) {
+                        app.agents.sendSupportTicket(ticket);
+                        msgDiv.innerHTML = "✅ Reporte generado y enviado con éxito. Cerrando chat...";
+                        historyDiv.appendChild(msgDiv);
+                        return;
+                    }
+                } catch (e) { }
+            }
+            // Close chat automatically if AI says a closing phrase
+            const lowerText = text.toLowerCase();
+            const closePhrases = ["cerrando pantalla", "cerrando chat", "finalizar esta sesión", "finalizar la sesión", "hasta pronto", "que tengas un excelente día"];
+            if (closePhrases.some(p => lowerText.includes(p))) {
+                setTimeout(() => {
+                    if (app.state.currentAgent) app.agents.closeChat();
+                }, 5000);
+            }
+            msgDiv.innerHTML = text.replace(/\n/g, '<br>'); // Simple break formatting
+        } else {
+            msgDiv.style.background = 'var(--primary-color)';
+            msgDiv.style.color = 'white';
+            msgDiv.style.alignSelf = 'flex-end';
+            msgDiv.innerText = text;
+        }
+        historyDiv.appendChild(msgDiv);
+        historyDiv.scrollTop = historyDiv.scrollHeight;
+    },
+    sendSupportTicket: async (ticketData) => {
+        app.ui.updateConsole("SENDING_TICKET...");
+        try {
+            const currentCo = app.data.Config_Empresas.find(c => c.id_empresa === app.state.companyId);
+            const response = await fetch(app.apiUrl, {
+                method: 'POST',
+                headers: { "Content-Type": "text/plain" },
+                body: JSON.stringify({
+                    action: 'createSupportTicket',
+                    ticket: {
+                        id_empresa: app.state.companyId,
+                        nombre: ticketData.nombre,
+                        telefono: ticketData.telefono,
+                        email: ticketData.email || currentCo?.email || "n/a",
+                        queja: ticketData.queja || ticketData.reporte
+                    },
+                    token: app.apiToken
+                })
+            });
+            const res = await response.json();
+            if (res.success) {
+                app.ui.updateConsole("TICKET_SENT");
+                setTimeout(() => {
+                    app.agents.closeChat();
+                    alert("¡Gracias! Tu reporte ha sido enviado al equipo de soporte.");
+                }, 1500);
+            }
+        } catch (e) { console.error(e); }
+    }
+
+};

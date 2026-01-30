@@ -1,8 +1,6 @@
 ---
-description: Garantiza la integridad técnica (versiones) y documental (manuales/roadmap) del sistema.
+description: Sincronización técnica de versiones y actualización de documentación para el backend.
 ---
-# Workflow: Integridad Total (Sincronización y Mantenimiento)
-
 Este workflow unifica la sincronización técnica de versiones con la actualización de la documentación para asegurar que el sistema y su manual siempre coincidan.
 
 ### 1. Sincronización Técnica (Versiones)
@@ -10,11 +8,14 @@ Este paso es **obligatorio** tras cualquier cambio en `app.js` o `backend_schema
 
 1.  **Actualizar Backend**:
     - Incrementar la versión en el encabezado de `backend_schema.gs`.
-    - Actualizar Fecha y Hora de modificación.
-    - Asegurar que `CONFIG.VERSION` coincida.
-2.  **Auditoría de Líneas**:
-    - Contar líneas reales de `app.js`, `style.css`, `index.html` y `backend_schema.gs`.
-    - Actualizar el bloque "AUDITORÍA DE LÍNEAS" en el backend.
+  3.  **Actualizar Versión en Frontend (`js/modules/core.js`)**:
+    - Modificar la constante `app.version` y la cabecera del archivo para que coincida exactamente con la del backend.
+4.  **Actualizar Metadata en Documentación**:
+    -   Modificar la bitácora técnica (`tech_manual.md`).
+    -   Actualizar hitos en `roadmap.md`.
+5.  **Audit de Líneas**:
+    -   Contar líneas de `index.html`, `style.css`, `app.js` y el total de la carpeta `js/modules/`.
+    -   Actualizar la tabla de auditoría en el header de `backend_schema.gs` y en `tech_manual.md`.
 3.  **Aviso de Apps Script**:
     - Informar EXPLÍCITAMENTE al usuario que debe copiar el código al editor de Google Apps Script.
 4.  **Verificación de Semillas (Seeds)**:
@@ -30,14 +31,3 @@ Asegura que el conocimiento del sistema no se pierda.
 2.  **Hoja de Ruta (`roadmap.md`)**:
     - Marcar tareas completadas.
     - Actualizar la versión actual en la base del documento.
-
-### 3. Registro de Soluciones
-Si el cambio solucionó un error o implementó una lógica compleja:
-- Invocar `/optimizacion-recursos` para registrar la "Huella Digital".
-
----
-// turbo
-### 4. Verificación de Cierre
-- ¿La versión en `backend_schema.gs` coincide con la auditoría?
-- ¿El conteo de líneas en `tech_manual.md` es exacto?
-- ¿Se informó al usuario sobre la actualización manual del Script?

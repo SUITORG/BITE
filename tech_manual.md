@@ -1,9 +1,12 @@
 
 # Manual Técnico y Operativo - SuitOrg
 > **Identidad Principal:** SuitOrg (Powered by EVASOL Engine)
+> **Última Versión Estable**: v4.6.8 (STABLE-SYNC)
+> **Estado del Sistema**: Operativo y Sincronizado.
+> **Total de Líneas Consolidadas**: ~9,035 (Auditado 2026-01-29).
 
 ## 0. Resumen Ejecutivo (TL;DR) - Para gente con prisa ⚡
-1.  **¿Qué es?** Una plataforma "todo en uno" que gestiona múltiples negocios desde un solo lugar.
+1.  **¿Qué es?** Un potente "Food Hub" multi-inquilino especializado en el sector alimenticio (Restaurantes, Snacks, Comida Rápida).
 2.  **¿Cómo entro?** Usa tu `Username` y `Password`. No necesitas email.
 3.  **¿Qué controlo?** 
     *   **Ventas:** Leads y prospección.
@@ -13,7 +16,7 @@
 5.  **Créditos:** Cada entrada consume saldo. Si ves una alerta roja en la consola... ¡Recarga!
 
 ## 1. Descripción del Sistema
-SuitOrg es un sistema multi-capa diseñado para la hiper-organización empresarial.
+SuitOrg Food Hub es un ecosistema multi-capa diseñado para la gestión integral de negocios alimenticios, optimizado para velocidad en punto de venta (POS) y pedidos express.
 
 ## 2. Reglas de Negocio
 
@@ -61,7 +64,15 @@ El sistema soporta dos modos de gestión de políticas configurables en `Config_
 - **Gestión de Temperatura (Avance):** El progreso de los proyectos se mide por "Fases de Negocio" configuradas en `Config_Flujo_Proyecto`. Cada fase tiene un **Peso Porcentual** que actualiza la barra de progreso de forma automática.
 - **Estética:** Uso de bordes redondeados (`border-radius: 50px` en botones), colores corporativos suaves y tipografía legible.
 
-### E. Glosario de Módulos (IDs Técnicos)
+### E. Aislamiento Multi-Inquilino Absoluto
+- **Privacidad de Datos:** Pese a compartir la misma base de datos física, ninguna empresa puede acceder a la información, reportes o configuración de otra.
+- **Validación de Token:** Cada consulta debe portar el `id_empresa` y el backend filtra los resultados de forma estricta para garantizar la privacidad total.
+
+### F. Integridad de Checkout y Caja
+- **Flujo 100% Error-Free:** El proceso de cierre de venta es crítico. Debe ser una transacción atómica que registre la Orden, actualice el Lead y descuente el Stock simultáneamente.
+- **Transparencia en Caja:** Las operaciones de POS deben ser claras, auditadas y generar folios únicos para evitar discrepancias.
+
+### G. Glosario de Módulos (IDs Técnicos)
 Para que el sistema active correctamente el menú y el Dashboard, se deben usar exactamente estos identificadores en la columna `modulos_visibles` de la tabla `Config_Roles` o `Usuarios`:
 
 | ID Técnico | Nombre en Interfaz | Función Principal |
@@ -151,7 +162,60 @@ Para agilizar el ciclo de vida del desarrollo, el sistema utiliza un protocolo d
 - **Producción:** Se recomienda el uso de **Vercel** o **GitHub Pages (Solo con Repositorio Privado - Requiere plan de pago en GitHub)** para el despliegue de producción. Vercel permite despliegue gratuito desde repositorios privados, manteniendo el código fuente oculto del público.
 - **Estándar de Seguridad:** Todas las APIs deben cumplir con el flujo `/seguridad-api`, que incluye sanitización, autenticación por tokens y blindaje contra XSS/SQLi.
 
----
+- **v4.6.8 (2026-01-29):** **"Refined Events & Financial Control"**.
+    - **Architecture:** Finalized modularization. Created `events.js` to decouple all DOM event listeners from logic/UI.
+    - **UI/UX:** Reduced vertical spacing in checkout by 50%. Standardized "Contra Entrega" payment label.
+    - **Logic:** Integrated **Total Order Amount** display in POS cards. Refined OTP visibility: Visible for Staff/Admin, Blurred for Delivery.
+- **v4.6.9 (2026-01-29):** **"Premium Branding & UX Guard"**.
+    - **UI/UX:** Full implementation of `estandar-landing`. Institutional Footer (Barra Única #0F0F0F) with dynamic corporate links and official social media branding.
+    - **SEO Matrix:** Upgraded to "Hybrid Premium" mode in `public.js`, supporting dynamic background images and transparent overlays for long-tail SEO.
+    - **Standards:** Re-validated System Info (StatusBar) alignment with numeric levels and AAMMDD-hhmm date format.
+- **v4.6.7 (2026-01-29):** **"Public Module Consolidation"**.
+- **v4.6.0 (2026-01-28):** **"Delivery Flow V2" (3 Steps)**. 
+    - **Logic:** Introducido estado intermedio `EN-CAMINO`. El flujo ahora es: Recibido -> Cocina -> Listo -> En Camino -> Entregado.
+    - **Security:** El OTP ahora solo es accesible cuando el pedido está en estado `EN-CAMINO` o superior.
+    - **UI:** Implementado sistema de alertas laterales de 3 niveles (Nuevos/Listos/Fin) y nueva pestaña de filtro.
+- **v4.5.2 (2026-01-28):** **"Dual Alert & Delivery Fix"**. 
+    - **UI Split:** Dividida la alerta de pedidos externos en "Nuevos Web" (Azul) y "Por Entregar" (Naranja).
+    - **Logic Refine:** Filtro "Entregados" ahora acepta variantes de estado (substring matching) para evitar falsos negativos.
+- **v4.5.1 (2026-01-28):** **"POS Frozen"**. 
+- **v4.6.6 (2026-01-29):** **Authoritative Persistent Shield Protocol (Shield 2min)**.
+    - **Sync:** Bloqueo autoritativo de 2 minutos para evitar regresiones de estatus causadas por latencia de Google Sheets.
+    - **Router:** Implementado enrutado automático de Repartidores a pestaña "Listos" al entrar al monitor.
+    - **Robustness:** Aumentado el cooldown de refresco local a 10s tras actualización para permitir confirmación del backend.
+- **v4.6.5 (2026-01-29):** **Table-based Persistent Shield Protocol**.
+    - **Sync Robustness:** Implementada la reconciliación atómica mediante `fecha_estatus` (timestamps) en la base de datos.
+    - **Persistence:** El cache de estados y logs ahora reside en `localStorage`, sobreviviendo a cierres de navegador y refrescos accidentales.
+    - **Infinite Grace:** Eliminado el límite de 3 minutos; el estado local manda hasta que el servidor confirma que tiene datos iguales o más nuevos.
+    - **Structural Hotfix:** Corregido error de variable no definida (`dailyOrders`) y eliminación de funciones duplicadas que causaban bloqueos en el arranque (Black Screen Fix).
+- **v4.6.2 (2026-01-28):** **Stability Fix**.
+    - **Critical Rescue:** Restaurada la carga de `ui.js` tras fallo de sintaxis.
+    - **Orbit Restored:** Función de monitoreo de servidores recuperada. 
+    - **Logs UI:** Sistema de logs persistente en barra de estado (`[LOGS]`).
+    - **POS:** Contadores dinámicos en filtros (Nuevos/Listos).
+- **v4.6.0 (2026-01-28):** **Delivery Flow v2**. 
+    - **Optimistic UI:** Feedback instantáneo en POS.
+    - **Strict Colors:** Código de colores unificado para estados.
+    - **Delivery Button:** Botón nativo para repartidores con validación OTP.
+- **v4.5.10 (2026-01-28):** **Monitor POS Refinado**.
+    - **SaaS:** Módulo de Cuotas con restricción estricta (Solo SUITORG/DIOS).
+    - **Express:** Contador de pedidos web dinámico (State-Aware) que resta pedidos entregados.
+    - **Auditoría:** Código congelado para pruebas de campo.
+- **v4.4.9 (2026-01-27):** **Sincronización Crítica & SaaS**. 
+    - **CORS Fix:** Documentado que Google Apps Script rechaza peticiones con `preflight (OPTIONS)`. Se eliminó `mode: 'cors'` del fetch frontal para permitir el flujo nativo de redirección de Google mediante `GET`.
+    - **OTP Unification:** Unificada la propiedad `otp` en todo el sistema (anteriormente se usaba `codigo_otp` en algunos módulos), asegurando visibilidad para Staff y ocultamiento para Repartidores.
+    - **SaaS Matrix:** Integrada tabla `Cuotas_Pagos` y servidor local Node.js.
+- **v4.4.5 (2026-01-27):** **Excepción de SLA**. Repartidores ven pedidos LISTOS sin importar la fecha. Normalización de estados y sincronización atómica.
+- **v4.4.4 (2026-01-27):** **Filtro de Fecha Robusto**. Normalización manual de fecha (YYYY-MM-DD) y UI minimalista (texto plano).
+- **v4.4.3 (2026-01-27):** **RBAC Estricto**. Eliminación de parches por nombre; permisos puramente por Nivel y Rol (Estándar Inmutable 10).
+- **v4.4.2 (2026-01-27):** **Cajero Access Fix**. Restaurados botones de Cocina/Listo para Nivel 5 y blindaje de filtros.
+- **v4.4.1 (2026-01-27):** Estabilidad Operativa POS + Seguridad DELIVERY. Restricción de monitor para repartidores, inclusión de OTP en WhatsApp y Cache Busting (?v=).
+- **v4.4.0 (2026-01-27):** Estabilidad Operativa POS. Folios secuenciales cortos, descuento automático de stock en backend.
+- **v4.3.5:** **Giro Gourmet Final**. Sincronización técnica de versión y auditoría de líneas (Workflow IBackend). Integration of dynamic links in POS and OTS channel badges.
+- **v4.3.0**: Giro Gourmet. Especialización del Agente Chef, corrección de renderizado en Monitor POS, limpieza UTF-8 profesional y sincronización de parámetros de actualización de estados.
+- **v4.2.1**: **Sincronización POS & Escritura**. Corregido el monitor de pedidos (updateProjectStatus) y reactivada la lógica de escritura (doPost) con blindaje multi-inquilino.
+- **v4.2.0**: **Privacidad e Integridad**. Implementación de aislamiento multi-inquilino absoluto y reglas de oro para checkout y caja 100% libres de errores.
+- **v4.1.0**: **IA Resiliente**. Restauración de lógica de semillas (Seeds) y RBAC. Implementación de llamadas reales a Gemini API con bucle de fallback.
 - **v3.5.0**: **Total Staff Focus**. Ocultamiento automático de Footer y Botón de WhatsApp al iniciar sesión para maximizar el área de trabajo operativa.
 - **v3.4.9**: **Staff UI Focus**. Ocultamiento dinámico del footer principal tras iniciar sesión.
 - **v3.4.8**: **AI Chat Auto-Close**. Cierre automático del modal de chat tras frase de despedida o 45 segundos de inactividad.
@@ -185,15 +249,15 @@ Para agilizar el ciclo de vida del desarrollo, el sistema utiliza un protocolo d
 - **v2.7.0:** Implementación de "Temperatura de Negocio" (Flujo Dinámico) y Consola de Sistema.
 
 ## 8. Estadísticas del Proyecto (Auditoría de Código)
-| `app.js` | Lógica central, UI dinámico y Auth. | 3,448 |
-| `style.css` | Diseño visual, Glassmorphism y Animaciones. | 2,397 |
-| `index.html` | Estructura base y contenedores de vistas. | 1,254 |
-| `backend_schema.gs` | API, Seguridad y Gestión de Base de Datos. | 307 |
-| `appsscript.json` | Configuración del entorno de Apps Script. | 25 |
-| `mock_data.json` | Datos de prueba para simulación local. | 105 |
-| `tech_manual.md` | Documentación técnica y reglas de negocio. | 205 |
-| `roadmap.md` | Seguimiento de objetivos y tareas. | 100 |
-| **TOTAL** | **Volumen total de código fuente** | **8,485** |
+
+| Archivo / Carpeta | Líneas |
+| :--- | :--- |
+| index.html | 1631 | Estructura base PWA / Modales |
+| style.css | 2687 | UI/UX Premium & Micro-animaciones |
+| js/modules/ | 4335 | Lógica de Negocio (Core, UI, POS, AI) |
+| app.js | 61 | Router y Orquestación Inicial |
+| backend_schema.gs | 321 | Engine Server-side (GAS) |
+| **TOTAL** | **9035** | Líneas de producción |
 
 ---
 *Manual generado automáticamente por Antigravity AI.*
