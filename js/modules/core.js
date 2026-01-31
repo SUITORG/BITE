@@ -4,7 +4,8 @@
  */
 const app = {
     // --- APP CONFIG ---
-    version: '4.6.8', // v4.6.8: Stable Sync (9,035 lines)
+    version: '4.6.9', // v4.6.9: Responsive & Hub Orbit Sync
+
     // Se cargan desde js/modules/config.js (ignorado en git)
     apiUrl: (typeof SUIT_CONFIG !== 'undefined') ? SUIT_CONFIG.apiUrl : '',
     apiToken: (typeof SUIT_CONFIG !== 'undefined') ? SUIT_CONFIG.apiToken : '',
@@ -44,12 +45,23 @@ const app = {
         fixDriveUrl: (url) => {
             if (!url) return "";
             const sUrl = url.toString().trim();
-            if (sUrl.includes('google.com') && (sUrl.includes('/d/') || sUrl.includes('id='))) {
-                const idMatch = sUrl.match(/\/d\/([^\/?#]+)/) || sUrl.match(/[?&]id=([^&?#]+)/) || sUrl.match(/\/file\/d\/([^\/?#]+)/);
-                if (idMatch && idMatch[1]) return `https://drive.google.com/thumbnail?id=${idMatch[1]}&sz=w1000`;
+
+            // Extracción universal de ID de Google Drive
+            // Soporta: /file/d/{ID}, ?id={ID}, /d/{ID}
+            const idMatch = sUrl.match(/\/d\/([^\/?#]+)/) || sUrl.match(/[?&]id=([^&?#]+)/) || sUrl.match(/\/file\/d\/([^\/?#]+)/);
+
+            // Si es un enlace de Google Drive válido y tenemos ID, usamos el servicio lh3
+            // Este servicio es el más robusto para imágenes públicas (Agent y Productos)
+            if (idMatch && idMatch[1] && (sUrl.includes('google.com') || sUrl.includes('drive.google.com'))) {
+                return `https://lh3.googleusercontent.com/d/${idMatch[1]}`;
             }
+
+            // Si no detectamos ID de Drive, devolvemos la URL original (ej: unsplash, cloudinary, etc)
             return sUrl;
         },
+
+
+
         getEffectivePrice: (p) => {
             if (!p) return 0;
             const reg = parseFloat(p.precio) || 0;
@@ -120,11 +132,13 @@ const app = {
                 const isHubMode = window.location.hash === '#orbit' || (!window.location.hash && !coParam);
 
                 if (isHubMode) {
-                    console.log("ñŸŒŒ Hub Mode Active - Waiting for user selection");
-                    app.state.companyId = null; // Ensure clean state
+                    console.log("🌌 Hub Mode Active - Rendering Orbit");
+                    app.state.companyId = null;
                     window.location.hash = '#orbit';
-                    company = null; // Prevent theme application
+                    if (app.ui.renderOrbit) app.ui.renderOrbit();
+                    company = null;
                 } else if (!company) {
+
                     // Only Auto-Select if we are NOT in hub mode but failed to find the target company (e.g. deep link error)
                     console.warn("Target Company Not Found - Falling back to default");
                     company = app.data.Config_Empresas[0];

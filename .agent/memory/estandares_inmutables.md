@@ -4,7 +4,9 @@ Este archivo es la **Única Fuente de Verdad** para el orquestador (IA). Estas r
 
 ## 1. estandar-landing
 - **Descripción**: Estructura integral de la Landing Page que incluye Barra de Estado, Hero/SEO Body y Footer Institucional.
+- **Header**: Debe ser responsivo con menú hamburguesa (`#menu-toggle`) en móvil, permitiendo acceso siempre a la sección Staff y navegación pública.
 - **Barra de Estado**: Identificador `BS`, versión, nivel de acceso y créditos. Solo visible para STAFF.
+
 - **Cuerpo (Body)**: Hero Banner dinámico de alto impacto y Matriz SEO (Long-tail) obligatoria de alta resiliencia.
 - **Footer**: Barra única negra (`#0F0F0F`) con enlaces inyectados y logos sociales con colores corporativos al hover.
 - **Inactividad**: Modales del footer activan timer de 30-45s para retorno automático a `#home`.

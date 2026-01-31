@@ -9,7 +9,10 @@
     <meta name="keywords"
         content="Suit.Org, Suit.Bite, pedidos online monterrey, sistema para restaurantes, saas para pymes, tacos a domicilio méxico, software de ventas online">
     <title>Suit.Org | Suit.Bite - Ecosistema Digital y Pedidos Online</title>
-    <link rel="stylesheet" href="style.css?v=4.4.0">
+    <link rel="stylesheet" href="style.css?v=4.6.9">
+    <div id="mobile-menu-overlay" class="mobile-menu-overlay hidden"></div>
+
+
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -55,13 +58,21 @@
             <h1 id="header-title">SuitOrg</h1>
         </div>
         <nav id="nav-menu">
+            <!-- Hamburger Icon (Mobile) -->
+            <button id="menu-toggle" class="menu-toggle" aria-label="Abrir menú">
+                <i class="fas fa-bars"></i>
+            </button>
             <!-- Public Menu -->
             <ul id="menu-public" class="nav-list">
                 <li><a href="#orbit"><i class="fas fa-planet-ring"></i> Hub</a></li>
                 <li><a href="#home">Inicio</a></li>
-                <li><a href="#food-app-area"><i class="fas fa-utensils"></i> Menú</a></li>
+                <li><a href="#food-app-area" class="btn-express-nav">
+                        <i class="fas fa-utensils"></i> PEDIDO EXPRESS
+                    </a>
+                </li>
                 <li><a href="#contact">Contacto</a></li>
-                <li><a href="#login" id="btn-login-trigger" onclick="app.ui.showLogin(); return false;">Acceso Staff</a>
+                <li><a href="#login" id="btn-login-trigger" onclick="app.ui.showLogin(); return false;"><i
+                            class="fas fa-user-lock"></i> Staff</a>
                 </li>
             </ul>
             <!-- Staff Menu (Hidden by default) -->
@@ -79,12 +90,19 @@
                         Salir</a></li>
             </ul>
         </nav>
+        <!-- Mobile Menu Overlay -->
+        <div id="mobile-menu-overlay" class="mobile-menu-overlay hidden"></div>
     </header>
     <!-- MAIN CONTENT AREA -->
     <main id="app-content">
         <!-- Orbit Hub View (Disruptive Landing) -->
+        <section id="view-orbit" class="view-section hidden"
+            style="position: relative; width: 100%; height: 100vh; overflow: hidden; background: #000;">
+            <div id="orbit-bubbles" style="position: relative; width: 100%; height: 100%;"></div>
+        </section>
 
         <!-- SECTION: HOME / LANDING -->
+
         <section id="view-home" class="view-section hidden">
             <div class="hero-banner" id="hero-banner-main">
                 <h2 id="hero-slogan">Energía limpia para un futuro sostenible</h2>
@@ -97,16 +115,27 @@
 
             <!-- SECTION: SPECIALIZED SOLUTIONS (Long-Tail SEO) - UNIVERSAL POSITION -->
             <!-- This container must be visible for ALL company types if data exists -->
-            <div id="industrial-solutions-seo" class="specialized-solutions hidden"
+            <div id="seo-matrix-section" class="specialized-solutions hidden"
                 style="margin-bottom: 40px; padding: 40px 20px; background: rgba(0,0,0,0.03); border-radius: 12px; clear: both;">
-                <h2 id="seo-main-title" style="text-align: center; margin-bottom: 30px; color: var(--primary-color);">
+                <h2 id="seo-main-title" style="text-align: center; margin-bottom: 10px; color: var(--primary-color);">
                     Soluciones Especializadas</h2>
-                <div class="solutions-grid seo-grid"
-                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px;">
+                <p id="seo-main-sub" style="text-align: center; margin-bottom: 30px; opacity: 0.7;">Descubre lo que
+                    podemos hacer por ti.</p>
+
+                <div class="solutions-grid seo-grid">
                     <!-- Dynamically populated from Config_SEO table -->
                 </div>
             </div>
 
+
+
+            <!-- Standard features for other companies (Hidden if food) -->
+            <div id="standard-features-grid" class="features-grid hidden">
+                <!-- Secciones de empresas anteriores removidas por limpieza de código -->
+        </section>
+
+        <!-- SECTION: EXPRESS ORDER (Suit.Bite) -->
+        <section id="view-express" class="view-section hidden" style="padding: 20px 0;">
             <!-- PFM / FOOD SPECIALIZED AREA -->
             <div id="food-app-area" class="food-container">
                 <div class="food-header">
@@ -145,11 +174,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Standard features for other companies (Hidden if food) -->
-            <div id="standard-features-grid" class="features-grid hidden">
-                <!-- Secciones de empresas anteriores removidas por limpieza de código -->
-            </div> <!-- features-grid closure -->
         </section>
         <!-- SECTION: STRATEGIC PILLARS (Standalone View) -->
         <section id="view-pillars" class="view-section about-section hidden">
@@ -908,7 +932,7 @@
                         </div>
                         <div id="address-block" class="form-group hidden">
                             <label>Dirección *</label>
-                            <input type="text" id="cust-address" placeholder="Calle, Número, Colonia...">
+                            <input type="text" id="cust-address" required placeholder="Calle, Número, Colonia...">
                         </div>
                         <div class="form-group">
                             <label>Notas Especiales (Opcional)</label>
@@ -1552,5 +1576,6 @@
     </div>
 </body>
 
-</html>< ! - -   T r i g g e r   D e p l o y   - - >  
- 
+</html>< ! - -   T r i g g e r   D e p l o y   - - > 
+     
+     

@@ -11,7 +11,9 @@ app.events = {
         app.events.bindLogin();
         app.events.bindForms();
         app.events.bindUX();
+        app.events.bindNav();
     },
+
 
     bindGlobal: () => {
         // Sonido Global de Clic (v4.6.8)
@@ -27,16 +29,17 @@ app.events = {
     },
 
     bindLogin: () => {
-        // Gatillo de Login
-        const loginTrigger = document.getElementById('btn-login-trigger');
-        if (loginTrigger) {
-            loginTrigger.onclick = (e) => {
+        // Gatillo de Login (vía Delegación de Eventos)
+        document.addEventListener('click', (e) => {
+            const loginBtn = e.target.closest('.nav-login-btn') || e.target.closest('#btn-login-trigger');
+            if (loginBtn) {
                 e.preventDefault();
                 app.ui.showLogin();
-            };
-        }
+            }
+        });
 
         // Navegación con Enter en Login
+
         const loginUser = document.getElementById('login-user');
         if (loginUser) {
             loginUser.addEventListener('keydown', (e) => {
@@ -384,5 +387,38 @@ app.events = {
             btn.disabled = false;
             form.dataset.submitting = "false";
         }
+    },
+
+    bindNav: () => {
+        const toggle = document.getElementById('menu-toggle');
+        const overlay = document.getElementById('mobile-menu-overlay');
+        const navLists = document.querySelectorAll('.nav-list');
+
+        const toggleMenu = (forceClose = false) => {
+            navLists.forEach(list => {
+                if (forceClose) list.classList.remove('active');
+                else list.classList.toggle('active');
+            });
+            if (overlay) {
+                if (forceClose) overlay.classList.add('hidden');
+                else overlay.classList.toggle('hidden');
+            }
+        };
+
+        if (toggle) {
+            toggle.onclick = () => toggleMenu();
+        }
+
+        if (overlay) {
+            overlay.onclick = () => toggleMenu(true);
+        }
+
+        // Close on link click
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.nav-list a')) {
+                toggleMenu(true);
+            }
+        });
     }
 };
+

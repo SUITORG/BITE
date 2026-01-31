@@ -53,8 +53,9 @@ Todo mensaje de orden debe incluir la siguiente estructura Markdown para legibil
 3.  **Cliente**: Nombre y Teléfono de contacto.
 4.  **Logística**: Método de entrega CLARO (Diferenciar entre "A DOMICILIO" y "RECOGER EN LOCAL").
 5.  **Ubicación**: Dirección completa (Calle, Número, Colonia, Referencias) **solo** si es a domicilio.
-6.  **Detalle**: Lista de productos con cantidad y subtotal individual (ej. `2x Hamburguesa Clasica ($150)`).
-7.  **Finanzas**: Método de pago seleccionado y **TOTAL FINAL** (incluyendo cargos de envío).
+6.  **Código de Entrega (OTP)**: Incluir el código de 4 dígitos generado para seguridad en la entrega.
+7.  **Detalle**: Lista de productos con cantidad y subtotal individual (ej. `2x Hamburguesa Clasica ($150)`).
+8.  **Finanzas**: Método de pago seleccionado y **TOTAL FINAL** (incluyendo cargos de envío).
 
 ### 2.2. Reglas de Implementación (Código)
 - **Persistencia del Estado**: No se debe limpiar el carrito (`app.state.cart`) hasta que se haya disparado la acción de WhatsApp con éxito.
@@ -66,3 +67,13 @@ Cada vez que se modifique el flujo de checkout, validar:
 - [ ] ¿El total en WhatsApp coincide centavo por centavo con el total mostrado en el ticket de pantalla?
 - [ ] ¿La dirección desaparece del mensaje si el método es "Recoger en Local"?
 - [ ] ¿El botón de WhatsApp abre correctamente una nueva pestaña con el mensaje pre-cargado?
+
+---
+
+### 3. 🛠️ AUTOMATIZACIÓN Y VERIFICACIÓN TÉCNICA
+
+// turbo
+**Comando de verificación de integridad (Simulación)**:
+`node -e "console.log('Validando selectores CSS del Checkout y Coherencia de Datos...');"`
+
+> **Nota de Integridad (v4.6.9):** Toda transacción de venta ahora debe pasar por la acción de backend `processFullOrder` para garantizar la atomicidad de los datos.

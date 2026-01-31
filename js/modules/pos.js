@@ -34,14 +34,14 @@ app.pos = {
     },
     clearCart: () => {
         app.state.cart = [];
-        app.state.deliveryMethod = 'PICKUP';
+        app.state.deliveryMethod = 'DOMICILIO';
         // Reset Payment & Field Defaults
         app.ui.setPosPaymentMethod('Efectivo');
         const pFolio = document.getElementById('pos-pay-folio');
         if (pFolio) pFolio.value = '';
-        // Sync UI buttons (Reset to Local)
+        // Sync UI buttons (Reset to Delivery)
         document.querySelectorAll('.delivery-opt, .delivery-opt-staff').forEach(btn => {
-            if (btn.id === 'staff-delivery-pickup' || btn.dataset.method === 'PICKUP') btn.classList.add('active');
+            if (btn.id === 'staff-delivery-dom' || btn.dataset.method === 'DOMICILIO') btn.classList.add('active');
             else btn.classList.remove('active');
         });
         app.pos.updateCartVisuals();
@@ -171,7 +171,7 @@ app.pos = {
         if (pFolio) pFolio.value = '';
         // Re-sync UI (Reset to Efectivo)
         app.ui.setPosPaymentMethod('Efectivo');
-        app.pos.setDeliveryMethod('PICKUP');
+        app.pos.setDeliveryMethod('DOMICILIO');
         // Auto-close staff sidebar after 10s if on mobile
         const sidebar = document.querySelector('.pos-sidebar');
         if (sidebar && sidebar.classList.contains('mobile-active')) {
@@ -387,9 +387,9 @@ app.pos = {
         }
     },
     openCheckout: () => {
-        if (app.state.cart.length === 0) return alert("El carrito estñÂƒ¡ vacñÂƒÂ­o.");
+        if (app.state.cart.length === 0) return alert("El carrito está vacío.");
         // Reset to Step 1 and defaults
-        app.pos.setDeliveryMethod('PICKUP');
+        app.pos.setDeliveryMethod('DOMICILIO');
         app.pos.nextStep(1);
         document.getElementById('checkout-modal').classList.remove('hidden');
         // Render Express Ticket (Step 1)

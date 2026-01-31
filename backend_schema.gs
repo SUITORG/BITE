@@ -1,18 +1,17 @@
- /* SuitOrg Backend Engine - v4.6.8
+/* SuitOrg Backend Engine - v4.6.9
  * ---------------------------------------------------------
- * Sincronización: 2026-01-29 01:00 PM
+ * Sincronización: 2026-01-30 05:40 PM
  * 
- * Changelog v4.6.8:
- * - SYNC: Re-auditoría completa de líneas (9,035).
- * - STABLE: Consolidación final post-modularización de landing.
- * - DOCS: Sincronización v4.6.8 completada.
+ * Changelog v4.6.9:
+ * - CORE: Soporte para Header Responsivo (Burger Menu) y Matriz SEO Universal.
+ * - SYNC: Sincronización atómica con Frontend v4.6.9.
  * 
  * AUDIT: ~9035 Total Lines (Consolidated).
  * ---------------------------------------------------------
  */
 
 const CONFIG = {
-  VERSION: "4.6.8",
+  VERSION: "4.6.9",
   DB_ID: "1uyy2hzj8HWWQFnm6xy-XCwvvGh3odjV4fRlDh5SBxu8", 
   GLOBAL_TABLES: ["Config_Empresas", "Config_Roles", "Usuarios", "Config_SEO", "Prompts_IA", "Cuotas_Pagos"], 
   PRIVATE_TABLES: ["Leads", "Proyectos", "Proyectos_Etapas", "Proyectos_Pagos", "Proyectos_Bitacora", "Catalogo", "Logs", "Pagos", "Empresa_Documentos"],

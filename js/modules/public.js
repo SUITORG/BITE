@@ -98,15 +98,29 @@ app.public = {
         const content = document.getElementById('location-content');
         if (content && company) {
             const address = company.direccion || "Dirección no disponible.";
+            const mapUrl = company.ubicacion_url || "";
+
+            let mapIframe = `<div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); height:250px; display:flex; align-items:center; justify-content:center; border-radius:12px; margin-bottom:20px; color:#adb5bd; flex-direction:column; border: 1px solid #dee2e6;">
+                                <i class="fas fa-map-marked-alt fa-3x" style="margin-bottom:15px; color: var(--accent-color);"></i>
+                                <p style="font-weight:700; color:#495057;">Mapa Interactivo</p>
+                                <p style="font-size:0.8rem; padding: 0 40px; text-align: center; line-height: 1.4;">Para ver el mapa interactivo aquí, usa el enlace de "Insertar Mapa" (Embed) de Google Maps.</p>
+                             </div>`;
+
+            if (mapUrl.includes('google.com/maps/embed') || mapUrl.includes('https://www.google.com/maps/embed')) {
+                mapIframe = `<iframe 
+                    src="${mapUrl}" 
+                    width="100%" height="350" style="border:0; border-radius:12px; margin-bottom:20px;" 
+                    allowfullscreen="" loading="lazy"></iframe>`;
+            }
+
             content.innerHTML = `
                 <div style="text-align: center;">
-                    <div style="background:#eee; height:250px; display:flex; align-items:center; justify-content:center; border-radius:12px; margin-bottom:20px; color:#999; flex-direction:column;">
-                        <i class="fas fa-map-marked-alt fa-3x" style="margin-bottom:10px;"></i>
-                        <p>[ MAPA INTERACTIVO ]</p>
-                        <p style="font-size:0.8rem;">${address}</p>
-                    </div>
+                    ${mapIframe}
                     <h3 style="color:var(--primary-color); margin-bottom:5px;">Visítanos en:</h3>
-                    <p style="font-size:1.1rem; color:#444;">${address}</p>
+                    <p style="font-size:1.1rem; color:#444; margin-bottom:20px; line-height: 1.5;">${address}</p>
+                    <a href="${mapUrl}" target="_blank" class="btn-primary" style="display:inline-block; text-decoration:none; padding:12px 25px; font-size:1rem; border-radius: 50px;">
+                        <i class="fas fa-map-marker-alt"></i> Abrir en Google Maps
+                    </a>
                 </div>`;
         }
         const modal = document.getElementById('location-modal-overlay');
@@ -115,6 +129,8 @@ app.public = {
             app.public.startInfoInactivityTimer();
         }
     },
+
+
 
     closeInfoModal: (modalId) => {
         const el = document.getElementById(modalId);
@@ -164,58 +180,76 @@ app.public = {
         const heroBanner = document.getElementById('hero-banner-main');
         const actions = document.getElementById('hero-actions-container');
         const standardFeatures = document.getElementById('standard-features-grid');
-        const industrialSeo = document.getElementById('industrial-solutions-seo');
+        const industrialSeo = document.getElementById('seo-matrix-section');
         const foodAreaSpec = document.getElementById('food-app-area');
         const foodTitle = document.getElementById('food-menu-title');
         const foodSubtitle = document.getElementById('food-menu-subtitle');
 
-        if (industrialSeo) industrialSeo.classList.add('hidden');
+        // if (industrialSeo) industrialSeo.classList.add('hidden'); // Removed to allow SEO matrix to show for food businesses
 
         if (isFood) {
-            const foodHeroUrl = company.hero_url || 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80';
-            heroBanner.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.75)), url('${app.utils.fixDriveUrl(foodHeroUrl)}')`;
+            // Prioridad: foto_agente reemplaza al fondo (Hero) si existe, según solicitud del usuario.
+            const bgUrl = company.foto_agente || company.hero_url || 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80';
+
+            // Ajustamos el gradiente para asegurar legibilidad del texto sobre cualquier foto
+            heroBanner.style.backgroundImage = `linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.85)), url('${app.utils.fixDriveUrl(bgUrl)}')`;
             heroBanner.style.backgroundAttachment = 'scroll';
+            heroBanner.style.backgroundPosition = 'center center'; // Centrado absoluto para todos los dispositivos
+            heroBanner.style.backgroundSize = 'cover'; // Asegura que cubra todo el contenedor sin deformarse
+            heroBanner.style.backgroundRepeat = 'no-repeat';
             heroBanner.style.display = 'block';
 
-            const sloganText = company.eslogan || "Sabor Premium";
-            const subText = company.descripcion || "Excelencia en cada platillo.";
+            const sloganText = company.mensaje1 || company.eslogan || "Sabor Premium";
+            const subText = company.mensaje2 || company.descripcion || "Excelencia en cada platillo.";
             if (sloganEl) sloganEl.innerText = sloganText;
             if (subEl) subEl.innerText = subText;
             if (foodTitle) foodTitle.innerText = sloganText;
             if (foodSubtitle) foodSubtitle.innerText = subText;
 
             if (actions) {
+                // Layout actualizado: Botón flotante en esquina superior derecha (CSS .btn-support)
                 actions.innerHTML = `
-                    <button class="btn-support" onclick="app.agents.select('AGT-001')"><i class="fas fa-headset"></i> Atención y Soporte</button>
+                    <button class="btn-support" onclick="app.agents.select('AGT-001')">
+                        <i class="fas fa-headset"></i> Atención y Soporte
+                    </button>
                 `;
             }
 
+
+
+
+
+
+
             const menuPublic = document.getElementById('menu-public');
+
+
             if (menuPublic) {
                 menuPublic.innerHTML = `
                     <li><a href="#orbit"><i class="fas fa-planet-ring"></i> Hub</a></li>
                     <li><a href="#home">Inicio</a></li>
                     <li>
-                        <a href="#food-app-area" style="background: var(--accent-color); color: #000; padding: 5px 15px; border-radius: 50px; font-weight: bold; display: flex; align-items: center; gap: 5px; text-decoration: none;">
+                        <a href="#food-app-area" class="btn-express-nav-special" style="background: var(--accent-color); color: #000; padding: 5px 15px; border-radius: 50px; font-weight: bold; display: flex; align-items: center; gap: 5px; text-decoration: none;">
                             <i class="fas fa-utensils"></i> PEDIDO EXPRESS
                         </a>
                     </li>
                     <li><a href="#contact">Contacto</a></li>
-                    <li><a href="#login" onclick="app.ui.showLogin(); return false;"><i class="fas fa-user-lock"></i> Staff</a></li>
+                    <li><a class="nav-login-btn" href="#login"><i class="fas fa-user-lock"></i> Staff</a></li>
                 `;
             }
+
             if (standardFeatures) standardFeatures.classList.add('hidden');
             app.public.renderFoodMenu();
         } else {
-            const menuPublic = document.getElementById('menu-public');
             if (menuPublic) {
                 menuPublic.innerHTML = `
                     <li><a href="#orbit"><i class="fas fa-planet-ring"></i> Hub</a></li>
                     <li><a href="#home">Inicio</a></li>
                     <li><a href="#contact">Contacto</a></li>
-                    <li><a href="#login" onclick="app.ui.showLogin(); return false;"><i class="fas fa-user-lock"></i> Staff</a></li>
+                    <li><a class="nav-login-btn" href="#login"><i class="fas fa-user-lock"></i> Staff</a></li>
                 `;
             }
+
             const heroUrl = company.hero_url || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1600&q=80';
             heroBanner.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url('${app.utils.fixDriveUrl(heroUrl)}')`;
             heroBanner.style.backgroundAttachment = 'fixed';
@@ -238,7 +272,7 @@ app.public = {
     },
 
     renderSEO: () => {
-        const container = document.getElementById('industrial-solutions-seo');
+        const container = document.getElementById('seo-matrix-section');
         if (!container) return;
         const targetId = String(app.state.companyId || "").trim().toUpperCase();
         const company = app.data.Config_Empresas.find(c => c.id_empresa === targetId);
@@ -252,11 +286,12 @@ app.public = {
         container.classList.remove('hidden');
         container.style.display = "block";
 
-        // Update Title and Description from company or defaults
+        // Omit title and description as requested (Task 5)
         const mainTitle = container.querySelector('h2');
         const mainSub = container.querySelector('p');
-        if (mainTitle) mainTitle.innerText = company?.seo_titulo || "Soluciones Especializadas";
-        if (mainSub) mainSub.innerText = company?.seo_descripcion || "Nuestra matriz de servicios.";
+        if (mainTitle) mainTitle.style.display = 'none';
+        if (mainSub) mainSub.style.display = 'none';
+
 
         let grid = container.querySelector('.seo-grid');
         if (!grid) {
@@ -390,18 +425,23 @@ app.public = {
 
         companies.forEach((co) => {
             const isPriority = co.id_empresa === priorityId;
-            const size = isPriority ? 300 : 160;
+            const size = isPriority ? 250 : 136; // Reducido ~15% (300->250, 160->136)
             const radius = size / 2;
 
             const bubbleEl = document.createElement('div');
             bubbleEl.className = `enterprise-bubble ${isPriority ? 'priority' : 'shaded'}`;
-            // Desactiva animaciones CSS para usar física JS y corregir solapamiento
-            bubbleEl.style.cssText = `width:${size}px; height:${size}px; --accent-color:${co.color_tema || '#00d2ff'}; position:absolute; animation:none; transform:none; transition:none;`;
+            // Color difuminado (gradient) - No transparente
+            const themeColor = co.color_tema || '#00d2ff';
+            const gradient = `radial-gradient(circle at 30% 30%, ${themeColor}, #000)`;
+
+            bubbleEl.style.cssText = `width:${size}px; height:${size}px; --accent-color:${themeColor}; background:${gradient}; position:absolute; animation:none; transform:none; transition:none; box-shadow: 0 10px 30px rgba(0,0,0,0.5);`;
+
 
             bubbleEl.innerHTML = `
                 <img src="${app.utils.fixDriveUrl(co.logo_url)}" class="bubble-logo">
-                <span class="bubble-name" style="font-size:${isPriority ? '1.1rem' : '0.8rem'}">${co.nomempresa}</span>
+                <span class="bubble-name" style="font-size:${isPriority ? '0.95rem' : '0.75rem'}">${co.nomempresa}</span>
             `;
+
             bubbleEl.onclick = () => app.switchCompany(co.id_empresa);
             container.appendChild(bubbleEl);
 
@@ -485,29 +525,30 @@ app.public = {
     },
 
     renderFooter: (company) => {
+        // 1. Update Copyright dynamic
+        const footerCopy = document.getElementById('footer-copy');
+        if (footerCopy) {
+            footerCopy.innerHTML = `&copy; ${new Date().getFullYear()} ${company.nomempresa}. Todos los derechos reservados. | ${company.id_empresa}`;
+        }
+
         const container = document.getElementById('footer-links-container');
         if (!container) return;
 
-        // 1. Social Media Logic (Official Colors)
+        // 2. Social Media Logic (Official Colors)
         let socialHtml = '';
-        if (company.rsface) socialHtml += `<a href="${company.rsface}" target="_blank" class="social-icon facebook"><i class="fab fa-facebook-f"></i></a>`;
-        if (company.rsinsta) socialHtml += `<a href="${company.rsinsta}" target="_blank" class="social-icon instagram"><i class="fab fa-instagram"></i></a>`;
-        if (company.rstik) socialHtml += `<a href="${company.rstik}" target="_blank" class="social-icon tiktok"><i class="fab fa-tiktok"></i></a>`;
+        if (company.rsface) socialHtml += `<a href="${company.rsface}" target="_blank" class="social-icon facebook" title="Facebook"><i class="fab fa-facebook-f"></i></a>`;
+        if (company.rsinsta) socialHtml += `<a href="${company.rsinsta}" target="_blank" class="social-icon instagram" title="Instagram"><i class="fab fa-instagram"></i></a>`;
+        if (company.rstik) socialHtml += `<a href="${company.rstik}" target="_blank" class="social-icon tiktok" title="TikTok"><i class="fab fa-tiktok"></i></a>`;
 
         container.innerHTML = `
-            <!-- Copyright -->
-            <div class="footer-copyright" id="footer-copy">
-                © 2026 ${company.nomempresa} | ${company.id_empresa}
-            </div>
-
             <!-- Navigation Links -->
-            <div class="footer-links">
-                <a class="btn-link" onclick="window.location.hash='#contact'">Contáctanos</a>
+            <div class="footer-links-sub">
+                <a class="btn-link" onclick="app.public.showLocation()">Ubicación</a>
                 <a class="btn-link" onclick="app.public.showReviews()">Opiniones</a>
                 <a class="btn-link" onclick="window.location.hash='#pillars'">Pilares</a>
                 <a class="btn-link" onclick="app.public.showAboutUs()">Nosotros</a>
                 <a class="btn-link" onclick="app.public.showPolicies()">Políticas</a>
-                <a class="btn-link" onclick="app.public.showLocation()">Ubicación</a>
+                <a class="btn-link" onclick="window.location.hash='#contact'">Contáctanos</a>
             </div>
 
             <!-- Social Media -->

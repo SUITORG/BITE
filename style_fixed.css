@@ -2197,39 +2197,6 @@ body {
     background: #f4f6f8;
 }
 
-/* Rediseño Matriz POS Caja: Una categoría por renglón con Grid Interno */
-#view-staff-pos #staff-pos-grid {
-    display: block !important;
-    /* Cada categoría ocupa un renglón completo */
-}
-
-#view-staff-pos .staff-pos-section {
-    width: 100%;
-    margin-bottom: 30px;
-}
-
-#view-staff-pos .staff-pos-section .food-grid {
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
-    /* 3 columnas en escritorio */
-    gap: 20px !important;
-    overflow-x: visible !important;
-    padding: 10px 0 !important;
-}
-
-@media (max-width: 1024px) {
-    #view-staff-pos .staff-pos-section .food-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-        /* 2 columnas en tablet/móvil */
-    }
-}
-
-@media (max-width: 600px) {
-    #view-staff-pos .staff-pos-section .food-grid {
-        gap: 10px !important;
-    }
-}
-
 .pos-sidebar {
     width: 400px;
     background: #fff;
@@ -3347,17 +3314,14 @@ body {
 .bubble-floating {
     animation: orbit-float 8s infinite ease-in-out;
 }
-
 /* Botón de Atención y Soporte - Reposicionado */
 .btn-support {
     background: #0084ff;
     color: white;
-    padding: 10px 20px;
-    /* Reducido 15% */
+    padding: 10px 20px; /* Reducido 15% */
     border: none;
     border-radius: 50px;
-    font-size: 0.9rem;
-    /* Reducido 15% */
+    font-size: 0.9rem; /* Reducido 15% */
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -3374,48 +3338,19 @@ body {
     z-index: 20;
     margin-top: 0 !important;
 }
-
 .btn-support:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(0, 132, 255, 0.5);
     background: #0073e6;
 }
-
-#hero-banner-main {
-    position: relative;
-}
-
-#hero-actions-container {
-    position: static;
-}
+#hero-banner-main { position: relative; }
+#hero-actions-container { position: static; }
 
 
 /* AJUSTE FINAL: Reducción adicional del 15% al botón (Total ~30%) */
 .btn-support {
-    padding: 8px 16px !important;
-    /* Reducido de 10px 20px */
-    font-size: 0.8rem !important;
-    /* Reducido de 0.9rem */
+    padding: 8px 16px !important; /* Reducido de 10px 20px */
+    font-size: 0.8rem !important; /* Reducido de 0.9rem */
     border-radius: 30px !important;
 }
 
-
-
-/* --- SEO MATRIX LAYOUT (v4.7.0) --- */
-#seo-matrix-section .seo-grid {
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 30px;
-}
-
-@media (max-width: 1024px) {
-    #seo-matrix-section .seo-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-    }
-}
-
-@media (max-width: 600px) {
-    #seo-matrix-section .seo-grid {
-        grid-template-columns: 1fr !important;
-    }
-}

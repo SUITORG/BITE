@@ -9,40 +9,7 @@
     --danger-color: #d32f2f;
 }
 
-/* Estilos para las Burbujas del Hub Orbit */
-.enterprise-bubble {
-    border-radius: 50%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    cursor: pointer;
-    text-align: center;
-    z-index: 50;
-    pointer-events: auto;
-    overflow: hidden;
-    border: 2px solid rgba(255, 255, 255, 0.1);
-}
-
-.enterprise-bubble.priority {
-    z-index: 60;
-}
-
-.bubble-logo {
-    width: 60%;
-    height: 60%;
-    object-fit: contain;
-    margin-bottom: 8px;
-    filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.3));
-}
-
-.bubble-name {
-    font-weight: 700;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
-    max-width: 80%;
-}
-
+/* --- FOOD MENU & POS (PFM) --- */
 .food-container {
     padding: 40px 5%;
     background: #fbfbfb;
@@ -53,10 +20,10 @@
     display: block;
 }
 
-#view-home:has(.food-container[style*="display: block"]) #standard-features-grid {
+#view-home:has(.food-container[style*="display: block"]) #standard-features-grid,
+#view-home:has(.food-container[style*="display: block"]) #industrial-solutions-seo {
     display: none !important;
 }
-
 
 .food-category-title {
     font-size: 1.2rem;
@@ -276,7 +243,7 @@
     width: 90%;
     max-width: 600px;
     background: #ffffff;
-    /* Solid White âšª */
+    /* Solid White ÔÜ¬ */
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
     color: #1a1a1a;
     padding: 12px 25px;
@@ -588,7 +555,7 @@ body {
     white-space: nowrap;
 }
 
-/* Animations ðŸš€ */
+/* Animations ­ƒÜÇ */
 @keyframes pulse-green {
     0% {
         box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.7);
@@ -639,7 +606,7 @@ body {
     animation: blink-confirm 0.3s ease 2;
 }
 
-/* Error state ðŸ”¥ */
+/* Error state ­ƒöÑ */
 .sb-console.error {
     background: #2d0000;
     border-color: #f44336;
@@ -661,142 +628,17 @@ body {
 
 /* Header */
 #main-header {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    padding: 0 2rem;
-    height: 70px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    padding: 0.8rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
     box-shadow: var(--shadow);
     position: sticky;
     top: 0;
-    z-index: 2000;
+    z-index: 100;
 }
-
-#nav-menu {
-    display: flex;
-    align-items: center;
-    margin-left: auto;
-    /* Empuja todo el menÃº a la derecha */
-}
-
-.menu-toggle {
-    display: none;
-    background: none;
-    border: none;
-    font-size: 1.8rem;
-    /* Un poco mÃ¡s grande para mejor UX */
-    color: var(--primary-color);
-    cursor: pointer;
-    padding: 10px;
-    z-index: 2101;
-    margin-left: auto;
-    /* Asegura posiciÃ³n derecha extrema */
-}
-
-
-
-.nav-list {
-    display: flex;
-    list-style: none;
-    gap: 20px;
-    align-items: center;
-    margin: 0;
-}
-
-.nav-list a {
-    text-decoration: none;
-    color: var(--text-color);
-    font-weight: 500;
-    font-size: 0.95rem;
-    transition: color 0.3s;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.nav-list a:hover {
-    color: var(--primary-color);
-}
-
-.nav-list a i {
-    opacity: 0.7;
-}
-
-@media (max-width: 768px) {
-    .menu-toggle {
-        display: block;
-    }
-
-    #main-header {
-        padding: 0 1.5rem;
-    }
-
-    .nav-list {
-        position: fixed;
-        top: 0;
-        right: -100%;
-        width: 85%;
-        max-width: 320px;
-        height: 100vh;
-        background: #FFFFFF !important;
-        /* Fondo Blanco SÃ³lido - Nitidez Total */
-        backdrop-filter: none !important;
-        /* Eliminamos el blur que empaÃ±a el texto */
-        -webkit-backdrop-filter: none !important;
-        flex-direction: column;
-        justify-content: center;
-        padding: 40px;
-        transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: -10px 0 50px rgba(0, 0, 0, 0.3);
-        z-index: 2100;
-        border-left: 1px solid #ddd;
-    }
-
-    .nav-list a {
-        color: #000000 !important;
-        font-weight: 900 !important;
-        font-size: 1.2rem !important;
-        width: 100%;
-        padding: 18px;
-        border-bottom: 1px solid #f0f0f0;
-        text-align: left;
-    }
-
-
-
-
-    .nav-list.active {
-        right: 0;
-    }
-
-    .nav-list li {
-        width: 100%;
-        border-bottom: 1px solid #f0f0f0;
-        padding-bottom: 10px;
-    }
-
-    .nav-list a {
-        font-size: 1.1rem;
-        padding: 10px 0;
-        width: 100%;
-    }
-
-    .mobile-menu-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100vh;
-        background: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(4px);
-        z-index: 2050;
-        transition: opacity 0.3s;
-    }
-}
-
 
 .logo-area {
     display: flex;
@@ -865,7 +707,7 @@ body {
     color: #888;
 }
 
-/* Orbit Hub ðŸª */
+/* Orbit Hub ­ƒ¬É */
 #view-orbit {
     position: fixed;
     top: 0;
@@ -1494,7 +1336,7 @@ body {
     width: 30px;
     height: 30px;
     background: #f44336;
-    /* Solid background Ã°ÂŸÂ”Â¥ */
+    /* Solid background ├░┬ƒ┬ö┬Ñ */
     color: white;
     border-radius: 50%;
     display: flex;
@@ -1534,7 +1376,7 @@ body {
     gap: 12px;
 }
 
-/* Consolidated Close Button Style Ã¢ÂÂŒ */
+/* Consolidated Close Button Style ├ó┬Ø┬î */
 .close-modal,
 .close-btn {
     position: absolute;
@@ -1801,13 +1643,15 @@ body {
 /* Mobile Tweaks */
 @media (max-width: 768px) {
     #main-header {
-        flex-direction: row;
-        /* Mantener horizontal */
-        padding: 0 1rem;
-        height: 60px;
+        flex-direction: column;
+        padding: 10px;
+    }
+
+    .nav-list {
+        margin-top: 10px;
+        font-size: 0.9rem;
     }
 }
-
 
 /* Floating WhatsApp Button */
 .whatsapp-float {
@@ -2197,39 +2041,6 @@ body {
     background: #f4f6f8;
 }
 
-/* Rediseño Matriz POS Caja: Una categoría por renglón con Grid Interno */
-#view-staff-pos #staff-pos-grid {
-    display: block !important;
-    /* Cada categoría ocupa un renglón completo */
-}
-
-#view-staff-pos .staff-pos-section {
-    width: 100%;
-    margin-bottom: 30px;
-}
-
-#view-staff-pos .staff-pos-section .food-grid {
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
-    /* 3 columnas en escritorio */
-    gap: 20px !important;
-    overflow-x: visible !important;
-    padding: 10px 0 !important;
-}
-
-@media (max-width: 1024px) {
-    #view-staff-pos .staff-pos-section .food-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-        /* 2 columnas en tablet/móvil */
-    }
-}
-
-@media (max-width: 600px) {
-    #view-staff-pos .staff-pos-section .food-grid {
-        gap: 10px !important;
-    }
-}
-
 .pos-sidebar {
     width: 400px;
     background: #fff;
@@ -2326,7 +2137,7 @@ body {
     font-size: 0.75rem;
     color: #666;
     border: none !important;
-    /* Quitar lÃ­neas */
+    /* Quitar l├¡neas */
 }
 
 .ticket-row.total {
@@ -2944,7 +2755,7 @@ body {
     background: white;
     padding: 24px;
     border-radius: 16px;
-    box-shadow: 0 44px 6px -1px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
 .chart-card h3 {
@@ -3048,15 +2859,11 @@ body {
 }
 
 /* --- FOOTER STYLES --- */
-/* Footer */
 .main-footer {
-    display: block !important;
-    background: #0F0F0F;
-    color: white;
+    background: #0f0f0f;
+    color: #fff;
     padding: 20px 5%;
-    margin-top: 50px;
-    position: relative;
-    z-index: 10;
+    margin-top: 60px;
     border-top: 2px solid var(--primary-color);
 }
 
@@ -3239,7 +3046,7 @@ body {
 }
 
 .solution-cluster li::before {
-    content: 'â†’';
+    content: 'ÔåÆ';
     color: var(--accent-color);
     font-size: 0.8rem;
     font-weight: bold;
@@ -3346,76 +3153,4 @@ body {
 
 .bubble-floating {
     animation: orbit-float 8s infinite ease-in-out;
-}
-
-/* Botón de Atención y Soporte - Reposicionado */
-.btn-support {
-    background: #0084ff;
-    color: white;
-    padding: 10px 20px;
-    /* Reducido 15% */
-    border: none;
-    border-radius: 50px;
-    font-size: 0.9rem;
-    /* Reducido 15% */
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    box-shadow: 0 4px 15px rgba(0, 132, 255, 0.3);
-    /* Posicionamiento Absoluto Superior Derecho */
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    z-index: 20;
-    margin-top: 0 !important;
-}
-
-.btn-support:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 132, 255, 0.5);
-    background: #0073e6;
-}
-
-#hero-banner-main {
-    position: relative;
-}
-
-#hero-actions-container {
-    position: static;
-}
-
-
-/* AJUSTE FINAL: Reducción adicional del 15% al botón (Total ~30%) */
-.btn-support {
-    padding: 8px 16px !important;
-    /* Reducido de 10px 20px */
-    font-size: 0.8rem !important;
-    /* Reducido de 0.9rem */
-    border-radius: 30px !important;
-}
-
-
-
-/* --- SEO MATRIX LAYOUT (v4.7.0) --- */
-#seo-matrix-section .seo-grid {
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 30px;
-}
-
-@media (max-width: 1024px) {
-    #seo-matrix-section .seo-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-    }
-}
-
-@media (max-width: 600px) {
-    #seo-matrix-section .seo-grid {
-        grid-template-columns: 1fr !important;
-    }
 }
