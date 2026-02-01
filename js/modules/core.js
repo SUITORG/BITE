@@ -4,7 +4,7 @@
  */
 const app = {
     // --- APP CONFIG ---
-    version: '4.6.9', // v4.6.9: Responsive & Hub Orbit Sync
+    version: '4.7.0', // v4.7.0: Catalog CRUD & RBAC Sync
 
     // Se cargan desde js/modules/config.js (ignorado en git)
     apiUrl: (typeof SUIT_CONFIG !== 'undefined') ? SUIT_CONFIG.apiUrl : '',

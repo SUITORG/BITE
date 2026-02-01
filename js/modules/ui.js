@@ -1085,6 +1085,7 @@ app.ui = {
         });
         const visibleModulesRaw = (roleConfig?.modulos_visibles || user.modulos_visibles || "").toLowerCase();
         const modulesArray = visibleModulesRaw.split(/[\s,;]+/).map(m => m.replace('#', '').trim()).filter(m => m !== "");
+        app.state.visibleModules = modulesArray; // Persistir para uso granular
         let isAdmin = parseInt(user.nivel_acceso) >= 10 || userRole === 'DIOS';
         let isStaff = parseInt(user.nivel_acceso) >= 2 || userRole === 'DIOS';
         const isDelivery = userRole === 'DELIVERY' || userRole === 'REPARTIDOR';
@@ -1169,7 +1170,7 @@ app.ui = {
         const btnProject = document.getElementById('btn-show-project-modal');
         if (btnProject) isSenior ? btnProject.classList.remove('hidden') : btnProject.classList.add('hidden');
         const btnProduct = document.getElementById('btn-show-product-modal');
-        if (btnProduct) isSenior ? btnProduct.classList.remove('hidden') : btnProduct.classList.add('hidden');
+        if (btnProduct) (isSenior || modulesArray.includes('catalog_add')) ? btnProduct.classList.remove('hidden') : btnProduct.classList.add('hidden');
         const btnSync = document.getElementById('btn-sync-drive');
         if (btnSync) isSenior ? btnSync.classList.remove('hidden') : btnSync.classList.add('hidden');
         const mntTools = document.getElementById('admin-maintenance-tools');
@@ -1778,12 +1779,45 @@ app.ui = {
         if (!grid) return;
         grid.innerHTML = '';
         const query = document.getElementById('catalog-search')?.value.toLowerCase() || '';
+
+        // RBAC Granular (Suit.Bite Standard)
+        const user = app.state.currentUser;
+        const level = parseInt(user?.nivel_acceso || 0);
+        const role = (user?.id_rol || user?.rol || "").toUpperCase();
+        const modules = (app.state.visibleModules || []).map(m => m.toLowerCase());
+
+        const canAdd = role === 'DIOS' || level >= 10 || modules.includes('catalog_add');
+        const canEdit = role === 'DIOS' || level >= 10 || modules.includes('catalog_edit');
+        const canDelete = role === 'DIOS' || level >= 10 || modules.includes('catalog_delete');
+        const canStock = role === 'DIOS' || level >= 5 || modules.includes('catalog_stock') || modules.includes('pos');
+
+        // Show configuration notice if admin but no specific catalog perms defined (UX Helper)
+        const permNotice = document.getElementById('catalog-perm-notice');
+        if (permNotice) {
+            const hasExplicitPerms = modules.some(m => m.startsWith('catalog_'));
+            if (level >= 10 && !hasExplicitPerms && role !== 'DIOS') {
+                permNotice.innerHTML = `
+                    <div style="background: #fff3e0; border-left: 4px solid #ff9800; padding: 10px 15px; margin-bottom: 20px; border-radius: 4px; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center;">
+                        <span><i class="fas fa-exclamation-triangle"></i> <b>Configuración:</b> No se han definido permisos granulares para el catálogo en Config_Roles (catalog_add, edit, delete, stock).</span>
+                        <button class="btn-small" onclick="window.location.hash='#maintenance'" style="background:#ff9800; color:#fff; border:none;">Configurar</button>
+                    </div>
+                `;
+                permNotice.classList.remove('hidden');
+            } else {
+                permNotice.classList.add('hidden');
+            }
+        }
+
+        const btnAdd = document.getElementById('btn-show-product-modal');
+        if (btnAdd) canAdd ? btnAdd.classList.remove('hidden') : btnAdd.classList.add('hidden');
+
         // MULTI-TENANT & LOGICAL DELETE FILTER
         let list = (app.data.Catalogo || []).filter(p => {
             const matchCo = p.id_empresa === app.state.companyId;
-            const isActive = p.activo !== false && p.activo !== "FALSE" && p.activo !== "0" && p.estado !== "ELIMINADO";
+            const isActive = p.activo !== false && p.activo !== "FALSE" && p.activo !== "0";
             return matchCo && isActive;
         });
+
         // SEARCH FILTER
         if (query) {
             list = list.filter(p =>
@@ -1792,35 +1826,45 @@ app.ui = {
                 (p.categoria || "").toLowerCase().includes(query)
             );
         }
+
         // SORT BY NAME
         list.sort((a, b) => (a.nombre || "").localeCompare(b.nombre || ""));
+
         list.forEach(prod => {
             const card = document.createElement('div');
             card.className = 'product-card';
-            // Premium catalog UI (cleaned up tags and removed solar icon for PFM if relevant)
             const img = prod.imagen_url ? app.utils.fixDriveUrl(prod.imagen_url) : 'https://docs.google.com/uc?export=view&id=1t6BmvpGTCR6-OZ3Nnx-yOmpohe5eCKvv';
             const effectivePrice = app.utils.getEffectivePrice(prod);
-            // RBAC Checks (Estándar CRUD)
-            const isAdmin = app.state.currentUser && (app.state.currentUser.nivel_acceso >= 10 || app.state.currentUser.rol === 'DIOS');
-            const isStaff = app.state.currentUser && (app.state.currentUser.nivel_acceso >= 5 || app.state.currentUser.rol === 'DIOS');
+
             card.innerHTML = `
                     <div class="product-img">
                         <img src="${img}" style="width:100%; height:100%; object-fit:cover;">
+                        ${prod.precio_oferta ? `<span class="ribbon oferta">OFERTA</span>` : ''}
                     </div>
                     <div class="product-info">
-                        <div class="product-title"><b>[${prod.id_producto || 'New'}]</b> ${prod.nombre}</div>
+                        <div class="product-title">
+                            <span style="font-size:0.7rem; opacity:0.6; display:block;">${prod.categoria || 'Sin Categoría'}</span>
+                            <b>[${prod.id_producto}]</b> ${prod.nombre}
+                        </div>
                         <div class="product-stock" style="color: ${parseInt(prod.stock) < 10 ? '#d32f2f' : '#2e7d32'};">
                             Stock: <b>${prod.stock || 0}</b> ${prod.unidad || 'pza'}
                         </div>
-                        <div class="product-price">$${effectivePrice.toFixed(2)}</div>
+                        <div class="product-price">
+                            ${prod.precio_oferta ? `<small style="text-decoration:line-through; opacity:0.5; margin-right:5px;">$${parseFloat(prod.precio).toFixed(2)}</small>` : ''}
+                            $${effectivePrice.toFixed(2)}
+                        </div>
                         <div class="actions-cell" style="margin-top:auto; padding-top:10px; display:flex; gap:5px;">
-                            ${isStaff ? `
-                                <button class="btn-small" onclick="app.ui.editProductStock('${prod.id_producto}')" style="flex:1;" title="Ajustar Stock">
-                                    <i class="fas fa-cubes"></i> Stock
+                            ${canStock ? `
+                                <button class="btn-small" onclick="app.ui.editProductStock('${prod.id_producto}')" style="flex:1;" title="Stock">
+                                    <i class="fas fa-cubes"></i>
                                 </button>` : ''}
-                            ${isAdmin ? `
-                                <button class="btn-small btn-danger" onclick="app.deleteItem('Catalogo', '${prod.id_producto}')" title="Eliminar Producto">
-                                    <i class="fas fa-trash"></i>
+                            ${canEdit ? `
+                                <button class="btn-small btn-warning" onclick="app.ui.openProductModal('${prod.id_producto}')" style="flex:1;" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>` : ''}
+                            ${canDelete ? `
+                                <button class="btn-small btn-danger" onclick="app.ui.deleteProduct('${prod.id_producto}', '${prod.nombre}')" style="flex:1;" title="Borrar">
+                                    <i class="fas fa-trash-alt"></i>
                                 </button>` : ''}
                         </div>
                     </div>
@@ -2053,6 +2097,31 @@ app.ui = {
         modal.classList.remove('hidden');
         app.ui.updateConsole(`EDIT_MODE: ${id}`);
     },
+    deleteProduct: async (id, name) => {
+        if (!confirm(`¿Estás seguro de ELIMINAR el producto [${id}] ${name}?\n\nEsta acción lo ocultará del catálogo.`)) return;
+        app.ui.updateConsole("DELETING_PROD_" + id);
+        try {
+            const res = await fetch(app.apiUrl, {
+                method: 'POST',
+                headers: { "Content-Type": "text/plain" },
+                body: JSON.stringify({
+                    action: 'deleteProduct',
+                    id: id,
+                    token: app.apiToken
+                })
+            });
+            const result = await res.json();
+            if (result.success) {
+                app.ui.updateConsole("PROD_DELETED_OK");
+                await app.loadData();
+                app.ui.renderCatalog();
+            } else {
+                alert("Error al borrar: " + result.error);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    },
     openProductModal: (prodId = null) => {
         const modal = document.getElementById('product-modal');
         const form = document.getElementById('form-product');
@@ -2060,15 +2129,24 @@ app.ui = {
         form.reset();
         document.getElementById('p-id').value = "";
         msg.classList.add('hidden');
+
         if (prodId) {
             const prod = app.data.Catalogo.find(p => p.id_producto === prodId);
             if (prod) {
                 document.getElementById('p-id').value = prod.id_producto;
                 document.getElementById('p-name').value = prod.nombre;
                 document.getElementById('p-price').value = prod.precio;
+                document.getElementById('p-price-offer').value = prod.precio_oferta || "";
+                document.getElementById('p-unit').value = prod.unidad || "pza";
                 document.getElementById('p-category').value = prod.categoria || "";
                 document.getElementById('p-stock').value = prod.stock || 0;
                 document.getElementById('p-desc').value = prod.descripcion || "";
+                document.getElementById('p-is-combo').value = (prod.es_combo === true || prod.es_combo === "TRUE") ? "TRUE" : "FALSE";
+                document.getElementById('p-active').value = (prod.activo === false || prod.activo === "FALSE") ? "FALSE" : "TRUE";
+                document.getElementById('p-promo-tag').value = prod.Etiqueta_Promo || "";
+                document.getElementById('p-media').value = prod.Media || "";
+                document.getElementById('p-combo-content').value = prod.Contenido_Combo || "";
+                document.getElementById('p-image-url').value = prod.imagen_url || "";
             }
         }
         modal.classList.remove('hidden');
@@ -2081,9 +2159,11 @@ app.ui = {
         const originalText = btn.innerHTML;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> PROCESANDO...';
         btn.disabled = true;
+
         const fileInput = document.getElementById('p-file');
-        let imageUrl = "";
-        // 1. Handle File Upload if exists
+        let imageUrl = document.getElementById('p-image-url').value;
+
+        // 1. Handle File Upload if exists (Prioritizes new upload)
         if (fileInput.files.length > 0) {
             const file = fileInput.files[0];
             const company = app.data.Config_Empresas.find(c => c.id_empresa === app.state.companyId);
@@ -2112,26 +2192,32 @@ app.ui = {
                 }
             }
         }
-        // 2. Prepare Product Data (Smart Create/Update)
+
+        // 2. Prepare Product Data (Full Schema)
         const currentId = document.getElementById('p-id').value;
         const isNew = !currentId;
-        const finalId = isNew ? `PROD-${Date.now()}` : currentId;
 
         const prodData = {
-            id_producto: finalId,
+            id_producto: currentId,
             id_empresa: app.state.companyId,
             nombre: document.getElementById('p-name').value,
-            precio: document.getElementById('p-price').value,
+            precio: parseFloat(document.getElementById('p-price').value),
+            precio_oferta: document.getElementById('p-price-offer').value ? parseFloat(document.getElementById('p-price-offer').value) : "",
+            unidad: document.getElementById('p-unit').value,
             categoria: document.getElementById('p-category').value,
-            stock: document.getElementById('p-stock').value,
+            stock: parseInt(document.getElementById('p-stock').value),
             descripcion: document.getElementById('p-desc').value,
-            activo: "TRUE"
+            es_combo: document.getElementById('p-is-combo').value,
+            activo: document.getElementById('p-active').value,
+            Etiqueta_Promo: document.getElementById('p-promo-tag').value,
+            Media: document.getElementById('p-media').value,
+            Contenido_Combo: document.getElementById('p-combo-content').value,
+            imagen_url: imageUrl
         };
-        if (imageUrl) prodData.imagen_url = imageUrl;
 
         // 3. Save to Backend
         try {
-            const actionType = isNew ? 'createProduct' : 'saveProduct'; // Backend router distinction
+            const actionType = isNew ? 'createProduct' : 'saveProduct';
             const res = await fetch(app.apiUrl, {
                 method: 'POST',
                 headers: { "Content-Type": "text/plain" },
@@ -2143,7 +2229,7 @@ app.ui = {
             });
             const result = await res.json();
             if (result.success) {
-                msg.innerHTML = '<i class="fas fa-check-circle"></i> Producto guardado correctamente';
+                msg.innerHTML = '<i class="fas fa-check-circle"></i> Catálogo actualizado correctamente';
                 msg.className = "msg-box success";
                 msg.classList.remove('hidden');
                 await app.loadData();

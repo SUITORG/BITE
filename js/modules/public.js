@@ -199,10 +199,19 @@ app.public = {
             heroBanner.style.backgroundRepeat = 'no-repeat';
             heroBanner.style.display = 'block';
 
-            const sloganText = company.mensaje1 || company.eslogan || "Sabor Premium";
-            const subText = company.mensaje2 || company.descripcion || "Excelencia en cada platillo.";
+            const sloganText = company.slogan || company.eslogan || "Sabor Premium";
+            const subText = company.mensaje1 || company.descripcion || "Excelencia en cada platillo.";
+            const extraText = company.mensaje2 || "";
+            const extraEl = document.getElementById('hero-extra-msg');
+
             if (sloganEl) sloganEl.innerText = sloganText;
             if (subEl) subEl.innerText = subText;
+            if (extraEl) {
+                extraEl.innerText = extraText;
+                extraEl.classList.toggle('hidden', !extraText);
+            }
+            if (heroBanner) heroBanner.classList.add('reduced');
+
             if (foodTitle) foodTitle.innerText = sloganText;
             if (foodSubtitle) foodSubtitle.innerText = subText;
 
@@ -253,8 +262,11 @@ app.public = {
             const heroUrl = company.hero_url || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1600&q=80';
             heroBanner.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url('${app.utils.fixDriveUrl(heroUrl)}')`;
             heroBanner.style.backgroundAttachment = 'fixed';
-            if (sloganEl) sloganEl.innerText = company.eslogan || "Soluciones Industriales";
-            if (subEl) subEl.innerText = company.descripcion || "Eficiencia y Calidad.";
+            if (heroBanner) heroBanner.classList.remove('reduced');
+            const extraEl = document.getElementById('hero-extra-msg');
+            if (extraEl) extraEl.classList.add('hidden');
+            if (sloganEl) sloganEl.innerText = company.slogan || company.eslogan || "Soluciones Industriales";
+            if (subEl) subEl.innerText = company.mensaje1 || company.descripcion || "Eficiencia y Calidad.";
             if (actions) {
                 const showSupport = company.usa_soporte_ia === 'TRUE' || company.usa_soporte_ia === true;
                 actions.innerHTML = `

@@ -1,9 +1,9 @@
 
 # Manual Técnico y Operativo - SuitOrg
 > **Identidad Principal:** SuitOrg (Powered by EVASOL Engine)
-> **Última Versión Estable**: v4.6.8 (STABLE-SYNC)
+> **Última Versión Estable**: v4.7.0 (STABLE-SYNC)
 > **Estado del Sistema**: Operativo y Sincronizado.
-> **Total de Líneas Consolidadas**: ~9,035 (Auditado 2026-01-29).
+> **Total de Líneas Consolidadas**: ~9,814 (Auditado 2026-01-31).
 
 ## 0. Resumen Ejecutivo (TL;DR) - Para gente con prisa ⚡
 1.  **¿Qué es?** Un potente "Food Hub" multi-inquilino especializado en el sector alimenticio (Restaurantes, Snacks, Comida Rápida).
@@ -85,6 +85,10 @@ Para que el sistema active correctamente el menú y el Dashboard, se deben usar 
 | `BACKEND_MISSING_SEEDS` | Nuevos agentes o roles no se creaban si la tabla ya existía pero estaba incompleta. | Implementar lógica de "Upsert" en la inicialización para verificar registros uno por uno en lugar de solo tablas vacías. | ✅ Resuelto | 20 min |
 | `SEED_LOGIC_INDEX_FAIL` | La verificación de seeds fallaba por depender de índices fijos o nombres de tabla incorrectos. | Refactorizar a función `ensureSeed` que busca dinámicamente el encabezado 'id' para insertar con precisión. | ✅ Resuelto | 15 min |
 | `catalog` | Catálogo | Gestión de productos, stock y precios de oferta. |
+| `catalog_add` | (Permiso) Agregar | Permite crear nuevos productos con ID correlativo. |
+| `catalog_edit` | (Permiso) Editar | Permite modificar cualquier campo del producto. |
+| `catalog_delete` | (Permiso) Borrar | Permite realizar borrado lógico (Ocultar). |
+| `catalog_stock` | (Permiso) Stock | Permite ajustar niveles de inventario. |
 | `agents` | Agentes IA | Panel de Agentes inteligentes (Gemini). |
 | `home` | Inicio / Landing | Vista principal pública de la empresa seleccionada. |
 | `orbit` | Orbit Hub | Interfaz de navegación entre divisiones (Burbujas). |
@@ -166,10 +170,11 @@ Para agilizar el ciclo de vida del desarrollo, el sistema utiliza un protocolo d
     - **Architecture:** Finalized modularization. Created `events.js` to decouple all DOM event listeners from logic/UI.
     - **UI/UX:** Reduced vertical spacing in checkout by 50%. Standardized "Contra Entrega" payment label.
     - **Logic:** Integrated **Total Order Amount** display in POS cards. Refined OTP visibility: Visible for Staff/Admin, Blurred for Delivery.
-- **v4.6.9 (2026-01-29):** **"Premium Branding & UX Guard"**.
-    - **UI/UX:** Full implementation of `estandar-landing`. Institutional Footer (Barra Única #0F0F0F) with dynamic corporate links and official social media branding.
-    - **SEO Matrix:** Upgraded to "Hybrid Premium" mode in `public.js`, supporting dynamic background images and transparent overlays for long-tail SEO.
-    - **Standards:** Re-validated System Info (StatusBar) alignment with numeric levels and AAMMDD-hhmm date format.
+- **v4.7.0 (2026-01-31):** **"Catalog CRUD & Sequential IDs"**.
+    - **Backend:** IDs secuenciales por inquilino (`PROD-XX`). Borrado lógico mediante `activo = FALSE`.
+    - **RBAC:** Permisos granulares de catálogo (`add`, `edit`, `delete`, `stock`).
+    - **UI:** Tarjetas de producto premium con ribbons de oferta y micro-acciones CRUD integradas.
+- **v4.6.9 (2026-01-30):** **"Premium Branding & UX Guard"**.
 - **v4.6.7 (2026-01-29):** **"Public Module Consolidation"**.
 - **v4.6.0 (2026-01-28):** **"Delivery Flow V2" (3 Steps)**. 
     - **Logic:** Introducido estado intermedio `EN-CAMINO`. El flujo ahora es: Recibido -> Cocina -> Listo -> En Camino -> Entregado.
@@ -252,12 +257,12 @@ Para agilizar el ciclo de vida del desarrollo, el sistema utiliza un protocolo d
 
 | Archivo / Carpeta | Líneas |
 | :--- | :--- |
-| index.html | 1631 | Estructura base PWA / Modales |
-| style.css | 2687 | UI/UX Premium & Micro-animaciones |
-| js/modules/ | 4335 | Lógica de Negocio (Core, UI, POS, AI) |
+| index.html | 1606 | Estructura base PWA / Modales |
+| style.css | 3089 | UI/UX Premium & Micro-animaciones |
+| js/modules/ | 4670 | Lógica de Negocio (Core, UI, POS, AI) |
 | app.js | 61 | Router y Orquestación Inicial |
-| backend_schema.gs | 321 | Engine Server-side (GAS) |
-| **TOTAL** | **9035** | Líneas de producción |
+| backend_schema.gs | 388 | Engine Server-side (GAS) |
+| **TOTAL** | **9814** | Líneas de producción |
 
 ---
 *Manual generado automáticamente por Antigravity AI.*

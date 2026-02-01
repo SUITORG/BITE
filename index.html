@@ -110,6 +110,7 @@
                     <!-- Buttons injected via JS -->
                     <button class="btn-primary" onclick="window.location.hash='#contact'">Cotizar Ahora</button>
                 </div>
+                <div id="hero-extra-msg" class="hero-extra-msg"></div>
             </div>
 
             <!-- SECTION: SPECIALIZED SOLUTIONS (Long-Tail SEO) - UNIVERSAL POSITION -->
@@ -681,6 +682,7 @@
                     <i class="fas fa-box"></i> Agregar Producto
                 </button>
             </div>
+            <div id="catalog-perm-notice" class="hidden"></div>
             <!-- TABLE CONTROLS -->
             <div class="table-controls">
                 <div class="search-box">
@@ -1376,16 +1378,16 @@
             </div>
         </div>
     </div>
-    <script src="js/modules/config.js?v=4.6.8"></script>
-    <script src="js/modules/core.js?v=4.6.8"></script>
-    <script src="js/modules/auth.js?v=4.6.8"></script>
-    <script src="js/modules/public.js?v=4.6.8"></script>
-    <script src="js/modules/events.js?v=4.6.8"></script>
-    <script src="js/modules/ui.js?v=4.6.8"></script>
-    <script src="js/modules/agents.js?v=4.6.8"></script>
-    <script src="js/modules/router.js?v=4.6.8"></script>
-    <script src="js/modules/pos.js?v=4.6.8"></script>
-    <script src="app.js?v=4.6.8"></script>
+    <script src="js/modules/config.js?v=4.7.0"></script>
+    <script src="js/modules/core.js?v=4.7.0"></script>
+    <script src="js/modules/auth.js?v=4.7.0"></script>
+    <script src="js/modules/public.js?v=4.7.0"></script>
+    <script src="js/modules/events.js?v=4.7.0"></script>
+    <script src="js/modules/ui.js?v=4.7.0"></script>
+    <script src="js/modules/agents.js?v=4.7.0"></script>
+    <script src="js/modules/router.js?v=4.7.0"></script>
+    <script src="js/modules/pos.js?v=4.7.0"></script>
+    <script src="app.js?v=4.7.0"></script>
     <!-- MODAL: KNOWLEDGE UPLOAD (Manual) -->
     <div id="knowledge-modal" class="modal-overlay hidden">
         <div class="modal-content minimalist-form" style="max-width: 500px;">
@@ -1532,41 +1534,81 @@
             <div class="modal-body">
                 <form id="form-product">
                     <input type="hidden" id="p-id">
-                    <div class="form-row" style="display: flex; gap: 15px;">
+                    <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 10px;">
                         <div class="form-group" style="flex: 2;">
                             <label>Nombre del Producto *</label>
                             <input type="text" id="p-name" required placeholder="Ej: Hamburguesa Especial">
                         </div>
                         <div class="form-group" style="flex: 1;">
-                            <label>Precio *</label>
+                            <label>Categoría</label>
+                            <input type="text" id="p-category" placeholder="Ej: Alimentos">
+                        </div>
+                    </div>
+                    <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 10px;">
+                        <div class="form-group" style="flex: 1;">
+                            <label>Precio Regular *</label>
                             <input type="number" id="p-price" step="0.01" required placeholder="0.00">
                         </div>
-                    </div>
-                    <div class="form-row" style="display: flex; gap: 15px;">
                         <div class="form-group" style="flex: 1;">
-                            <label>Categoría</label>
-                            <input type="text" id="p-category" placeholder="Ej: Alimentos, Consultoría...">
+                            <label>Precio Oferta</label>
+                            <input type="number" id="p-price-offer" step="0.01" placeholder="0.00">
                         </div>
                         <div class="form-group" style="flex: 1;">
-                            <label>Stock Inicial</label>
+                            <label>Unidad</label>
+                            <input type="text" id="p-unit" placeholder="pza, kg, serv...">
+                        </div>
+                    </div>
+                    <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 10px;">
+                        <div class="form-group" style="flex: 1;">
+                            <label>Stock Actual</label>
                             <input type="number" id="p-stock" value="100">
                         </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>Es Combo?</label>
+                            <select id="p-is-combo">
+                                <option value="FALSE">No</option>
+                                <option value="TRUE">Sí</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>Estado</label>
+                            <select id="p-active">
+                                <option value="TRUE">Activo</option>
+                                <option value="FALSE">Inactivo</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" style="margin-bottom: 10px;">
                         <label>Descripción</label>
-                        <textarea id="p-desc" style="height: 60px;"></textarea>
+                        <textarea id="p-desc" style="height: 50px;"></textarea>
                     </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-image"></i> Imagen del Producto (Cargar a la Nube)</label>
+                    <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 10px;">
+                        <div class="form-group" style="flex: 1;">
+                            <label>Etiqueta Promo</label>
+                            <input type="text" id="p-promo-tag" placeholder="Ej: 2x1, Nuevo...">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>Media (Formatos)</label>
+                            <input type="text" id="p-media" placeholder="png,mp4,pdf">
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 10px;">
+                        <label>Contenido del Combo (JSON/Texto)</label>
+                        <input type="text" id="p-combo-content" placeholder="Ej: Refresco + Papas">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 10px;">
+                        <label><i class="fas fa-link"></i> URL de Imagen Directa (Drive)</label>
+                        <input type="url" id="p-image-url" placeholder="https://drive.google.com/...">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label><i class="fas fa-upload"></i> O Cargar Nueva Imagen</label>
                         <input type="file" id="p-file" accept="image/*"
-                            style="padding: 10px; border: 1px dashed #ccc; border-radius: 8px; width: 100%;">
-                        <p style="font-size: 0.7rem; color: #888; margin-top: 5px;">Se guardará automáticamente en la
-                            carpeta de Drive de tu negocio.</p>
+                            style="padding: 8px; border: 1px dashed #ccc; border-radius: 8px; width: 100%;">
                     </div>
                     <div id="p-msg" class="msg-box hidden"></div>
-                    <div class="modal-footer" style="padding: 15px 0 0 0;">
-                        <button type="submit" class="btn-primary w-100" style="height: 50px; font-size: 1.1rem;">
-                            <i class="fas fa-cloud-upload-alt"></i> Guardar Producto
+                    <div class="modal-footer" style="padding: 10px 0 0 0;">
+                        <button type="submit" class="btn-primary w-100" style="height: 45px; font-size: 1rem;">
+                            <i class="fas fa-save"></i> GUARDAR PRODUCTO EN CATÁLOGO
                         </button>
                     </div>
                 </form>

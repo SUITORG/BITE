@@ -11,6 +11,7 @@ Este archivo es tu **Centro de Comando**. Úsalo para controlar el avance del pr
 Este documento rastrea el cumplimiento de las reglas fundamentales y la visión del proyecto.
 
 ## 🏗️ Arquitectura de Software (v3.6.2 Modular)
+- [x] **v4.7.0: Catalog CRUD & Sequential IDs**: Full product management with sequential IDs (`PROD-XX`), logical delete, and granular RBAC (`catalog_add`, `edit`, `delete`, `stock`).
 - [x] **v4.6.9: Premium Branding & UX Guard**: Full implementation of `estandar-landing`, institutional footer, dynamic tenant SEO injection (Suit.Org/Suit.Bite) and **Responsive Mobile Navigation (Burger Menu)**.
 
 - [x] **v4.6.8: Stable Sync**: Re-auditoría completa de líneas (9,035) y consolidación final.
@@ -36,7 +37,7 @@ Este documento rastrea el cumplimiento de las reglas fundamentales y la visión 
 
 3.  **Arquitectura de Datos**
     - [x] **Multi-Tenant:** Estructura preparada para múltiples empresas (`Config_Empresas`).
-    - [x] **IDs Secuenciales:** Algoritmo O(1) para `LEAD-1`, `PROJ-1`, etc.
+    - [x] **IDs Secuenciales:** Algoritmo O(1) para `LEAD-1`, `PROJ-1`, y `PROD-01` (v4.7.0).
     - [x] **Integridad:** Validaciones para evitar IDs duplicados.
 
 4.  **Seguridad y Roles**
@@ -82,8 +83,8 @@ Este documento rastrea el cumplimiento de las reglas fundamentales y la visión 
     - [x] **Bitácora:** Registro de eventos y progreso manual.
 
 10. **Catálogo**
-    - [x] **Visualización:** Grid de productos/servicios disponibles.
-    - [x] **Seguridad:** Creación restringida a Nivel 10+ (Admin).
+    - [x] **Visualización:** Grid de productos/servicios con ribbons de oferta.
+- [x] **Seguridad:** CRUD completo con permisos granulares (RBAC v4.7.0).
 
 11. **Core & UX**
     - [x] **Estandar CRUD:** Operaciones con soporte exportación PDF/VTS.
@@ -129,7 +130,7 @@ Este documento rastrea el cumplimiento de las reglas fundamentales y la visión 
 - [ ] **Congelar Lógica POS/OTS:** Una vez dado el OK, marcar estos módulos como inmutables para evitar regresiones.
 
 ---
-*Última actualización: 2026-01-29 | Versión: v4.6.9 (PREMIUM-BRANDING)*
+*Última actualización: 2026-01-31 | Versión: v4.7.0 (CATALOG-CRUD)*
 
 ## v4.6.0 - Flujo Delivery de 3 Pasos (TESTING)
 - [x] **Estado Intermedio**: Implementado estado `EN-CAMINO`.

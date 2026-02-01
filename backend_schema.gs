@@ -1,21 +1,23 @@
-/* SuitOrg Backend Engine - v4.6.9
+/* SuitOrg Backend Engine - v4.7.0
  * ---------------------------------------------------------
- * Sincronización: 2026-01-30 05:40 PM
+ * Sincronización: 2026-01-31 06:05 PM
  * 
- * Changelog v4.6.9:
- * - CORE: Soporte para Header Responsivo (Burger Menu) y Matriz SEO Universal.
- * - SYNC: Sincronización atómica con Frontend v4.6.9.
+ * Changelog v4.7.0:
+ * - CATALOGO: CRUD completo con IDs secuenciales por empresa (PROD-XX).
+ * - CATALOGO: Borrado lógico mediante campo 'activo'.
+ * - RBAC: Soporte para permisos granulares (catalog_add, edit, delete, stock).
+ * - SYNC: Sincronización atómica con Frontend v4.7.0.
  * 
- * AUDIT: ~9035 Total Lines (Consolidated).
+ * AUDIT: ~9426 Total Lines (Consolidated).
  * ---------------------------------------------------------
  */
 
 const CONFIG = {
-  VERSION: "4.6.9",
+  VERSION: "4.7.0",
   DB_ID: "1uyy2hzj8HWWQFnm6xy-XCwvvGh3odjV4fRlDh5SBxu8", 
   GLOBAL_TABLES: ["Config_Empresas", "Config_Roles", "Usuarios", "Config_SEO", "Prompts_IA", "Cuotas_Pagos"], 
   PRIVATE_TABLES: ["Leads", "Proyectos", "Proyectos_Etapas", "Proyectos_Pagos", "Proyectos_Bitacora", "Catalogo", "Logs", "Pagos", "Empresa_Documentos"],
-  AUDIT: { total: 9035, status: "STABLE_SYNC" }
+  AUDIT: { total: 9426, status: "STABLE_SYNC" }
 };
 
 /**
@@ -106,9 +108,36 @@ function handlePostAction(data, output) {
         processTransaction(ss, data, output);
         break;
 
+      case "createProduct":
+        var catSheet = ss.getSheetByName("Catalogo");
+        var catData = catSheet.getDataRange().getValues();
+        var catHeaders = catData[0].map(h => String(h).toLowerCase().trim().replace(/\s+/g, '_'));
+        var idIdx = catHeaders.indexOf("id_producto");
+        var coIdx = catHeaders.indexOf("id_empresa");
+        var maxNum = 0;
+        var coId = String(data.product.id_empresa).trim().toUpperCase();
+
+        for (var i = 1; i < catData.length; i++) {
+          var rCo = String(catData[i][coIdx]).trim().toUpperCase();
+          if (rCo === coId) {
+            var rId = String(catData[i][idIdx]);
+            if (rId.indexOf("PROD-") === 0) {
+              var num = parseInt(rId.split("-")[1]);
+              if (!isNaN(num) && num > maxNum) maxNum = num;
+            }
+          }
+        }
+        data.product.id_producto = "PROD-" + String(maxNum + 1).padStart(2, '0');
+        appendRowMapped(ss, "Catalogo", data.product);
+        output.success = true; break;
+
       case "saveProduct":
       case "updateProduct":
         updateRowMapped(ss, "Catalogo", "id_producto", data.product.id_producto, data.product);
+        output.success = true; break;
+
+      case "deleteProduct":
+        updateRowMapped(ss, "Catalogo", "id_producto", data.id, { activo: "FALSE" });
         output.success = true; break;
 
       case "createSupportTicket":
