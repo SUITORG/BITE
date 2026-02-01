@@ -663,5 +663,378 @@ app.pos = {
         } else {
             alert("No hay ventas registradas aún.");
         }
+    },
+
+    // --- POS UI & RENDERING (Migrated from ui.js) ---
+    togglePosFolio: () => {
+        const method = document.getElementById('pos-pay-method').value;
+        const folioBlock = document.getElementById('pos-folio-block');
+        const bankBlock = document.getElementById('pos-bank-block');
+        if (!folioBlock || !bankBlock) return;
+
+        if (method === 'Transferencia') {
+            folioBlock.classList.remove('hidden');
+            bankBlock.classList.remove('hidden');
+            const company = app.data.Config_Empresas.find(c => c.id_empresa === app.state.companyId);
+            const bName = company?.infobanco || "Pendiente";
+            const bAcc = company?.infocuenta || "";
+            document.getElementById('pos-bank-text').innerText = `${bName}: ${bAcc}`;
+        } else {
+            folioBlock.classList.add('hidden');
+            bankBlock.classList.add('hidden');
+        }
+    },
+
+    setPosPaymentMethod: (method) => {
+        const select = document.getElementById('pos-pay-method');
+        if (select) select.value = method;
+        app.pos.togglePosFolio();
+        // Sync Visual Buttons
+        document.querySelectorAll('.pay-method-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.method === method);
+        });
+    },
+
+    setPublicPaymentMethod: (method) => {
+        const select = document.getElementById('pay-method');
+        if (select) select.value = method;
+        if (app.pos.handlePayMethodChange) app.pos.handlePayMethodChange();
+        // Sync Visual Buttons
+        document.querySelectorAll('.pay-method-opt').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.method === method);
+        });
+    },
+
+    filterPOS: (status) => {
+        const buttons = document.querySelectorAll('.pos-filter-btn');
+        buttons.forEach(btn => btn.classList.toggle('active', btn.dataset.status === status));
+        app.pos.renderPOS();
+    },
+
+    renderPOS: () => {
+        const container = document.getElementById('pos-orders-grid');
+        if (!container) return;
+        container.innerHTML = '';
+
+        const activeFilterBtn = document.querySelector('.pos-filter-btn.active');
+        const currentFilter = activeFilterBtn ? activeFilterBtn.dataset.status : 'TODOS';
+
+        const user = app.state.currentUser;
+        const userRole = (user?.id_rol || "").toString().toUpperCase();
+        const isAdmin = userRole === 'DIOS' || parseInt(user?.nivel_acceso) >= 10;
+        const isDelivery = userRole === 'DELIVERY' || userRole === 'REPARTIDOR';
+
+        // Filter: Multi-tenant + Date (Standard YY-MM-DD)
+        const todayStr = new Date().toLocaleDateString('en-CA');
+        let list = (app.data.Proyectos || []).filter(p => {
+            const isMyCompany = app.utils.getCoId(p) === app.state.companyId.toString().trim().toUpperCase();
+            const pDate = new Date(p.fecha_inicio);
+            const isToday = !isNaN(pDate.getTime()) && pDate.toLocaleDateString('en-CA') === todayStr;
+
+            // EXCEPCIÓN DELIVERY: Ver todo lo LISTO sin importar la fecha (v4.4.5)
+            const status = (p.status || p.estado || "").toString().trim().toUpperCase().replace(/ /g, '-');
+            const isReadyForDelivery = status.includes('LISTO') || status.includes('CAMINO');
+
+            if (isDelivery) return isMyCompany && (isToday || isReadyForDelivery);
+            return isMyCompany && isToday;
+        });
+
+        // Apply visual filter
+        if (currentFilter !== 'TODOS') {
+            list = list.filter(p => {
+                const s = (p.status || p.estado || "").toString().trim().toUpperCase().replace(/ /g, '-');
+                if (currentFilter === 'NUEVOS') return s.includes('RECIBIDO') || s.includes('NUEVO');
+                if (currentFilter === 'COCINA') return s.includes('COCINA') || s.includes('PREPARA');
+                if (currentFilter === 'LISTOS') return s.includes('LISTO');
+                if (currentFilter === 'CAMINO') return s.includes('CAMINO');
+                if (currentFilter === 'ENTREGADO') return s.includes('ENTREGADO') || s.includes('FINAL');
+                return true;
+            });
+        }
+
+        // Sort: Newest first
+        list.sort((a, b) => new Date(b.fecha_inicio) - new Date(a.fecha_inicio));
+
+        list.forEach(p => {
+            const status = (p.status || p.estado || "").toString().trim().toUpperCase().replace(/ /g, '-');
+            const card = document.createElement('div');
+            card.className = `order-card ${status.toLowerCase()}`;
+            const items = JSON.parse(p.line_items || '[]');
+
+            // External Source Detection
+            const pay = (app.data.Proyectos_Pagos || []).find(pay => pay.id_proyecto === p.id_proyecto);
+            const isWeb = pay?.referencia === 'CLIENTE-URL' || (p.nombre_proyecto || "").includes('WEB-OTS');
+
+            // --- RBAC: STAFF vs DELIVERY (OTP Privacy) ---
+            const code = String(p.codigo_otp || "").trim();
+            const showOtp = code && (isAdmin || !isDelivery);
+            const otpDisplay = code ? (showOtp ? `🔑 <b>${code}</b>` : `🔑 <span class="otp-blur">****</span>`) : '';
+
+            card.innerHTML = `
+                <div class="order-header">
+                    <span class="order-id">#${p.id_proyecto.slice(-4)}</span>
+                    ${isWeb ? '<span class="badge web">WEB</span>' : '<span class="badge pos">LOCAL</span>'}
+                    <span class="order-time">${new Date(p.fecha_inicio).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+                <div class="order-customer">
+                    <i class="fas fa-user"></i> ${p.nombre_cliente || p.nombre_proyecto.split('-')[1] || 'Cliente'}
+                </div>
+                <!-- OTS Info Layout -->
+                <div class="order-ots-info" style="font-size:0.8rem; margin:5px 0; border-top:1px dashed #eee; padding-top:5px;">
+                    <div class="ots-item"><i class="fas fa-map-marker-alt"></i> ${p.direccion || 'Entrega en Local'}</div>
+                    <div class="ots-item"><i class="fas fa-phone"></i> ${p.telefono || 'N/A'}</div>
+                </div>
+                <div class="order-items">
+                    ${items.map(i => `<div>${i.qty}x ${i.name}</div>`).join('')}
+                </div>
+                <div class="order-footer">
+                    <div class="order-total">$${items.reduce((sum, i) => sum + (i.price * i.qty), 0).toFixed(2)}</div>
+                    <div class="order-otp">${otpDisplay}</div>
+                </div>
+                <div class="order-actions">
+                    ${app.pos.getPosActionButtons(p.id_proyecto, status, code)}
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    },
+
+    getPosActionButtons: (id, status, otp) => {
+        const user = app.state.currentUser;
+        const role = (user?.id_rol || "").toString().toUpperCase();
+        const level = parseInt(user?.nivel_acceso || 0);
+        const isDelivery = role === 'DELIVERY' || role === 'REPARTIDOR';
+        const isAdmin = role === 'DIOS' || level >= 10;
+
+        let btns = '';
+        if (status.includes('RECIBIDO') || status.includes('NUEVO')) {
+            if (!isDelivery) btns += `<button class="btn-pos btn-prep" onclick="app.pos.updateOrderStatus('${id}', 'EN-COCINA')">COCINAR</button>`;
+        } else if (status.includes('COCINA')) {
+            if (!isDelivery) btns += `<button class="btn-pos btn-ready" onclick="app.pos.updateOrderStatus('${id}', 'LISTO-ENTREGA')">LISTO</button>`;
+        } else if (status.includes('LISTO')) {
+            btns += `<button class="btn-pos btn-route" onclick="app.pos.updateOrderStatus('${id}', 'EN-CAMINO')">RUTA</button>`;
+        } else if (status.includes('CAMINO')) {
+            btns += `<button class="btn-pos btn-done" onclick="app.pos.updateOrderStatus('${id}', 'ENTREGADO')">ENTREGAR</button>`;
+        }
+        return btns;
+    },
+
+    updateExternalOrderAlert: () => {
+        const container = document.getElementById('pos-alerts-container');
+        const countBlueEl = document.getElementById('pos-external-count');
+        const countOrangeEl = document.getElementById('pos-delivery-count');
+        const countGreenEl = document.getElementById('pos-done-count');
+        if (!container || !countBlueEl || !countOrangeEl || !countGreenEl) return;
+
+        if (app.state.isFood) {
+            const todayStr = new Date().toLocaleDateString('en-CA');
+            const projects = app.data.Proyectos || [];
+            let countNewWeb = 0, countPendingDelivery = 0, countDone = 0;
+
+            projects.forEach(p => {
+                const isMyCompany = app.utils.getCoId(p) === app.state.companyId.toString().trim().toUpperCase();
+                const pDate = new Date(p.fecha_inicio);
+                const isToday = !isNaN(pDate.getTime()) && pDate.toLocaleDateString('en-CA') === todayStr;
+                if (!isMyCompany || !isToday) return;
+
+                const status = (p.status || p.estado || "").toString().trim().toUpperCase().replace(/ /g, '-');
+                const isExternal = (app.data.Proyectos_Pagos || []).some(pay => pay.id_proyecto === p.id_proyecto && pay.referencia === 'CLIENTE-URL');
+
+                if (isExternal && (status.includes('RECIBIDO') || status.includes('NUEVO'))) countNewWeb++;
+                if (status.includes('LISTO') || status.includes('CAMINO')) countPendingDelivery++;
+                if (status.includes('ENTREGADO') || status.includes('FINALIZADO')) countDone++;
+            });
+
+            if (countNewWeb > (app.state.lastExternalCount || 0)) app.utils.playNotification();
+            app.state.lastExternalCount = countNewWeb;
+            countBlueEl.innerText = countNewWeb;
+            countOrangeEl.innerText = countPendingDelivery;
+            countGreenEl.innerText = countDone;
+            container.classList.remove('hidden');
+        } else {
+            container.classList.add('hidden');
+        }
+    },
+
+    renderStaffPOS: () => {
+        const container = document.getElementById('staff-pos-grid');
+        const sideNav = document.getElementById('staff-pos-side-nav');
+        if (!container) return;
+        container.innerHTML = '';
+        if (sideNav) sideNav.innerHTML = '';
+
+        const items = (app.data.Catalogo || []).filter(p => {
+            const pCo = (p.id_empresa || "").toString().trim().toUpperCase();
+            const sCo = (app.state.companyId || "").toString().trim().toUpperCase();
+            const isActive = (p.activo == true || p.activo == 1 || p.activo === "TRUE" || p.activo === "1");
+            return pCo === sCo && isActive;
+        });
+
+        if (items.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:50px; color:#999; grid-column:1/-1;">No hay productos para vender.</div>';
+            return;
+        }
+
+        const categories = {};
+        items.forEach(p => {
+            const cat = (p.categoria || "General").trim();
+            if (!categories[cat]) categories[cat] = [];
+            categories[cat].push(p);
+        });
+
+        Object.keys(categories).forEach((catName, index) => {
+            const catId = `staff-cat-${index}`;
+            if (sideNav) {
+                const navItem = document.createElement('div');
+                navItem.className = 'pos-cat-item' + (index === 0 ? ' active' : '');
+                navItem.innerText = catName;
+                navItem.onclick = () => {
+                    document.querySelectorAll('.pos-cat-item').forEach(el => el.classList.remove('active'));
+                    navItem.classList.add('active');
+                    document.getElementById(catId).scrollIntoView({ behavior: 'smooth', block: 'start' });
+                };
+                sideNav.appendChild(navItem);
+            }
+
+            const section = document.createElement('div');
+            section.id = catId;
+            section.className = 'staff-pos-section';
+            section.innerHTML = `<h3 class="food-category-title">${catName}</h3><div class="food-grid"></div>`;
+            const grid = section.querySelector('.food-grid');
+
+            categories[catName].forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'food-card';
+                const stock = parseInt(p.stock) || 0;
+                const img = p.imagen_url ? app.utils.fixDriveUrl(p.imagen_url) : 'https://docs.google.com/uc?export=view&id=1t6BmvpGTCR6-OZ3Nnx-yOmpohe5eCKvv';
+                const price = app.utils.getEffectivePrice(p);
+
+                card.innerHTML = `
+                    <div class="food-img-container">
+                        <img src="${img}" class="food-img">
+                        <div class="stock-badge" style="background:${stock <= 5 ? '#e74c3c' : '#27ae60'}">${stock} DISP.</div>
+                    </div>
+                    <div class="food-info">
+                        <div class="food-title-row">
+                            <h3>${p.nombre}</h3>
+                            <span class="price">$${price}</span>
+                        </div>
+                        <div class="food-actions">
+                            <button onclick="app.pos.removeFromCart('${p.id_producto}')"><i class="fas fa-minus"></i></button>
+                            <span id="qty-${p.id_producto}" class="food-qty">${app.state.cart.find(i => i.id === p.id_producto)?.qty || 0}</span>
+                            <button onclick="app.pos.addToCart('${p.id_producto}')"><i class="fas fa-plus"></i></button>
+                        </div>
+                    </div>`;
+                grid.appendChild(card);
+            });
+            container.appendChild(section);
+        });
+        app.pos.updateCartVisuals();
+    },
+
+    // --- CATALOG MANAGEMENT REMOVED (Now in admin.js) ---
+
+
+
+
+
+
+
+
+    fileToBase64: (file) => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    }),
+
+    // --- OTP LOGIC (v4.7.0) ---
+    showOtpEntry: (id, targetStatus, correctOtp) => {
+        app.state._otpContext = { id, targetStatus, correctOtp };
+        const modal = document.getElementById('otp-modal');
+        const input = document.getElementById('otp-entry-input');
+        if (modal && input) {
+            input.value = '';
+            modal.classList.remove('hidden');
+            setTimeout(() => input.focus(), 200);
+            input.onkeydown = (e) => { if (e.key === 'Enter') app.pos.verifyOtp(); };
+        }
+    },
+    verifyOtp: async () => {
+        const ctx = app.state._otpContext;
+        const input = document.getElementById('otp-entry-input');
+        if (!ctx || !input) return;
+        if (input.value.trim() === String(ctx.correctOtp).trim()) {
+            document.getElementById('otp-modal').classList.add('hidden');
+            await app.pos.updateOrderStatus(ctx.id, ctx.targetStatus, true);
+        } else {
+            alert("❌ Código incorrecto.");
+            input.value = '';
+        }
+    },
+    closeOtpModal: () => {
+        document.getElementById('otp-modal').classList.add('hidden');
+        app.state._otpContext = null;
+    },
+
+    // --- PRINTER BRIDGE ---
+    printTicket: (orderData = null, cartItems = null) => {
+        const iframe = document.getElementById('print-iframe');
+        if (!iframe) return;
+        const company = app.data.Config_Empresas.find(c => c.id_empresa === app.state.companyId);
+        const items = cartItems || app.state.cart;
+        const subtotal = items.reduce((acc, i) => acc + (parseFloat(i.price) * i.qty), 0);
+        const fee = orderData?.costo_envio || (app.state.deliveryMethod === 'DOMICILIO' ? (parseFloat(company?.costo_envio) || 0) : 0);
+        const total = subtotal + fee;
+        const html = `
+                <html>
+                <head>
+                    <style>
+                        body { font-family: 'Courier New', Courier, monospace; font-size: 13px; color: #000; padding: 10px; width: 75mm; }
+                        h2 { text-align: center; margin: 5px 0; font-size: 18px; }
+                        p { margin: 2px 0; }
+                        .center { text-align: center; }
+                        .divider { border-top: 1px dashed #000; margin: 8px 0; }
+                        .row { display: flex; justify-content: space-between; margin: 3px 0; }
+                        .total-row { font-weight: bold; font-size: 16px; margin-top: 5px; }
+                        .footer { font-size: 11px; text-align: center; margin-top: 15px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="center">
+                        <h2>${company?.nomempresa || 'POS TICKET'}</h2>
+                        <p>${company?.direccion || ''}</p>
+                        <p>${company?.telefono || ''}</p>
+                    </div>
+                    <div class="divider"></div>
+                    <p><b>FECHA:</b> ${new Date().toLocaleString()}</p>
+                    <p><b>CLIENTE:</b> ${orderData?.name || 'Mostrador'}</p>
+                    <div class="divider"></div>
+                    ${items.map(i => `
+                        <div class="row">
+                            <span>${i.qty}x ${i.name.slice(0, 20)}</span>
+                            <span>$${(parseFloat(i.price) * i.qty).toFixed(2)}</span>
+                        </div>
+                    `).join('')}
+                    <div class="divider"></div>
+                    <div class="row"><span>SUBTOTAL</span><span>$${subtotal.toFixed(2)}</span></div>
+                    ${fee > 0 ? `<div class="row"><span>ENVÍO</span><span>$${fee.toFixed(2)}</span></div>` : ''}
+                    <div class="row total-row"><span>TOTAL</span><span>$${total.toFixed(2)}</span></div>
+                    <div class="divider"></div>
+                    <div class="footer">
+                        <p>¡GRACIAS POR SU PREFERENCIA!</p>
+                        <p>SuitOrg Cloud v${app.version}</p>
+                    </div>
+                </body>
+                </html>
+            `;
+        const doc = iframe.contentWindow.document;
+        doc.open();
+        doc.write(html);
+        doc.close();
+        setTimeout(() => {
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+        }, 600);
     }
 };

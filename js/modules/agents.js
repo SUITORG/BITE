@@ -224,6 +224,58 @@ app.agents = {
                 }, 1500);
             }
         } catch (e) { console.error(e); }
-    }
+    },
 
+    openAgentsModal: () => {
+        console.log("Abriendo Agentes AI...");
+        const user = app.state.currentUser;
+        const agentsGrid = document.getElementById('agents-grid');
+        if (!agentsGrid) {
+            console.error("No se encontró el grid de agentes (#agents-grid)");
+            return;
+        }
+
+        if (!app.data.Prompts_IA || !Array.isArray(app.data.Prompts_IA)) {
+            console.warn("La tabla Prompts_IA no está cargada.");
+            agentsGrid.innerHTML = '<p style="grid-column:1/-1; text-align:center;">No se encontraron agentes configurados.</p>';
+        } else {
+            const availableAgents = app.data.Prompts_IA.filter(a => {
+                const matchAccess = (parseInt(a.nivel_acceso) || 0) <= user.nivel_acceso;
+                const isEnabled = (a.habilitado === true || a.habilitado === "TRUE");
+                const matchCo = (a.id_empresa || "").toString().trim().toUpperCase() === app.state.companyId.toUpperCase() || (a.id_empresa || "").toString().trim().toUpperCase() === "GLOBAL";
+                return matchAccess && isEnabled && matchCo;
+            });
+            if (availableAgents.length === 0) {
+                agentsGrid.innerHTML = '<p style="grid-column:1/-1; text-align:center;">No hay agentes disponibles.</p>';
+            } else {
+                agentsGrid.innerHTML = availableAgents.map(agt => `
+                        <div class="feature-card" onclick="app.agents.select('${agt.id_agente}')" style="cursor:pointer; border:1px solid var(--primary-color);">
+                            <i class="fas ${app.agents.getAgentIcon(agt.nombre)}"></i>
+                            <h3>${agt.nombre}</h3>
+                            <p>${(agt.prompt_base || "").substring(0, 60)}...</p>
+                            ${(agt.recibe_files === true || agt.recibe_files === "TRUE") ? '<small style="background:#4caf50; color:white; padding:2px 5px; border-radius:4px; font-size:0.6rem;">Soporta Archivos</small>' : ''}
+                        </div>
+                    `).join('');
+            }
+        }
+        window.location.hash = "#agents";
+    },
+
+    getAgentIcon: (name) => {
+        const icons = {
+            "Diseñador": "fa-palette",
+            "Ventas": "fa-comments-dollar",
+            "Cotizador": "fa-calculator",
+            "Marketing": "fa-bullhorn",
+            "Pilares": "fa-landmark",
+            "Corporativo": "fa-file-contract",
+            "Analista": "fa-chart-line",
+            "Clasificador": "fa-sitemap",
+            "Servicio": "fa-headset",
+            "Asistente": "fa-robot",
+            "Director": "fa-crown"
+        };
+        for (let key in icons) if (name.toLowerCase().includes(key.toLowerCase())) return icons[key];
+        return "fa-brain";
+    }
 };
