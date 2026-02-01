@@ -395,6 +395,8 @@ app.events = {
         const navLists = document.querySelectorAll('.nav-list');
 
         const toggleMenu = (forceClose = false) => {
+            const isActive = forceClose ? false : !navLists[0].classList.contains('active');
+
             navLists.forEach(list => {
                 if (forceClose) list.classList.remove('active');
                 else list.classList.toggle('active');
@@ -403,6 +405,10 @@ app.events = {
                 if (forceClose) overlay.classList.add('hidden');
                 else overlay.classList.toggle('hidden');
             }
+
+            // Bloqueo de Scroll (UX Premium)
+            if (isActive) document.body.classList.add('menu-open');
+            else document.body.classList.remove('menu-open');
         };
 
         if (toggle) {

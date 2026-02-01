@@ -207,12 +207,12 @@ app.public = {
             if (foodSubtitle) foodSubtitle.innerText = subText;
 
             if (actions) {
-                // Layout actualizado: Botón flotante en esquina superior derecha (CSS .btn-support)
-                actions.innerHTML = `
+                const showSupport = company.usa_soporte_ia === 'TRUE' || company.usa_soporte_ia === true;
+                actions.innerHTML = showSupport ? `
                     <button class="btn-support" onclick="app.agents.select('AGT-001')">
                         <i class="fas fa-headset"></i> Atención y Soporte
                     </button>
-                `;
+                ` : '';
             }
 
 
@@ -256,9 +256,10 @@ app.public = {
             if (sloganEl) sloganEl.innerText = company.eslogan || "Soluciones Industriales";
             if (subEl) subEl.innerText = company.descripcion || "Eficiencia y Calidad.";
             if (actions) {
+                const showSupport = company.usa_soporte_ia === 'TRUE' || company.usa_soporte_ia === true;
                 actions.innerHTML = `
                     <button class="btn-primary" onclick="window.location.hash='#contact'">Cotizar Ahora</button>
-                    <button class="btn-support" onclick="app.agents.select('AGT-001')"><i class="fas fa-headset"></i> Atención y Soporte</button>
+                    ${showSupport ? `<button class="btn-support" onclick="app.agents.select('AGT-001')"><i class="fas fa-headset"></i> Atención y Soporte</button>` : ''}
                 `;
             }
             if (standardFeatures) standardFeatures.classList.remove('hidden');
