@@ -580,8 +580,8 @@ app.admin = {
     renderCatalog: () => {
         const grid = document.getElementById('catalog-grid');
         if (!grid) return;
-        grid.innerHTML = '';
-        const query = document.getElementById('catalog-search')?.value.toLowerCase() || '';
+
+        const query = (document.getElementById('catalog-search')?.value || '').toLowerCase().trim();
 
         const user = app.state.currentUser;
         const level = parseInt(user?.nivel_acceso || 0);
@@ -607,6 +607,10 @@ app.admin = {
         }
 
         list.sort((a, b) => (a.nombre || "").localeCompare(b.nombre || ""));
+
+        // OPTIMIZACIÓN v4.7.5: Renderizado por fragmentos para evitar reflujo excesivo del DOM
+        const fragment = document.createDocumentFragment();
+
         list.forEach(prod => {
             const card = document.createElement('div');
             card.className = 'product-card';
@@ -615,7 +619,7 @@ app.admin = {
 
             card.innerHTML = `
                 <div class="product-img">
-                    <img src="${img}">
+                    <img src="${img}" loading="lazy">
                     ${prod.precio_oferta ? `<span class="ribbon oferta">OFERTA</span>` : ''}
                 </div>
                 <div class="product-info">
@@ -628,8 +632,11 @@ app.admin = {
                         ${canDelete ? `<button class="btn-small btn-danger" onclick="app.admin.deleteProduct('${prod.id_producto}', '${prod.nombre}')"><i class="fas fa-trash-alt"></i></button>` : ''}
                     </div>
                 </div>`;
-            grid.appendChild(card);
+            fragment.appendChild(card);
         });
+
+        grid.innerHTML = ''; // Limpieza única
+        grid.appendChild(fragment); // Inyección en un solo paso (Atomic UI Update)
     },
 
     editProductStock: (id) => {

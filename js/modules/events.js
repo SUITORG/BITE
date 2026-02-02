@@ -12,6 +12,7 @@ app.events = {
         app.events.bindForms();
         app.events.bindUX();
         app.events.bindNav();
+        app.events.bindCatalog();
     },
 
 
@@ -425,6 +426,19 @@ app.events = {
                 toggleMenu(true);
             }
         });
+    },
+
+    bindCatalog: () => {
+        const catalogSearch = document.getElementById('catalog-search');
+        if (catalogSearch) {
+            let debounceTimer;
+            catalogSearch.addEventListener('input', () => {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    app.admin.renderCatalog();
+                }, 300);
+            });
+        }
     }
 };
 

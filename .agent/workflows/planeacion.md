@@ -9,6 +9,8 @@ Este workflow se activa **antes** de realizar cualquier modificación o creació
 Antes de escribir una sola línea de código, el agente debe:
 - **Identificar el "Qué" vs el "Para qué"**: El usuario puede pedir un "botón rojo", pero el sistema necesita una "acción de cancelación global".
 - **Detectar Sesgos Semánticos**: Si el usuario pide algo para "Proyectos", validar si en el giro de Alimentos (PFM) eso debería llamarse "Pedidos" o "Comandas".
+- **Consulta al Roadmap**: Verificar obligatoriamente el archivo `roadmap.md`. ¿La tarea ya existe? ¿Está marcada como pendiente o completada? 
+- **Sincronización de Roadmap**: Si la nueva solicitud no está en el roadmap, se debe incluir inmediatamente con una breve descripción y el tag `(Pendiente)` para garantizar su trazabilidad antes de planear.
 - **Giro de Negocio**: Identificar si la solicitud es específica de un giro (Alimentos, Logística, Industrial) o si es una mejora core para todos.
 
 ### 2. Mapeo de Impacto y Reuso (Visión 360°)
@@ -30,7 +32,8 @@ Antes de ejecutar la tarea, el agente debe presentar un breve **Plan de Acción*
 1. **Objetivo Real**: (Interpretación de la necesidad).
 2. **Impacto en Sistema**: (Qué funciones se modifican y qué se reusa).
 3. **Adaptación Multi-inquilino**: (Cómo se verá en diferentes giros).
-4. **Riesgos**: (Posibles efectos secundarios).
+4. **Sincronización de Roadmap**: (Confirmación de que la tarea está registrada o actualizada en `roadmap.md`).
+5. **Riesgos**: (Posibles efectos secundarios).
 
 ### 5. Gestión de Consolidación de Workflows
 Esta actividad es Crítica para mantener la base de conocimiento organizada y eficiente.

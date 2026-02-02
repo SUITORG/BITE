@@ -84,7 +84,8 @@ Este documento rastrea el cumplimiento de las reglas fundamentales y la visión 
 
 10. **Catálogo**
     - [x] **Visualización:** Grid de productos/servicios con ribbons de oferta.
-- [x] **Seguridad:** CRUD completo con permisos granulares (RBAC v4.7.0).
+    - [x] **Seguridad:** CRUD completo con permisos granulares (RBAC v4.7.0).
+    - [ ] **Optimización de Renderizado (v4.7.5):** Implementación de Debouncing, Carga Selectiva y actualización quirúrgica del DOM (Pendiente).
 
 11. **Core & UX**
     - [x] **Estandar CRUD:** Operaciones con soporte exportación PDF/VTS.
