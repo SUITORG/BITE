@@ -153,23 +153,22 @@ El sistema está preparado para ramificarse en soluciones específicas según el
 *   **Módulo Contable/Seguimiento:** Para consultorías o servicios profesionales.
 *   **Interfaz Orbit:** Navegación disruptiva mediante burbujas interactivas según búsqueda del usuario.
 
-### F. Infraestructura de Desarrollo y Automatización
-Para agilizar el ciclo de vida del desarrollo, el sistema utiliza un protocolo de **Automatización de Alto Nivel** mediante el agente Antigravity:
+### H. Optimización con WSL (v4.7.0)
+A partir de la versión 4.7.0, el ecosistema de desarrollo se ha optimizado mediante la integración de **WSL 2 (Windows Subsystem for Linux)**.
 
-1.  **Modo Turbo (`// turbo-all`)**: Los flujos de trabajo críticos (`Orquestador`, `Evaluador`) tienen habilitada la ejecución automática de comandos. Esto elimina la necesidad de aprobaciones manuales para tareas repetitivas de mantenimiento y sincronización.
-2.  **Entorno de Ejecución (Node.js)**: El sistema está optimizado para trabajar con Node v22.x. Se han configurado políticas de ejecución de PowerShell (`RemoteSigned`) para permitir el uso sin restricciones de `npm` en entornos Windows.
-3.  **Memoria Adaptativa**: El archivo `.agent/memory/lecciones.md` captura automáticamente las preferencias del usuario (estética, flujos, reglas) que el `Evaluador` procesa para que cada nueva función se alinee con el estándar visual "BK-Style" u otros definidos.
+1.  **Herramientas de Alto Rendimiento**: Se han instalado y configurado herramientas Unix-native para acelerar el análisis y gestión del código:
+    *   **ripgrep (rg)**: Motor de búsqueda ultra-rápido para análisis de código a gran escala.
+    *   **fd-find (fd)**: Alternativa rápida a `find` para localización de archivos en milisegundos.
+    *   **zip**: Compresión nativa de alta velocidad para respaldos consistentes.
+2.  **Protocolo de Respaldo WSL**: Los respaldos se generan ahora mediante un motor Linux-native, garantizando la integridad de caracteres especiales y una velocidad superior:
+    *   `DATE_STR=$(date +%d%m%y); zip -r "SUIT_${DATE_STR}_WSL.zip" . -x "*/node_modules/*" "*/.git/*" "*.zip" "*/.agent/*"`
 
-### G. Seguridad de Repositorio (Privacidad del Código)
-**CRÍTICO:** El archivo `backend_schema.gs` y la configuración de `app.js` contienen la lógica de seguridad y el punto de acceso a la base de datos de Google Sheets.
-- **Repositorios Públicos:** Nunca hospedar este proyecto en un repositorio público de GitHub. Esto expone la URL del backend y la estructura de datos, permitiendo clonación o intentos de acceso no autorizados.
-- **Producción:** Se recomienda el uso de **Vercel** o **GitHub Pages (Solo con Repositorio Privado - Requiere plan de pago en GitHub)** para el despliegue de producción. Vercel permite despliegue gratuito desde repositorios privados, manteniendo el código fuente oculto del público.
-- **Estándar de Seguridad:** Todas las APIs deben cumplir con el flujo `/seguridad-api`, que incluye sanitización, autenticación por tokens y blindaje contra XSS/SQLi.
+---
 
-- **v4.6.8 (2026-01-29):** **"Refined Events & Financial Control"**.
-    - **Architecture:** Finalized modularization. Created `events.js` to decouple all DOM event listeners from logic/UI.
-    - **UI/UX:** Reduced vertical spacing in checkout by 50%. Standardized "Contra Entrega" payment label.
-    - **Logic:** Integrated **Total Order Amount** display in POS cards. Refined OTP visibility: Visible for Staff/Admin, Blurred for Delivery.
+- **v4.7.0 (2026-02-01):** **"WSL & High-Perf Sync"**.
+    - **Performance:** Integración de WSL 2 como motor de desarrollo. Instalación de `ripgrep`, `fd` y `zip`.
+    - **Architecture:** Mapeo completo de la jerarquía del Orquestador (v4.7.0) y validación de la capa de pegamento (`ui.js`).
+    - **Backup:** Implementación del primer sistema de respaldos Linux-native.
 - **v4.7.0 (2026-01-31):** **"Catalog CRUD & Sequential IDs"**.
     - **Backend:** IDs secuenciales por inquilino (`PROD-XX`). Borrado lógico mediante `activo = FALSE`.
     - **RBAC:** Permisos granulares de catálogo (`add`, `edit`, `delete`, `stock`).
