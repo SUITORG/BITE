@@ -1185,20 +1185,22 @@ body.menu-open {
 .features-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
+    gap: 30px;
     margin-top: 25px;
-    justify-items: center;
+    width: 100%;
 }
 
-@media (max-width: 992px) {
+@media (max-width: 1024px) {
     .features-grid {
         grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
     }
 }
 
 @media (max-width: 600px) {
     .features-grid {
         grid-template-columns: 1fr;
+        gap: 15px;
     }
 }
 
@@ -1214,9 +1216,8 @@ body.menu-open {
     position: relative;
     transition: all 0.3s ease;
     border: 1px solid #eee;
-    max-width: 280px;
-    /* Constrain size to look "small" */
     width: 100%;
+    /* Removido max-width restrictivo para aprovechar la rejilla */
 }
 
 .feature-card:hover {
