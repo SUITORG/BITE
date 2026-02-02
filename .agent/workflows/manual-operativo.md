@@ -91,3 +91,5 @@ El flujo DEBE ser estrictamente secuencial:
 3.  **Orquestador Check:**
     - Antes de desplegar, validar que `app.ui.renderPOS` respete la lógica de `isFood`.
     - Verificar que los botones de operación (`+`, `-`) no queden ocultos por reglas de "Foco Staff" cuando el usuario es Público.
+4.  **Validación de Acceso Staff (Créditos/Corte)**: El Orquestador debe monitorear que el ingreso de personal cumpla estrictamente con la política de créditos y fecha de corte. Si un usuario no tiene saldo o su fecha ha vencido, la sesión se considera **BLOQUEADA** y se debe informar el motivo puntual en la consola.
+5.  **Interactividad Universal**: Los botones `(+)` / `(-)` en el sitio público siempre deben estar visibles y funcionales para el giro Food, garantizando que el usuario pueda armar su carrito sin fricciones.
