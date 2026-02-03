@@ -48,6 +48,9 @@ app.router = {
             const foodArea = document.getElementById('food-app-area');
             if (foodArea) foodArea.style.display = 'none';
 
+            const company = app.data.Config_Empresas.find(c => c.id_empresa === app.state.companyId);
+            if (company && app.ui.renderHome) app.ui.renderHome(company);
+
             // Force re-render of SEO matrix when returning to Home
             if (app.ui.renderSEO) {
                 setTimeout(() => app.ui.renderSEO(), 100);

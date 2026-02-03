@@ -119,11 +119,22 @@ app.ui = {
     handleReportTypeChange: () => app.admin.handleReportTypeChange(),
     setReportMode: (m) => app.admin.setReportMode(m),
 
+    // --- PUBLIC BRIDGE ---
+    renderOrbit: () => app.public.renderOrbit(),
+    renderPillars: (c) => app.public.renderPillars(c),
+    renderFoodMenu: () => app.public.renderFoodMenu(),
+    renderSEO: () => app.public.renderSEO(),
+    renderHome: (c) => app.public.renderHome(c),
+    renderGallery: () => app.public.renderGallery(),
+    renderFooter: (c) => app.public.renderFooter(c),
+
     // --- AGENTS BRIDGE ---
     openAgentsModal: () => app.agents.openAgentsModal(),
 
     // --- POS EXTRA BRIDGE ---
     printTicket: (o, c) => app.pos.printTicket(o, c),
+    setPublicPaymentMethod: (m) => app.pos.setPublicPaymentMethod(m),
+    setPosPaymentMethod: (m) => app.pos.setPosPaymentMethod(m),
 
     refreshData: async (v) => {
         app.ui.updateConsole(`SYNC_${v || 'ALL'}`);

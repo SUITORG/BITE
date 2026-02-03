@@ -700,8 +700,8 @@ app.pos = {
         if (select) select.value = method;
         if (app.pos.handlePayMethodChange) app.pos.handlePayMethodChange();
         // Sync Visual Buttons
-        document.querySelectorAll('.pay-method-opt').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.method === method);
+        document.querySelectorAll('.pay-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.value === method);
         });
     },
 
