@@ -450,8 +450,10 @@ app.public = {
             bubbleEl.style.cssText = `width:${size}px; height:${size}px; --accent-color:${themeColor}; background:${gradient}; position:absolute; animation:none; transform:none; transition:none; box-shadow: 0 10px 30px rgba(0,0,0,0.5);`;
 
 
+            const bubbleImg = co.logo_url || co.url_logo || co.foto_agente || '';
             bubbleEl.innerHTML = `
-                <img src="${app.utils.fixDriveUrl(co.logo_url)}" class="bubble-logo">
+                <img src="${bubbleImg ? app.utils.fixDriveUrl(bubbleImg) : ''}" class="bubble-logo" 
+                     onerror="this.src='https://docs.google.com/uc?export=view&id=1t6BmvpGTCR6-OZ3Nnx-yOmpohe5eCKvv'">
                 <span class="bubble-name" style="font-size:${isPriority ? '0.95rem' : '0.75rem'}">${co.nomempresa}</span>
             `;
 
@@ -602,7 +604,7 @@ app.public = {
         }
         grid.innerHTML = imgs.map(img => `
             <div class="gallery-item">
-                <img src="${img.url_imagen}" alt="${img.titulo}" class="gallery-img">
+                <img src="${app.utils.fixDriveUrl(img.url_imagen || img.imagen_url)}" alt="${img.titulo}" class="gallery-img">
                 <div class="gallery-info"><h4>${img.titulo || 'Item'}</h4></div>
             </div>`).join('');
     },

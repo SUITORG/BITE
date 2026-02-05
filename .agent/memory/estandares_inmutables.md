@@ -61,8 +61,9 @@ Este archivo es la **Única Fuente de Verdad** para el orquestador (IA). Estas r
 - **Principio**: La visibilidad y capacidad de acción en el Monitor POS (view-pos) se rige **estrictamente** por `nivel_acceso` e `id_rol`. Queda **prohibido** el uso de nombres de usuario o parches para determinar permisos.
 - **Perfiles Operativos**:
     - **ADMIN (Nivel >= 10)**: Visibilidad de todos los filtros y todas las acciones de cambio de estado.
-    - **OPERATIVO / CAJERO (Nivel >= 5 y Rol != REPARTIDOR)**: Visibilidad de todos los filtros. Acciones: [COCINAR], [LISTO]. Entrega permitida solo para pedidos locales (sin dirección).
+    - **OPERATIVO / CAJERO (Nivel >= 5 y Rol != REPARTIDOR)**: Visibilidad de todos los filtros. Acciones: Flujo omnidireccional (v4.7.5). Pueden avanzar pedidos ([COCINAR], [LISTO]) y revertirlos si es necesario para correcciones. Entrega permitida solo para pedidos locales (sin dirección).
     - **REPARTIDOR (Rol == DELIVERY / REPARTIDOR)**: Visibilidad restringida **exclusivamente** al filtro "LISTOS". Acción: [ENTREGAR] con validación OTP para pedidos OTS/Domicilio.
+- **Blindaje de Contacto**: Todo pedido debe inyectar dirección y teléfono tanto en campos dedicados como en el campo `descripcion` para garantizar su visibilidad en el Monitor POS independientemente de la estructura de la tabla.
 - **Inmutabilidad**: Este flujo de permisos no se altera entre sucursales para garantizar la seguridad de la entrega y la trazabilidad de la cocina.
 
 ## 11. Sincronización Atómica de Versiones (Triple Check)
@@ -84,3 +85,20 @@ Este archivo es la **Única Fuente de Verdad** para el orquestador (IA). Estas r
 - **Mandato**: **Nadie** (incluyendo Delivery) puede ver pedidos de fechas anteriores en el monitor POS. El filtro de fecha es **estrictamente hoy** para todos los roles.
 - **Fundamento**: Reducir carga cognitiva del staff y asegurar que los repartidores se enfoquen en la producción del turno actual.
 - **Histórico**: Cualquier consulta de días anteriores se realiza por reportes, no por el monitor activo.
+
+## 14. Blindaje Universal de Imágenes (fixDriveUrl)
+- **Descripción**: Garantizar la visualización de imágenes almacenadas en Google Drive o cualquier origen externo.
+- **Mandato**: Es **obligatorio** pasar toda URL de imagen por la función centralizadora `app.utils.fixDriveUrl()` antes de inyectarla en el `src` de cualquier elemento `<img>` o `backgroundImage`.
+
+## 15. Persistencia de Contacto en Proyectos
+- **Descripción**: Asegurar que los datos de entrega (dirección y teléfono) sean visibles en el monitor POS sin depender exclusivamente de tablas externas.
+- **Mandato**: Todo pedido generado vía `checkout` o `checkoutStaff` debe inyectar **obligatoriamente** los campos `direccion` y `telefono` dentro del objeto `project` antes de enviarlo al backend. Esto garantiza que el personal de cocina y entrega vea la información directamente en la tarjeta del pedido.
+
+## 16. Protocolo de Feedback Auditivo (v4.7.0)
+- **Notificación de Orden**: Se debe usar exclusivamente un sonido de **campanilla suave** (`bell-ringing-05.mp3`). Queda prohibido el uso de sonidos estridentes o de tipo "alerta" genérica.
+- **Interacción Universal**: Todo elemento interactivo (botones, enlaces, burbujas) debe disparar la función `app.utils.playClick()` para confirmar la acción al usuario mediante un sonido de clic táctil suave.
+
+## 17. Protocolo de Integridad POS/Express (Visitante)
+- **Reinicio por Inactividad**: Todo usuario no identificado (Visitante) que permanezca inactivo por más de **5 minutos (300s)** en cualquier sección diferente al Hub, debe ser redirigido automáticamente a `#orbit` con una recarga de limpieza (`location.reload()`) para garantizar que el siguiente usuario encuentre un estado limpio.
+- **Transparencia de Total**: Al limpiar el carrito (`clearCart`) o si este está vacío, el total visual de la aplicación **DEBE** marcar estrictamente `$0.00`, ignorando cualquier cargo por envío configurado, para evitar confusión en el usuario.
+

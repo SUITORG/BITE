@@ -4,7 +4,7 @@
  */
 const app = {
     // --- APP CONFIG ---
-    version: '4.7.0', // v4.7.0: Catalog CRUD & RBAC Sync
+    version: '4.7.5', // v4.7.5: POS Integridad, RBAC Omnidireccional & UX Audio.
 
     // Se cargan desde js/modules/config.js (ignorado en git)
     apiUrl: (typeof SUIT_CONFIG !== 'undefined') ? SUIT_CONFIG.apiUrl : '',
@@ -69,10 +69,20 @@ const app = {
             return (reg > 0 && off > 0) ? Math.min(reg, off) : (off || reg || 0);
         },
         playNotification: () => {
+            // v4.7.5: Se reemplaza campanilla por pop suave (mismos parámetros que click pero otro tono)
             try {
-                const audio = new Audio('https://www.soundjay.com/buttons/sounds/button-20.mp3');
-                audio.volume = 0.4;
-                audio.play().catch(() => { });
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.1);
             } catch (e) { }
         },
         playClick: () => {

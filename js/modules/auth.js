@@ -52,7 +52,7 @@ app.auth = {
         user.modulos_visibles = effectiveModules;
         // LOGIN EXITOSO
         app.state.currentUser = user;
-        if (app.ui && app.ui.setLoggedInState) app.ui.setLoggedInState(user);
+        if (app.auth.setLoggedInState) app.auth.setLoggedInState(user);
         window.location.hash = "#dashboard";
         return { success: true };
     },
@@ -75,6 +75,10 @@ app.auth = {
             const foundKey = Object.keys(obj).find(k => keys.includes(k.toLowerCase().trim()));
             return foundKey ? (obj[foundKey] || "").toString().trim() : "";
         };
+        // Estandarización de Rol en Memoria (v4.7.5)
+        user.id_rol = getVal(user, ['id_rol', 'rol', 'role']).toUpperCase();
+        user.nivel_acceso = parseInt(getVal(user, ['nivel_acceso', 'nivel', 'access_level'])) || 0;
+
         document.getElementById('status-bar').classList.remove('hidden');
         if (app.ui && app.ui.updateEstandarBarraST) app.ui.updateEstandarBarraST();
         document.getElementById('menu-public').classList.add('hidden');

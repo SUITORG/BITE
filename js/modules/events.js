@@ -24,7 +24,10 @@ app.events = {
                 e.target.closest('.btn-secondary') ||
                 e.target.closest('.pay-btn') ||
                 e.target.closest('.enterprise-bubble') ||
-                e.target.closest('.nav-list a');
+                e.target.closest('.nav-list a') ||
+                e.target.closest('.food-tab') ||
+                e.target.closest('.close-btn') ||
+                (e.target.style.cursor === 'pointer');
             if (isButton) app.utils.playClick();
         }, true);
     },

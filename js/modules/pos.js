@@ -61,7 +61,9 @@ app.pos = {
         const company = app.data.Config_Empresas.find(c => c.id_empresa === app.state.companyId);
         const deliveryFee = parseFloat(company?.costo_envio || 0);
         const isDelivery = app.state.deliveryMethod === 'DOMICILIO';
-        const total = subtotal + (isDelivery ? deliveryFee : 0);
+        // v4.7.2 Fix: Si el carrito está vacío, el total DEBE ser $0.00 (ignora fee de envío)
+        const total = count > 0 ? (subtotal + (isDelivery ? deliveryFee : 0)) : 0;
+
         // Standard POS Visuals (Mobile/Client)
         const totalEl = document.getElementById('cart-total');
         if (totalEl) totalEl.innerText = `$${total.toFixed(2)}`;
@@ -268,9 +270,11 @@ app.pos = {
             project: {
                 id_empresa: app.state.companyId,
                 nombre_proyecto: `Pedido ${company?.nomempresa || "POS"} - ${name}`,
-                descripcion: notes,
+                direccion: address,
+                telefono: phone,
+                descripcion: `DIR: ${address} | TEL: ${phone} | NOTAS: ${notes}`,
                 line_items: JSON.stringify(app.state.cart),
-                codigo_otp: generatedOtp, // REVERTIDO: Para asegurar persistencia en columna 'codigo_otp' de Sheets
+                codigo_otp: generatedOtp,
                 estatus: "PEDIDO-RECIBIDO",
                 estado: "PEDIDO-RECIBIDO",
                 status: "PEDIDO-RECIBIDO"
@@ -779,10 +783,10 @@ app.pos = {
                 <div class="order-customer">
                     <i class="fas fa-user"></i> ${p.nombre_cliente || p.nombre_proyecto.split('-')[1] || 'Cliente'}
                 </div>
-                <!-- OTS Info Layout -->
+                <!-- OTS Info Layout (v4.7.5 Robust Rendering) -->
                 <div class="order-ots-info" style="font-size:0.8rem; margin:5px 0; border-top:1px dashed #eee; padding-top:5px;">
-                    <div class="ots-item"><i class="fas fa-map-marker-alt"></i> ${p.direccion || 'Entrega en Local'}</div>
-                    <div class="ots-item"><i class="fas fa-phone"></i> ${p.telefono || 'N/A'}</div>
+                    <div class="ots-item"><i class="fas fa-map-marker-alt"></i> ${p.direccion || (p.descripcion?.includes('DIR:') ? p.descripcion.split('|')[0].replace('DIR:', '').trim() : 'Entrega en Local')}</div>
+                    <div class="ots-item"><i class="fas fa-phone"></i> ${p.telefono || (p.descripcion?.includes('TEL:') ? p.descripcion.split('|')[1].replace('TEL:', '').trim() : 'N/A')}</div>
                 </div>
                 <div class="order-items">
                     ${items.map(i => `<div>${i.qty}x ${i.name}</div>`).join('')}
@@ -807,13 +811,21 @@ app.pos = {
         const isAdmin = role === 'DIOS' || level >= 10;
 
         let btns = '';
-        if (status.includes('RECIBIDO') || status.includes('NUEVO')) {
+        const statusUpper = status.toUpperCase();
+
+        // RBAC: Si es Staff (Nivel >= 5), permitir flujo completo (v4.7.5)
+        const isStaff = !isDelivery && level >= 5;
+
+        if (statusUpper.includes('RECIBIDO') || statusUpper.includes('NUEVO')) {
             if (!isDelivery) btns += `<button class="btn-pos btn-prep" onclick="app.pos.updateOrderStatus('${id}', 'EN-COCINA')">COCINAR</button>`;
-        } else if (status.includes('COCINA')) {
+        } else if (statusUpper.includes('COCINA') || statusUpper.includes('PREPARA')) {
+            if (isStaff) btns += `<button class="btn-pos btn-new" onclick="app.pos.updateOrderStatus('${id}', 'PEDIDO-RECIBIDO')">REVERTIR</button>`;
             if (!isDelivery) btns += `<button class="btn-pos btn-ready" onclick="app.pos.updateOrderStatus('${id}', 'LISTO-ENTREGA')">LISTO</button>`;
-        } else if (status.includes('LISTO')) {
+        } else if (statusUpper.includes('LISTO')) {
+            if (isStaff) btns += `<button class="btn-pos btn-prep" onclick="app.pos.updateOrderStatus('${id}', 'EN-COCINA')">COCINA</button>`;
             btns += `<button class="btn-pos btn-route" onclick="app.pos.updateOrderStatus('${id}', 'EN-CAMINO')">RUTA</button>`;
-        } else if (status.includes('CAMINO')) {
+        } else if (statusUpper.includes('CAMINO') || statusUpper.includes('RUTA')) {
+            if (isStaff) btns += `<button class="btn-pos btn-ready" onclick="app.pos.updateOrderStatus('${id}', 'LISTO-ENTREGA')">REGRESAR</button>`;
             btns += `<button class="btn-pos btn-done" onclick="app.pos.updateOrderStatus('${id}', 'ENTREGADO')">ENTREGAR</button>`;
         }
         return btns;

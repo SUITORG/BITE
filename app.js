@@ -25,13 +25,25 @@ Object.assign(app, {
         start: () => {
             let syncCounter = 0;
             setInterval(async () => {
-                if (!app.state.currentUser) return;
                 const now = Date.now();
                 const diff = (now - app.state.lastActivity) / 1000;
+
+                // --- PUBLIC INACTIVITY RESET (v4.7.2) ---
+                // Si es un visitante (sin login) y está inactivo por más de 5 min (300s)
+                // lo devolvemos al inicio (Orbit Hub)
+                if (!app.state.currentUser && diff > 300) {
+                    if (window.location.hash && window.location.hash !== '#orbit') {
+                        app.ui.updateConsole("RESET: Inactividad Visitante");
+                        window.location.hash = '#orbit';
+                        location.reload(); // Hard reload to clear everything
+                        return;
+                    }
+                }
+
                 const company = app.data.Config_Empresas.find(c => c.id_empresa === app.state.companyId);
                 const modo = (company && company.modo_creditos) || "USUARIO";
                 const timeoutLimit = (modo === "DIARIO" || modo === "GLOBAL") ? 28800 : 120;
-                if (diff > timeoutLimit) {
+                if (app.state.currentUser && diff > timeoutLimit) {
                     app.ui.updateConsole(`TIMEOUT: ${timeoutLimit}s excedido.`, true);
                     alert(`Sesión cerrada por inactividad (${timeoutLimit}s).`);
                     app.auth.logout();
