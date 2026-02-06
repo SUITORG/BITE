@@ -1,9 +1,9 @@
 
 # Manual Técnico y Operativo - SuitOrg
 > **Identidad Principal:** SuitOrg (Powered by EVASOL Engine)
-> **Última Versión Estable**: v4.7.0 (STABLE-SYNC)
+> **Última Versión Estable**: v4.7.5 (STABLE-SYNC)
 > **Estado del Sistema**: Operativo y Sincronizado.
-> **Total de Líneas Consolidadas**: ~9,814 (Auditado 2026-01-31).
+> **Total de Líneas Consolidadas**: ~8,828 (Auditado 2026-02-04).
 
 ## 0. Resumen Ejecutivo (TL;DR) - Para gente con prisa ⚡
 1.  **¿Qué es?** Un potente "Food Hub" multi-inquilino especializado en el sector alimenticio (Restaurantes, Snacks, Comida Rápida).
@@ -165,6 +165,11 @@ A partir de la versión 4.7.0, el ecosistema de desarrollo se ha optimizado medi
 
 ---
 
+- **v4.7.5 (2026-02-04):** **"POS Integrity & RBAC Omnidirectional"**.
+    - **POS:** Protocolo de inyección redundante de dirección/teléfono en descripción para visualización garantizada.
+    - **UX:** Sonido "Pop" sutil generado por oscilador y limpieza de audio intrusivo en el Hub.
+    - **RBAC:** Flujo omnidireccional de estados para Cajeros/Staff (Adelantar/Revertir).
+    - **Stability:** Cierre automático del modal de login y normalización de roles en memoria.
 - **v4.7.0 (2026-02-01):** **"WSL & High-Perf Sync"**.
     - **Performance:** Integración de WSL 2 como motor de desarrollo. Instalación de `ripgrep`, `fd` y `zip`.
     - **Architecture:** Mapeo completo de la jerarquía del Orquestador (v4.7.0) y validación de la capa de pegamento (`ui.js`).
@@ -256,12 +261,12 @@ A partir de la versión 4.7.0, el ecosistema de desarrollo se ha optimizado medi
 
 | Archivo / Carpeta | Líneas |
 | :--- | :--- |
-| index.html | 1606 | Estructura base PWA / Modales |
-| style.css | 3089 | UI/UX Premium & Micro-animaciones |
-| js/modules/ | 4670 | Lógica de Negocio (Core, UI, POS, AI) |
-| app.js | 61 | Router y Orquestación Inicial |
-| backend_schema.gs | 388 | Engine Server-side (GAS) |
-| **TOTAL** | **9814** | Líneas de producción |
+| index.html | 1600 | Estructura base PWA / Modales |
+| style.css | 3090 | UI/UX Premium & Micro-animaciones |
+| js/modules/ | 3677 | Lógica de Negocio (Core, UI, POS, AI) |
+| app.js | 71 | Router y Orquestación Inicial |
+| backend_schema.gs | 390 | Engine Server-side (GAS) |
+| **TOTAL** | **8828** | Líneas de producción |
 
 ---
 *Manual generado automáticamente por Antigravity AI.*

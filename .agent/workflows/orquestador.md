@@ -30,6 +30,19 @@ Siempre debe ejecutarse al inicio de cada nueva interacción con el agente.
   - Primero pide al usuario que reescriba su solicitud usando `[[contexto]]` y `ACCION:` / `TAREA:` antes de actuar.
 - Nunca interpretes una **pregunta** como autorización para cambiar código.
 
+### 0.3 Regla de Consumo de Créditos (OBLIGATORIA)
+
+No ejecutes búsquedas globales ni análisis masivos del repositorio si el usuario solo pide un ajuste visual o puntual.
+
+Antes de escanear muchos archivos, propón un Plan de Trabajo corto y pregunta:
+¿Quieres que haga un análisis global del código? Esto consumirá más créditos. Responde APROBADO o NO.
+
+Si el usuario no responde APROBADO, limita tu análisis a:
+- El archivo o bloque de código que el usuario proporcionó.
+- A lo sumo 1–2 archivos directamente relacionados (mismo módulo o carpeta).
+
+Supón que conoces el proyecto actual y evita “re-descubrir” todo el código en cada petición.
+
 ---
 
 ## 1. Clasificación de Entrada (Triage)

@@ -1,23 +1,22 @@
-/* SuitOrg Backend Engine - v4.7.0
+/* SuitOrg Backend Engine - v4.7.5
  * ---------------------------------------------------------
- * Sincronización: 2026-01-31 06:05 PM
+ * Sincronización: 2026-02-04 09:25 PM
  * 
- * Changelog v4.7.0:
- * - CATALOGO: CRUD completo con IDs secuenciales por empresa (PROD-XX).
- * - CATALOGO: Borrado lógico mediante campo 'activo'.
- * - RBAC: Soporte para permisos granulares (catalog_add, edit, delete, stock).
- * - SYNC: Sincronización atómica con Frontend v4.7.0.
+ * Changelog v4.7.5:
+ * - POS: Protocolo de inyección redundante de dirección/teléfono en proyectos.
+ * - POS: Soporte para flujo omnidireccional de estados (Staff control).
+ * - SYNC: Sincronización atómica con Frontend v4.7.5.
  * 
- * AUDIT: ~9426 Total Lines (Consolidated).
+ * AUDIT: ~8792 Total Lines (Consolidated).
  * ---------------------------------------------------------
  */
 
 const CONFIG = {
-  VERSION: "4.7.0",
+  VERSION: "4.7.5",
   DB_ID: "1uyy2hzj8HWWQFnm6xy-XCwvvGh3odjV4fRlDh5SBxu8", 
   GLOBAL_TABLES: ["Config_Empresas", "Config_Roles", "Usuarios", "Config_SEO", "Prompts_IA", "Cuotas_Pagos"], 
   PRIVATE_TABLES: ["Leads", "Proyectos", "Proyectos_Etapas", "Proyectos_Pagos", "Proyectos_Bitacora", "Catalogo", "Logs", "Pagos", "Empresa_Documentos"],
-  AUDIT: { total: 9426, status: "STABLE_SYNC" }
+  AUDIT: { total: 8792, status: "STABLE_SYNC" }
 };
 
 /**

@@ -62,3 +62,20 @@
 5. **Flujo Omnidireccional:** Se permitió al Staff (Nivel >= 5) mover estados hacia adelante y atrás para correcciones operativas.
 
 **Estado:** ✅ SOLUCIONADO
+
+## [2026-02-05 10:45] - Bloqueo de Login Silencioso y Casos de Hub/Vigencia
+**Problema:**
+1. Los usuarios operativos (Staff) no podían ingresar al sistema a pesar de tener credenciales correctas.
+2. El sistema no proporcionaba feedback claro sobre por qué fallaba el acceso (si era por contraseña, empresa o vigencia).
+
+**Causa Raíz:**
+1. **Aislamiento de Empresa:** Al intentar loguear desde el Hub (#orbit) sin empresa seleccionada, el `companyId` nulo impedía encontrar al usuario aunque existiera en la DB Global.
+2. **Vigencia Expirada:** Varios usuarios tenían una `fecha_limite_acceso` superada (ej. Enero 2026), disparando el bloqueo preventivo del Estándar #5 sin notificar al usuario.
+
+**Solución Implementada:**
+1. **Warnings Descriptivos (v4.7.7):** Se modificó `auth.js` para diferenciar entre:
+   - ❌ "Usuario no encontrado" vs ⚠️ "Usuario en otra empresa" (detectando si el ID existe en la DB global).
+   - ⚠️ "ACCESO EXPIRADO (Fecha)" indicando explícitamente la fecha de vencimiento.
+2. **Standard de Feedback:** Se añadió el **Estándar #11** a la memoria del sistema para obligar a que todo fallo de acceso sea descriptivo y no genérico.
+
+**Estado:** ✅ SOLUCIONADO

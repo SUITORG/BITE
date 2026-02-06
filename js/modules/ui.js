@@ -88,6 +88,7 @@ app.ui = {
     // --- BRIDGES (Compatibility with Router/App) ---
     renderPOS: () => app.pos.renderPOS(),
     renderStaffPOS: () => app.pos.renderStaffPOS(),
+    filterPOS: (status) => app.pos.filterPOS(status),
     updateExternalOrderAlert: () => app.pos.updateExternalOrderAlert(),
 
     renderLeads: () => app.admin.renderLeads(),

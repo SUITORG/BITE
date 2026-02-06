@@ -24,7 +24,7 @@ Este archivo es la **Única Fuente de Verdad** para el orquestador (IA). Estas r
 - **Inmutabilidad**: Una vez validada la operación (Alimentos, Logística, Proyectos), no se permiten cambios estructurales en el flujo de guardado.
 - **Venta Express/POS**: Debe grabar obligatoriamente en `Leads`, `Proyectos` y descontar stock en `Catalogo`.
 - **Interactividad**: En giros de alimentos, los botones `(+)` y `(-)` deben ser accesibles para el usuario público en todo momento.
-- **Identidad Visual**: Productos "NUEVO" o en "OFERTA" deben portar una barra de color distintiva en la esquina superior derecha.
+- **Identidad Visual**: Productos "NUEVO" o en "OFERTA" deben portar una barra de color distintiva en la esquina superior derecha. En el monitor **STAFF-POS (Caja)**, es obligatorio mostrar el stock numérico disponible y una banda naranja si el campo `etiqueta_promo` tiene contenido.
 - **Integridad de Checkout y Caja (100% Error-Free)**: El flujo de cierre de venta debe ser infalible. Cualquier cambio en el POS debe validar el flujo completo: 1. Compra (Cápsula visible y total operativo) -> 2. Datos y Pagos (Modal obligatorio) -> 3. Transacción Atómica (Orden, Lead y Stock). La operación de Caja debe ser clara, auditada y sin ambigüedades. Queda prohibido ocultar la cápsula de carrito para el usuario público.
 
 ## 5. estandar-creditos
@@ -57,13 +57,21 @@ Este archivo es la **Única Fuente de Verdad** para el orquestador (IA). Estas r
 - **Seguridad de Renderizado**: Se prohíbe la redeclaración de variables de scope (ReferenceError/SyntaxError) dentro de los bucles `forEach` del monitor. Cualquier error de renderizado debe ser capturado por un bloque `try/catch` que muestre una alerta visual sin bloquear el sistema completo.
 - **Trazabilidad de Depuración**: Cada tarjeta de pedido en el monitor STAFF debe portar un identificador de depuración invisible o sutil que muestre el estado crudo detectado y el tipo de canal (OTS/Local).
 
-## 10. Control de Permisos Monitor POS (RBAC Operativo)
-- **Principio**: La visibilidad y capacidad de acción en el Monitor POS (view-pos) se rige **estrictamente** por `nivel_acceso` e `id_rol`. Queda **prohibido** el uso de nombres de usuario o parches para determinar permisos.
+## 10. Control de Permisos Monitor POS (RBAC Operativo v4.7.8)
+- **Principio**: La visibilidad y capacidad de acción en el Monitor POS se rige por `nivel_acceso` e `id_rol`. 
+- **Contadores Atómicos**: Los botones de filtro deben mostrar el conteo de pedidos del día entre paréntesis.
 - **Perfiles Operativos**:
-    - **ADMIN (Nivel >= 10)**: Visibilidad de todos los filtros y todas las acciones de cambio de estado.
-    - **OPERATIVO / CAJERO (Nivel >= 5 y Rol != REPARTIDOR)**: Visibilidad de todos los filtros. Acciones: Flujo omnidireccional (v4.7.5). Pueden avanzar pedidos ([COCINAR], [LISTO]) y revertirlos si es necesario para correcciones. Entrega permitida solo para pedidos locales (sin dirección).
-    - **REPARTIDOR (Rol == DELIVERY / REPARTIDOR)**: Visibilidad restringida **exclusivamente** al filtro "LISTOS". Acción: [ENTREGAR] con validación OTP para pedidos OTS/Domicilio.
+    - **ADMIN / DIOS (Nivel >= 10)**: Visibilidad total y acciones completas.
+    - **OPERATIVO / CAJERO (Nivel >= 2 y Rol != REPARTIDOR)**: Flujo omnidireccional (COCINAR, LISTO, RUTA, ENTREGAR). Pueden revertir estados para correcciones.
+    - **REPARTIDOR (Rol == DELIVERY)**: Visibilidad de pedidos "LISTO" y "CAMINO". Acciones: Puede activar [RUTA] (para marcar salida) y [ENTREGAR] (dispara validación OTP). No puede cocinar ni revertir.
 - **Blindaje de Contacto**: Todo pedido debe inyectar dirección y teléfono tanto en campos dedicados como en el campo `descripcion` para garantizar su visibilidad en el Monitor POS independientemente de la estructura de la tabla.
+
+## 11. Estándar de Feedback en Login
+- **Principio**: El usuario debe recibir mensajes claros (Warnings) sobre por qué falló su acceso para evitar frustración y tickets innecesarios.
+- **Mensajes Obligatorios**:
+    - **⚠️ ACCESO EXPIRADO (Fecha)**: Se dispara si la `fecha_limite_acceso` es menor al día de hoy.
+    - **⚠️ Usuario en otra empresa**: Se dispara si el usuario existe en la DB global pero no está asignado al `id_empresa` desde el que intenta loguearse (Hub/Orbit).
+    - **❌ Contraseña incorrecta**: Solo si el usuario y empresa coinciden pero la clave no.
 - **Inmutabilidad**: Este flujo de permisos no se altera entre sucursales para garantizar la seguridad de la entrega y la trazabilidad de la cocina.
 
 ## 11. Sincronización Atómica de Versiones (Triple Check)

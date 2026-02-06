@@ -11,6 +11,7 @@ Este archivo es tu **Centro de Comando**. Úsalo para controlar el avance del pr
 Este documento rastrea el cumplimiento de las reglas fundamentales y la visión del proyecto.
 
 ## 🏗️ Arquitectura de Software (v3.6.2 Modular)
+- [x] **v4.7.5: POS Integrity & RBAC Omnidirectional**: Robust contact data rendering, omnidirectional status flow for staff, and optimized UX auditory feedback.
 - [x] **v4.7.0: Catalog CRUD & Sequential IDs**: Full product management with sequential IDs (`PROD-XX`), logical delete, and granular RBAC (`catalog_add`, `edit`, `delete`, `stock`).
 - [x] **v4.6.9: Premium Branding & UX Guard**: Full implementation of `estandar-landing`, institutional footer, dynamic tenant SEO injection (Suit.Org/Suit.Bite) and **Responsive Mobile Navigation (Burger Menu)**.
 
@@ -125,13 +126,13 @@ Este documento rastrea el cumplimiento de las reglas fundamentales y la visión 
 ---
 ---
 ## 13. Pendientes de Validación (Visto Bueno) - Pruebas Mañana
-- [ ] **Validar Flujo POS/Express Completo:** Verificar el proceso de "Venta en Mostrador" y "Pedido Web".
-- [ ] **Validar Visualización OTS:** Confirmar que el Monitor POS muestra correctamente Dirección, Teléfono (con enlaces) y Folio OTS.
-- [ ] **Validar WhatsApp OTS:** Confirmar que el mensaje llega con el Folio OTS correcto y el link de contacto.
-- [ ] **Congelar Lógica POS/OTS:** Una vez dado el OK, marcar estos módulos como inmutables para evitar regresiones.
+- [x] **Validar Flujo POS/Express Completo:** Proceso de venta y pedido web verificado y blindado (v4.7.5).
+- [x] **Validar Visualización OTS:** Monitor POS muestra Dirección y Teléfono mediante inyección redundante resiliente.
+- [x] **Validar WhatsApp OTS:** Confirmado envío de folio y OTP.
+- [x] **Congelar Lógica POS/OTS:** Módulos marcados como inmutables y documentados en Estándar #17.
 
 ---
-*Última actualización: 2026-01-31 | Versión: v4.7.0 (CATALOG-CRUD)*
+*Última actualización: 2026-02-04 | Versión: v4.7.5 (POS-INTEGRITY)*
 
 ## v4.6.0 - Flujo Delivery de 3 Pasos (TESTING)
 - [x] **Estado Intermedio**: Implementado estado `EN-CAMINO`.

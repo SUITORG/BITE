@@ -751,10 +751,14 @@
                 <div class="pos-header">
                     <h2><i class="fas fa-desktop"></i> Monitor de Pedidos PFM</h2>
                     <div class="pos-status-filters">
-                        <button class="filter-btn active" onclick="app.ui.filterPOS('PEDIDO-RECIBIDO')">Nuevos</button>
-                        <button class="filter-btn" onclick="app.ui.filterPOS('EN-COCINA')">En Cocina</button>
-                        <button class="filter-btn" onclick="app.ui.filterPOS('LISTO-ENTREGA')">Listos</button>
-                        <button class="filter-btn" onclick="app.ui.filterPOS('ENTREGADO')">Entregados</button>
+                        <button id="filter-btn-recibido" class="pos-filter-btn active"
+                            onclick="app.ui.filterPOS('PEDIDO-RECIBIDO')" data-status="PEDIDO-RECIBIDO">Nuevos</button>
+                        <button id="filter-btn-cocina" class="pos-filter-btn" onclick="app.ui.filterPOS('EN-COCINA')"
+                            data-status="EN-COCINA">En Cocina</button>
+                        <button id="filter-btn-listo" class="pos-filter-btn" onclick="app.ui.filterPOS('LISTO-ENTREGA')"
+                            data-status="LISTO-ENTREGA">Listos</button>
+                        <button id="filter-btn-entregado" class="pos-filter-btn" onclick="app.ui.filterPOS('ENTREGADO')"
+                            data-status="ENTREGADO">Entregados</button>
                     </div>
                 </div>
                 <div id="pos-orders-grid" class="pos-grid">
@@ -944,10 +948,6 @@
                                 <button type="button" class="pay-btn" data-value="Transferencia"
                                     onclick="app.ui.setPublicPaymentMethod('Transferencia')">
                                     <i class="fas fa-university"></i> Transf.
-                                </button>
-                                <button type="button" class="pay-btn" data-value="Caja"
-                                    onclick="app.ui.setPublicPaymentMethod('Caja')">
-                                    <i class="fas fa-cash-register"></i> Caja
                                 </button>
                             </div>
                             <input type="hidden" id="pay-method" value="Efectivo">

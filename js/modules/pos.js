@@ -711,7 +711,10 @@ app.pos = {
 
     filterPOS: (status) => {
         const buttons = document.querySelectorAll('.pos-filter-btn');
-        buttons.forEach(btn => btn.classList.toggle('active', btn.dataset.status === status));
+        buttons.forEach(btn => {
+            if (btn.dataset.status === status) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
         app.pos.renderPOS();
     },
 
@@ -730,6 +733,33 @@ app.pos = {
 
         // Filter: Multi-tenant + Date (Standard YY-MM-DD)
         const todayStr = new Date().toLocaleDateString('en-CA');
+
+        // --- CONTADORES DE FILTROS (v4.7.8) ---
+        const allForCounters = (app.data.Proyectos || []).filter(p => {
+            const isMyCompany = app.utils.getCoId(p) === app.state.companyId.toString().trim().toUpperCase();
+            const pDate = new Date(p.fecha_inicio);
+            const isToday = !isNaN(pDate.getTime()) && pDate.toLocaleDateString('en-CA') === todayStr;
+            const status = (p.status || p.estado || "").toString().trim().toUpperCase().replace(/ /g, '-');
+            const isPendingDelivery = status.includes('LISTO') || status.includes('CAMINO') || status.includes('RUTA');
+
+            // For counters, we include today's items OR any item that is still in preparation/delivery loop
+            return isMyCompany && (isToday || isPendingDelivery);
+        });
+
+        const counts = { 'RECIBIDO': 0, 'COCINA': 0, 'LISTO': 0, 'ENTREGADO': 0 };
+        allForCounters.forEach(p => {
+            const s = (p.status || p.estado || "").toString().trim().toUpperCase().replace(/ /g, '-');
+            if (s.includes('RECIBIDO') || s.includes('NUEVO')) counts['RECIBIDO']++;
+            else if (s.includes('COCINA') || s.includes('PREPARA')) counts['COCINA']++;
+            else if (s.includes('LISTO') || s.includes('CAMINO') || s.includes('RUTA')) counts['LISTO']++;
+            else if (s.includes('ENTREGADO') || s.includes('FINAL')) counts['ENTREGADO']++;
+        });
+
+        const bRecibido = document.getElementById('filter-btn-recibido'); if (bRecibido) bRecibido.innerText = `Nuevos (${counts['RECIBIDO']})`;
+        const bCocina = document.getElementById('filter-btn-cocina'); if (bCocina) bCocina.innerText = `En Cocina (${counts['COCINA']})`;
+        const bListo = document.getElementById('filter-btn-listo'); if (bListo) bListo.innerText = `Próximos (${counts['LISTO']})`;
+        const bDone = document.getElementById('filter-btn-entregado'); if (bDone) bDone.innerText = `Entregados (${counts['ENTREGADO']})`;
+
         let list = (app.data.Proyectos || []).filter(p => {
             const isMyCompany = app.utils.getCoId(p) === app.state.companyId.toString().trim().toUpperCase();
             const pDate = new Date(p.fecha_inicio);
@@ -737,7 +767,7 @@ app.pos = {
 
             // EXCEPCIÓN DELIVERY: Ver todo lo LISTO sin importar la fecha (v4.4.5)
             const status = (p.status || p.estado || "").toString().trim().toUpperCase().replace(/ /g, '-');
-            const isReadyForDelivery = status.includes('LISTO') || status.includes('CAMINO');
+            const isReadyForDelivery = status.includes('LISTO') || status.includes('CAMINO') || status.includes('RUTA');
 
             if (isDelivery) return isMyCompany && (isToday || isReadyForDelivery);
             return isMyCompany && isToday;
@@ -747,11 +777,15 @@ app.pos = {
         if (currentFilter !== 'TODOS') {
             list = list.filter(p => {
                 const s = (p.status || p.estado || "").toString().trim().toUpperCase().replace(/ /g, '-');
-                if (currentFilter === 'NUEVOS') return s.includes('RECIBIDO') || s.includes('NUEVO');
-                if (currentFilter === 'COCINA') return s.includes('COCINA') || s.includes('PREPARA');
-                if (currentFilter === 'LISTOS') return s.includes('LISTO');
-                if (currentFilter === 'CAMINO') return s.includes('CAMINO');
-                if (currentFilter === 'ENTREGADO') return s.includes('ENTREGADO') || s.includes('FINAL');
+                const isDelivered = s.includes('ENTREGADO') || s.includes('FINAL');
+
+                if (currentFilter === 'ENTREGADO') return isDelivered;
+                if (isDelivered) return false; // Exclude from all other tabs
+
+                if (currentFilter === 'NUEVOS' || currentFilter === 'PEDIDO-RECIBIDO') return s.includes('RECIBIDO') || s.includes('NUEVO');
+                if (currentFilter === 'COCINA' || currentFilter === 'EN-COCINA') return s.includes('COCINA') || s.includes('PREPARA');
+                if (currentFilter === 'LISTOS' || currentFilter === 'LISTO-ENTREGA') return s.includes('LISTO') || s.includes('CAMINO') || s.includes('RUTA');
+                if (currentFilter === 'CAMINO' || currentFilter === 'EN-CAMINO') return s.includes('CAMINO') || s.includes('RUTA');
                 return true;
             });
         }
@@ -793,7 +827,7 @@ app.pos = {
                 </div>
                 <div class="order-footer">
                     <div class="order-total">$${items.reduce((sum, i) => sum + (i.price * i.qty), 0).toFixed(2)}</div>
-                    <div class="order-otp">${otpDisplay}</div>
+                    ${status.includes('ENTREGADO') ? '<div class="order-status-delivered" style="color: #27ae60; font-size: 1.4rem; font-weight: 900; text-align: right; letter-spacing: -1px; animation: fadeIn 0.5s ease;">ENTREGADO ✅</div>' : `<div class="order-otp">${otpDisplay}</div>`}
                 </div>
                 <div class="order-actions">
                     ${app.pos.getPosActionButtons(p.id_proyecto, status, code)}
@@ -813,20 +847,22 @@ app.pos = {
         let btns = '';
         const statusUpper = status.toUpperCase();
 
-        // RBAC: Si es Staff (Nivel >= 5), permitir flujo completo (v4.7.5)
-        const isStaff = !isDelivery && level >= 5;
+        // RBAC: Si es Staff (Nivel >= 2), permitir flujo completo (v4.7.6)
+        const isStaff = !isDelivery && level >= 2;
+        const canCook = isStaff || isAdmin;
+        const canDispatch = isStaff || isAdmin || isDelivery; // v4.7.8: Delivery puede despachar y entregar
 
         if (statusUpper.includes('RECIBIDO') || statusUpper.includes('NUEVO')) {
-            if (!isDelivery) btns += `<button class="btn-pos btn-prep" onclick="app.pos.updateOrderStatus('${id}', 'EN-COCINA')">COCINAR</button>`;
+            if (canCook) btns += `<button class="btn-pos btn-prep" onclick="app.pos.updateOrderStatus('${id}', 'EN-COCINA')">COCINAR</button>`;
         } else if (statusUpper.includes('COCINA') || statusUpper.includes('PREPARA')) {
-            if (isStaff) btns += `<button class="btn-pos btn-new" onclick="app.pos.updateOrderStatus('${id}', 'PEDIDO-RECIBIDO')">REVERTIR</button>`;
-            if (!isDelivery) btns += `<button class="btn-pos btn-ready" onclick="app.pos.updateOrderStatus('${id}', 'LISTO-ENTREGA')">LISTO</button>`;
+            if (isStaff || isAdmin) btns += `<button class="btn-pos btn-new" onclick="app.pos.updateOrderStatus('${id}', 'PEDIDO-RECIBIDO')">REVERTIR</button>`;
+            if (canCook) btns += `<button class="btn-pos btn-ready" onclick="app.pos.updateOrderStatus('${id}', 'LISTO-ENTREGA')">LISTO</button>`;
         } else if (statusUpper.includes('LISTO')) {
-            if (isStaff) btns += `<button class="btn-pos btn-prep" onclick="app.pos.updateOrderStatus('${id}', 'EN-COCINA')">COCINA</button>`;
-            btns += `<button class="btn-pos btn-route" onclick="app.pos.updateOrderStatus('${id}', 'EN-CAMINO')">RUTA</button>`;
+            if (isStaff || isAdmin) btns += `<button class="btn-pos btn-prep" onclick="app.pos.updateOrderStatus('${id}', 'EN-COCINA')">COCINA</button>`;
+            if (canDispatch) btns += `<button class="btn-pos btn-route" onclick="app.pos.updateOrderStatus('${id}', 'EN-CAMINO')">RUTA</button>`;
         } else if (statusUpper.includes('CAMINO') || statusUpper.includes('RUTA')) {
-            if (isStaff) btns += `<button class="btn-pos btn-ready" onclick="app.pos.updateOrderStatus('${id}', 'LISTO-ENTREGA')">REGRESAR</button>`;
-            btns += `<button class="btn-pos btn-done" onclick="app.pos.updateOrderStatus('${id}', 'ENTREGADO')">ENTREGAR</button>`;
+            if (isStaff || isAdmin) btns += `<button class="btn-pos btn-ready" onclick="app.pos.updateOrderStatus('${id}', 'LISTO-ENTREGA')">REGRESAR</button>`;
+            if (canDispatch) btns += `<button class="btn-pos btn-done" onclick="app.pos.updateOrderStatus('${id}', 'ENTREGADO')">ENTREGAR</button>`;
         }
         return btns;
     },
@@ -921,10 +957,13 @@ app.pos = {
                 const img = p.imagen_url ? app.utils.fixDriveUrl(p.imagen_url) : 'https://docs.google.com/uc?export=view&id=1t6BmvpGTCR6-OZ3Nnx-yOmpohe5eCKvv';
                 const price = app.utils.getEffectivePrice(p);
 
+                const promo = (p.etiqueta_promo || "").toString().trim();
+
                 card.innerHTML = `
                     <div class="food-img-container">
+                        ${promo ? `<div class="promo-ribbon" style="position:absolute; top:10px; left:-5px; background:#f39c12; color:white; padding:2px 10px; font-size:0.6rem; font-weight:bold; z-index:2; border-radius:0 10px 10px 0; box-shadow: 2px 2px 4px rgba(0,0,0,0.2);">${promo}</div>` : ''}
                         <img src="${img}" class="food-img">
-                        <div class="stock-badge" style="background:${stock <= 5 ? '#e74c3c' : '#27ae60'}">${stock} DISP.</div>
+                        <div class="stock-badge" style="background:${stock <= 5 ? '#e74c3c' : '#27ae60'}; position:absolute; top:10px; right:10px; padding:4px 10px; border-radius:50px; color:white; font-size:0.7rem; font-weight:bold;">${stock} DISP.</div>
                     </div>
                     <div class="food-info">
                         <div class="food-title-row">

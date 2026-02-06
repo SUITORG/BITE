@@ -21,11 +21,31 @@ app.auth = {
             return matchId && matchCo;
         });
         if (!user) {
-            return { success: false, msg: "Usuario no encontrado en esta empresa" };
+            // v4.7.7: Warning específico para Hub vs Empresa
+            const existsAnywhere = (app.data.Usuarios || []).some(u => {
+                const email = getVal(u, ['email', 'correo', 'mail']);
+                const username = getVal(u, ['username', 'usuario', 'user', 'login']);
+                return (email.toLowerCase() === userOrEmailClean || username.toLowerCase() === userOrEmailClean);
+            });
+            if (existsAnywhere) return { success: false, msg: "⚠️ Usuario existe pero no está asignado a esta empresa o sección." };
+            return { success: false, msg: "❌ Usuario no encontrado." };
         }
+
         const sheetPass = getVal(user, ['password', 'contraseña', 'pass', 'clave']);
         if (sheetPass !== (password || "").toString().trim()) {
-            return { success: false, msg: "Contraseña incorrecta" };
+            return { success: false, msg: "❌ Contraseña incorrecta." };
+        }
+
+        // v4.7.7: Validación de Vigencia (Estandar #5)
+        const fechaLimiteStr = getVal(user, ['fecha_limite_acceso', 'limite', 'expira']);
+        if (fechaLimiteStr) {
+            const limite = new Date(fechaLimiteStr);
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+            if (limite < hoy) {
+                console.warn("🚫 Acceso denegado: Licencia/Vigencia expirada el", fechaLimiteStr);
+                return { success: false, msg: `⚠️ ACCESO EXPIRADO (${fechaLimiteStr}). Contacte a soporte.` };
+            }
         }
         // Resolución de permisos
         const company = app.data.Config_Empresas.find(c => c.id_empresa === app.state.companyId);
