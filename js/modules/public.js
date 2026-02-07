@@ -401,7 +401,6 @@ app.public = {
                         <div class="food-img-container">
                             ${promo ? `<div class="promo-ribbon" style="position:absolute; top:10px; left:-5px; background:#f39c12; color:white; padding:2px 10px; font-size:0.6rem; font-weight:bold; z-index:2; border-radius:0 10px 10px 0; box-shadow: 2px 2px 4px rgba(0,0,0,0.2);">${promo}</div>` : ''}
                             <img src="${img}" alt="${p.nombre}" class="food-img">
-                            <div class="stock-badge" style="background:${stock <= 5 ? '#f44' : '#27ae60'}; position:absolute; top:10px; right:10px; padding:4px 10px; border-radius:50px; color:white; font-size:0.7rem; font-weight:bold;">${stock} DISP.</div>
                         </div>
                         <div class="food-info">
                             <div class="food-title-row">

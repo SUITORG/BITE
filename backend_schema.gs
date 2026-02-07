@@ -1,22 +1,22 @@
-/* SuitOrg Backend Engine - v4.7.5
+/* SuitOrg Backend Engine - v4.7.9
  * ---------------------------------------------------------
- * Sincronización: 2026-02-04 09:25 PM
+ * Sincronización: 2026-02-06 07:40 PM
  * 
- * Changelog v4.7.5:
- * - POS: Protocolo de inyección redundante de dirección/teléfono en proyectos.
- * - POS: Soporte para flujo omnidireccional de estados (Staff control).
- * - SYNC: Sincronización atómica con Frontend v4.7.5.
+ * Changelog v4.7.9:
+ * - POS: Protocolo de Fecha Estricta (Solo Hoy).
+ * - POS: Filtrado mandatorio por fecha actual en Monitor POS.
+ * - SYNC: Sincronización atómica con Frontend v4.7.9.
  * 
- * AUDIT: ~8792 Total Lines (Consolidated).
+ * AUDIT: ~8941 Total Lines (Consolidated).
  * ---------------------------------------------------------
  */
 
 const CONFIG = {
-  VERSION: "4.7.5",
+  VERSION: "4.7.9",
   DB_ID: "1uyy2hzj8HWWQFnm6xy-XCwvvGh3odjV4fRlDh5SBxu8", 
   GLOBAL_TABLES: ["Config_Empresas", "Config_Roles", "Usuarios", "Config_SEO", "Prompts_IA", "Cuotas_Pagos"], 
   PRIVATE_TABLES: ["Leads", "Proyectos", "Proyectos_Etapas", "Proyectos_Pagos", "Proyectos_Bitacora", "Catalogo", "Logs", "Pagos", "Empresa_Documentos"],
-  AUDIT: { total: 8792, status: "STABLE_SYNC" }
+  AUDIT: { total: 8941, status: "STABLE_SYNC" }
 };
 
 /**

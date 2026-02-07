@@ -740,10 +740,8 @@ app.pos = {
             const pDate = new Date(p.fecha_inicio);
             const isToday = !isNaN(pDate.getTime()) && pDate.toLocaleDateString('en-CA') === todayStr;
             const status = (p.status || p.estado || "").toString().trim().toUpperCase().replace(/ /g, '-');
-            const isPendingDelivery = status.includes('LISTO') || status.includes('CAMINO') || status.includes('RUTA');
-
-            // For counters, we include today's items OR any item that is still in preparation/delivery loop
-            return isMyCompany && (isToday || isPendingDelivery);
+            // STRICT: Only today's items (v4.7.9)
+            return isMyCompany && isToday;
         });
 
         const counts = { 'RECIBIDO': 0, 'COCINA': 0, 'LISTO': 0, 'ENTREGADO': 0 };
@@ -765,11 +763,7 @@ app.pos = {
             const pDate = new Date(p.fecha_inicio);
             const isToday = !isNaN(pDate.getTime()) && pDate.toLocaleDateString('en-CA') === todayStr;
 
-            // EXCEPCIÓN DELIVERY: Ver todo lo LISTO sin importar la fecha (v4.4.5)
-            const status = (p.status || p.estado || "").toString().trim().toUpperCase().replace(/ /g, '-');
-            const isReadyForDelivery = status.includes('LISTO') || status.includes('CAMINO') || status.includes('RUTA');
-
-            if (isDelivery) return isMyCompany && (isToday || isReadyForDelivery);
+            // STRICT: Only today's items (v4.7.9)
             return isMyCompany && isToday;
         });
 
@@ -812,7 +806,7 @@ app.pos = {
                 <div class="order-header">
                     <span class="order-id">#${p.id_proyecto.slice(-4)}</span>
                     ${isWeb ? '<span class="badge web">WEB</span>' : '<span class="badge pos">LOCAL</span>'}
-                    <span class="order-time">${new Date(p.fecha_inicio).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    <span class="order-time">${new Date(p.fecha_inicio).toLocaleDateString([], { day: '2-digit', month: '2-digit', year: '2-digit' })} ${new Date(p.fecha_inicio).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
                 <div class="order-customer">
                     <i class="fas fa-user"></i> ${p.nombre_cliente || p.nombre_proyecto.split('-')[1] || 'Cliente'}

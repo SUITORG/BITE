@@ -4,7 +4,7 @@
  */
 const app = {
     // --- APP CONFIG ---
-    version: '4.7.5', // v4.7.5: POS Integridad, RBAC Omnidireccional & UX Audio.
+    version: '4.7.9', // v4.7.9: Protocolo de Fecha Estricta (Solo Hoy).
 
     // Se cargan desde js/modules/config.js (ignorado en git)
     apiUrl: (typeof SUIT_CONFIG !== 'undefined') ? SUIT_CONFIG.apiUrl : '',

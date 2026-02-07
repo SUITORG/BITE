@@ -24,7 +24,7 @@ Este archivo es la **Única Fuente de Verdad** para el orquestador (IA). Estas r
 - **Inmutabilidad**: Una vez validada la operación (Alimentos, Logística, Proyectos), no se permiten cambios estructurales en el flujo de guardado.
 - **Venta Express/POS**: Debe grabar obligatoriamente en `Leads`, `Proyectos` y descontar stock en `Catalogo`.
 - **Interactividad**: En giros de alimentos, los botones `(+)` y `(-)` deben ser accesibles para el usuario público en todo momento.
-- **Identidad Visual**: Productos "NUEVO" o en "OFERTA" deben portar una barra de color distintiva en la esquina superior derecha. En el monitor **STAFF-POS (Caja)**, es obligatorio mostrar el stock numérico disponible y una banda naranja si el campo `etiqueta_promo` tiene contenido.
+- **Identidad Visual**: Productos "NUEVO" o en "OFERTA" deben portar una barra de color distintiva en la esquina superior izquierda (Público y Staff). En el monitor **STAFF-POS (Caja)** y vista interna, es obligatorio mostrar el stock numérico disponible. Queda **ESTRICTAMENTE PROHIBIDO** mostrar el stock numérico en la landing page pública (visitantes) para mantener un diseño limpio y enfocado a la venta.
 - **Integridad de Checkout y Caja (100% Error-Free)**: El flujo de cierre de venta debe ser infalible. Cualquier cambio en el POS debe validar el flujo completo: 1. Compra (Cápsula visible y total operativo) -> 2. Datos y Pagos (Modal obligatorio) -> 3. Transacción Atómica (Orden, Lead y Stock). La operación de Caja debe ser clara, auditada y sin ambigüedades. Queda prohibido ocultar la cápsula de carrito para el usuario público.
 
 ## 5. estandar-creditos
