@@ -10,7 +10,8 @@ Este archivo es tu **Centro de Comando**. Úsalo para controlar el avance del pr
 
 Este documento rastrea el cumplimiento de las reglas fundamentales y la visión del proyecto.
 
-## 🏗️ Arquitectura de Software (v4.8.6 Modular)
+## 🏗️ Arquitectura de Software (v4.8.7 Responsive+)
+- [x] **v4.8.7: Mobile UI Optimization (Glass+)**: Implementation of fixed bottom bar for checkout, glassmorphism mobile menu (75% width), and enhanced touch targets (>48px).
 - [x] **v4.8.6: Accounting Integrity Restoration**: Restored dual-writing protocol to Pagos and Proyectos_Pagos. Immutable Rule #18 implemented.
 - [x] **v4.8.5: Report Consolidation & Payment Fix**: New report engine that merges Proyectos and Pagos for 100% visibility. Interface selector fix for Card/Transfer payments in POS.
 - [x] **v4.7.5: POS Integrity & RBAC Omnidirectional**: Robust contact data rendering, omnidirectional status flow for staff, and optimized UX auditory feedback.

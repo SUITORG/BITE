@@ -1,17 +1,17 @@
-/* SuitOrg Backend Engine - v4.8.6
+/* SuitOrg Backend Engine - v4.8.7
  * ---------------------------------------------------------
- * Sincronización: 2026-02-06 09:45 PM (v4.8.6 Stable Sync)
+ * Sincronización: 2026-02-08 11:45 AM (v4.8.7 UI Sync)
  * 
- * Changelog v4.8.6:
- * - ACCOUNTING: Restauración de Doble Escritura (Proyectos_Pagos + Pagos).
- * - INTEGRITY: Resolución de sesgo de sincronización en motor de pagos.
+ * Changelog v4.8.7:
+ * - UI: Optimización móvil (Glassmorphism & Fixed Bottom Bar).
+ * - UX: Accesibilidad táctil aumentada (min 44px targets).
  * 
- * AUDIT: ~8622 Total Lines (v4.8.6).
+ * AUDIT: ~8640 Total Lines (v4.8.7).
  * ---------------------------------------------------------
  */
 
 const CONFIG = {
-  VERSION: "4.8.6",
+  VERSION: "4.8.7",
   DB_ID: "1uyy2hzj8HWWQFnm6xy-XCwvvGh3odjV4fRlDh5SBxu8", 
   GLOBAL_TABLES: ["Config_Empresas", "Config_Roles", "Usuarios", "Config_SEO", "Prompts_IA", "Cuotas_Pagos"], 
   PRIVATE_TABLES: ["Leads", "Proyectos", "Proyectos_Etapas", "Proyectos_Pagos", "Proyectos_Bitacora", "Catalogo", "Logs", "Pagos", "Empresa_Documentos"],

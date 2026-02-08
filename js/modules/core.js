@@ -4,7 +4,7 @@
  */
 const app = {
     // --- APP CONFIG ---
-    version: '4.8.6', // v4.8.6: Restauración de Doble Escritura de Pagos.
+    version: '4.8.7', // v4.8.7: Optimización UI Móvil (Glassmorphism & Barra POS Fija).
 
     // Se cargan desde js/modules/config.js (ignorado en git)
     apiUrl: (typeof SUIT_CONFIG !== 'undefined') ? SUIT_CONFIG.apiUrl : '',
