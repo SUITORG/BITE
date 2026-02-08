@@ -119,6 +119,9 @@ app.ui = {
     renderReport: () => app.admin.renderReport(),
     handleReportTypeChange: () => app.admin.handleReportTypeChange(),
     setReportMode: (m) => app.admin.setReportMode(m),
+    selectReportType: (t, b) => app.admin.selectReportType(t, b),
+    exportReport: (fmt) => app.admin.exportReport(fmt),
+    renderBusinessDashboard: () => app.admin.renderBusinessDashboard(),
 
     // --- PUBLIC BRIDGE ---
     renderOrbit: () => app.public.renderOrbit(),

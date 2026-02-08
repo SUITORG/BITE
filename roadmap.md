@@ -10,7 +10,9 @@ Este archivo es tu **Centro de Comando**. Úsalo para controlar el avance del pr
 
 Este documento rastrea el cumplimiento de las reglas fundamentales y la visión del proyecto.
 
-## 🏗️ Arquitectura de Software (v3.6.2 Modular)
+## 🏗️ Arquitectura de Software (v4.8.6 Modular)
+- [x] **v4.8.6: Accounting Integrity Restoration**: Restored dual-writing protocol to Pagos and Proyectos_Pagos. Immutable Rule #18 implemented.
+- [x] **v4.8.5: Report Consolidation & Payment Fix**: New report engine that merges Proyectos and Pagos for 100% visibility. Interface selector fix for Card/Transfer payments in POS.
 - [x] **v4.7.5: POS Integrity & RBAC Omnidirectional**: Robust contact data rendering, omnidirectional status flow for staff, and optimized UX auditory feedback.
 - [x] **v4.7.0: Catalog CRUD & Sequential IDs**: Full product management with sequential IDs (`PROD-XX`), logical delete, and granular RBAC (`catalog_add`, `edit`, `delete`, `stock`).
 - [x] **v4.6.9: Premium Branding & UX Guard**: Full implementation of `estandar-landing`, institutional footer, dynamic tenant SEO injection (Suit.Org/Suit.Bite) and **Responsive Mobile Navigation (Burger Menu)**.
@@ -132,7 +134,7 @@ Este documento rastrea el cumplimiento de las reglas fundamentales y la visión 
 - [x] **Congelar Lógica POS/OTS:** Módulos marcados como inmutables y documentados en Estándar #17.
 
 ---
-*Última actualización: 2026-02-04 | Versión: v4.7.5 (POS-INTEGRITY)*
+*Última actualización: 2026-02-06 | Versión: v4.8.6 (STABLE-SYNC)*
 
 ## v4.6.0 - Flujo Delivery de 3 Pasos (TESTING)
 - [x] **Estado Intermedio**: Implementado estado `EN-CAMINO`.

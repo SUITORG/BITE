@@ -672,17 +672,20 @@ app.pos = {
     // --- POS UI & RENDERING (Migrated from ui.js) ---
     togglePosFolio: () => {
         const method = document.getElementById('pos-pay-method').value;
-        const folioBlock = document.getElementById('pos-folio-block');
-        const bankBlock = document.getElementById('pos-bank-block');
+        const folioBlock = document.getElementById('pos-folio-container');
+        const bankBlock = document.getElementById('pos-bank-info-display');
         if (!folioBlock || !bankBlock) return;
 
         if (method === 'Transferencia') {
             folioBlock.classList.remove('hidden');
             bankBlock.classList.remove('hidden');
             const company = app.data.Config_Empresas.find(c => c.id_empresa === app.state.companyId);
-            const bName = company?.infobanco || "Pendiente";
-            const bAcc = company?.infocuenta || "";
-            document.getElementById('pos-bank-text').innerText = `${bName}: ${bAcc}`;
+            const bName = company?.infobanco || company?.Info_Banco || "Pendiente";
+            const bAcc = company?.infocuenta || company?.Info_Cuenta || "";
+            document.getElementById('pos-bank-details-text').innerText = `${bName}: ${bAcc}`;
+        } else if (method === 'Terminal') {
+            folioBlock.classList.remove('hidden');
+            bankBlock.classList.add('hidden');
         } else {
             folioBlock.classList.add('hidden');
             bankBlock.classList.add('hidden');
@@ -693,10 +696,13 @@ app.pos = {
         const select = document.getElementById('pos-pay-method');
         if (select) select.value = method;
         app.pos.togglePosFolio();
-        // Sync Visual Buttons
-        document.querySelectorAll('.pay-method-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.method === method);
-        });
+        // Sync Visual Buttons in Staff sidebar
+        const sidebar = document.getElementById('pos-ticket-sidebar');
+        if (sidebar) {
+            sidebar.querySelectorAll('.pay-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.value === method);
+            });
+        }
     },
 
     setPublicPaymentMethod: (method) => {

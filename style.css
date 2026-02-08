@@ -739,10 +739,12 @@ body {
         top: 0;
         right: -105%;
         /* Desplazado para ocultar sombra inicial */
-        width: 80%;
-        max-width: 350px;
+        width: 75%;
+        max-width: 320px;
         height: 100vh;
-        background: #ffffff !important;
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         flex-direction: column;
         justify-content: flex-start;
         align-items: flex-start;
@@ -786,9 +788,9 @@ body {
         left: 0;
         width: 100%;
         height: 100vh;
-        background: rgba(0, 0, 0, 0.3);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
         z-index: 2450;
         opacity: 0;
         pointer-events: none;
@@ -2457,7 +2459,10 @@ body.menu-open {
     font-size: 1rem;
     cursor: pointer;
     text-transform: uppercase;
-    transition: all 0.3s;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn-ticket-confirm:hover {
@@ -2487,6 +2492,7 @@ body.menu-open {
     flex-direction: column;
     align-items: center;
     gap: 4px;
+    min-height: 50px;
 }
 
 .pay-btn i {
@@ -2794,23 +2800,26 @@ body.menu-open {
 
     .mobile-ticket-trigger {
         display: flex !important;
-        flex-direction: column;
+        flex-direction: row;
         position: fixed;
-        bottom: 25px;
-        right: 25px;
-        background: #ff4d00;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: auto;
+        padding: 12px 20px;
+        background: linear-gradient(135deg, #ff4d00, #ff6d00);
         color: white;
-        width: 75px;
-        height: 75px;
-        border-radius: 50%;
-        justify-content: center;
+        border-radius: 20px 20px 0 0;
+        justify-content: space-between;
         align-items: center;
-        box-shadow: 0 8px 25px rgba(255, 77, 0, 0.4);
-        z-index: 2500;
-        border: 4px solid #fff;
+        box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.15);
+        z-index: 2600;
+        border: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
         cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        gap: 2px;
+        transition: all 0.3s ease;
+        gap: 15px;
     }
 
     .mobile-ticket-trigger:hover {
@@ -2834,24 +2843,27 @@ body.menu-open {
     }
 
     .trigger-total {
-        font-size: 0.7rem;
-        font-weight: 800;
-        background: rgba(0, 0, 0, 0.15);
-        padding: 1px 8px;
-        border-radius: 10px;
-        margin-bottom: 5px;
+        font-size: 1.25rem;
+        font-weight: 900;
+        background: rgba(0, 0, 0, 0.1);
+        padding: 4px 15px;
+        border-radius: 50px;
+        margin: 0;
+        flex: 1;
+        text-align: right;
     }
 
     .mobile-ticket-trigger .badge {
         position: absolute;
-        top: -8px;
-        right: -12px;
-        background: #000;
-        color: #fff;
-        font-size: 0.75rem;
-        padding: 2px 7px;
+        top: -10px;
+        right: -10px;
+        background: #fff;
+        color: #ff4d00;
+        font-size: 0.8rem;
+        font-weight: 900;
+        padding: 2px 8px;
         border-radius: 50px;
-        border: 2px solid #fff;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     }
 
     .food-grid {
@@ -2865,6 +2877,14 @@ body.menu-open {
     .food-card {
         flex: none !important;
         width: 100% !important;
+    }
+
+    .food-actions {
+        height: 48px !important;
+    }
+
+    .food-actions button {
+        width: 48px !important;
     }
 }
 

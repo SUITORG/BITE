@@ -1,18 +1,17 @@
-/* SuitOrg Backend Engine - v4.7.9
+/* SuitOrg Backend Engine - v4.8.6
  * ---------------------------------------------------------
- * Sincronización: 2026-02-06 07:40 PM
+ * Sincronización: 2026-02-06 09:45 PM (v4.8.6 Stable Sync)
  * 
- * Changelog v4.7.9:
- * - POS: Protocolo de Fecha Estricta (Solo Hoy).
- * - POS: Filtrado mandatorio por fecha actual en Monitor POS.
- * - SYNC: Sincronización atómica con Frontend v4.7.9.
+ * Changelog v4.8.6:
+ * - ACCOUNTING: Restauración de Doble Escritura (Proyectos_Pagos + Pagos).
+ * - INTEGRITY: Resolución de sesgo de sincronización en motor de pagos.
  * 
- * AUDIT: ~8941 Total Lines (Consolidated).
+ * AUDIT: ~8622 Total Lines (v4.8.6).
  * ---------------------------------------------------------
  */
 
 const CONFIG = {
-  VERSION: "4.7.9",
+  VERSION: "4.8.6",
   DB_ID: "1uyy2hzj8HWWQFnm6xy-XCwvvGh3odjV4fRlDh5SBxu8", 
   GLOBAL_TABLES: ["Config_Empresas", "Config_Roles", "Usuarios", "Config_SEO", "Prompts_IA", "Cuotas_Pagos"], 
   PRIVATE_TABLES: ["Leads", "Proyectos", "Proyectos_Etapas", "Proyectos_Pagos", "Proyectos_Bitacora", "Catalogo", "Logs", "Pagos", "Empresa_Documentos"],
@@ -374,6 +373,7 @@ function processTransaction(ss, data, output) {
     data.payment.id_proyecto = projId;
     data.payment.fecha_pago = new Date();
     appendRowMapped(ss, "Proyectos_Pagos", data.payment);
+    appendRowMapped(ss, "Pagos", data.payment); // Restaurada Integridad de Tabla Principal (v4.8.6)
   }
   
   // PROCESAR STOCK AUTOMÁTICO (v4.4.0)

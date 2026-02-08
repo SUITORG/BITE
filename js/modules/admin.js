@@ -114,55 +114,119 @@ app.admin = {
     },
 
     handleReportTypeChange: () => {
+        const type = document.getElementById('report-type').value;
+        const dateInput = document.getElementById('report-date');
+        if (dateInput && !dateInput.value) {
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = String(now.getMonth() + 1).padStart(2, '0');
+            const d = String(now.getDate()).padStart(2, '0');
+            dateInput.value = `${y}-${m}-${d}`;
+        }
         app.admin.renderReport();
     },
 
     renderReport: () => {
         const container = document.getElementById('report-content');
         if (!container) return;
-        const typeSelect = document.getElementById('report-type');
         const dateInput = document.getElementById('report-date');
+        const typeSelect = document.getElementById('report-type');
         if (!typeSelect || !dateInput) return;
 
-        const type = typeSelect.value; // DIARIO / MENSUAL
-        const dateVal = dateInput.value;
-        const reportCategory = app.admin.currentReportType;
+        // Auto-fix date if empty (v4.8.2 - Real Local Date)
+        if (!dateInput.value) {
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = String(now.getMonth() + 1).padStart(2, '0');
+            const d = String(now.getDate()).padStart(2, '0');
+            dateInput.value = `${y}-${m}-${d}`;
+        }
 
         container.innerHTML = `<div style="text-align:center; padding:40px;"><i class="fas fa-spinner fa-spin fa-2x"></i><p style="margin-top:10px;">Procesando datos...</p></div>`;
 
-        // Filter data by Company
         const companyId = app.state.companyId;
-        const projects = (app.data.Proyectos || []).filter(p => app.utils.getCoId(p) === companyId);
-        const projectIds = projects.map(p => p.id_proyecto);
-        let payments = (app.data.Pagos || app.data.Proyectos_Pagos || []).filter(p => projectIds.includes(p.id_proyecto));
+        const allProjects = (app.data.Proyectos || []).filter(p => app.utils.getCoId(p) === companyId);
+        const allPayments = (app.data.Pagos || app.data.Proyectos_Pagos || []).filter(p => {
+            const pId = p.id_proyecto || "";
+            return allProjects.some(proj => proj.id_proyecto === pId);
+        });
 
-        // Date filter
-        const targetDate = dateVal ? new Date(dateVal + "T00:00:00") : new Date();
-        if (type === 'DIARIO') {
-            const dayStr = targetDate.toISOString().split('T')[0];
-            payments = payments.filter(p => (p.fecha_pago || "").toString().startsWith(dayStr));
-        } else {
-            const month = targetDate.getMonth();
-            const year = targetDate.getFullYear();
-            payments = payments.filter(p => {
-                const d = new Date(p.fecha_pago);
-                return d.getMonth() === month && d.getFullYear() === year;
+        const safeParse = (str) => {
+            if (!str) return new Date(0);
+            if (str instanceof Date) return str;
+            const s = str.toString();
+            let d = new Date(s);
+            if (!isNaN(d.getTime()) && s.includes('-')) return d;
+            const p = s.match(/(\d+)\/(\d+)\/(\d+)/);
+            if (p) return new Date(parseInt(p[3]), parseInt(p[2]) - 1, parseInt(p[1]));
+            return d;
+        };
+
+        // --- CONSOLIDACIÓN DE TRANSACCIONES (v4.8.4) ---
+        // Prioridad: Si hay pagos, usamos el detalle de pagos. Si no, usamos el Proyecto como venta pendiente.
+        let consolidated = [];
+        const checkedProjectIds = new Set();
+
+        allPayments.forEach(pay => {
+            consolidated.push({
+                ...pay,
+                fecha_obj: safeParse(pay.fecha_pago),
+                monto: parseFloat(pay.monto || 0),
+                tipo: 'PAGO_REAL'
             });
-        }
+            checkedProjectIds.add(pay.id_proyecto);
+        });
 
-        if (payments.length === 0) {
+        allProjects.forEach(proj => {
+            if (!checkedProjectIds.has(proj.id_proyecto)) {
+                consolidated.push({
+                    id_pago: (proj.id_proyecto || "").slice(-6),
+                    id_proyecto: proj.id_proyecto,
+                    fecha_pago: proj.fecha_inicio || proj.fecha || proj.fecha_estatus,
+                    fecha_obj: safeParse(proj.fecha_inicio || proj.fecha || proj.fecha_estatus),
+                    monto: parseFloat(proj.monto_total || proj.total || proj.total_venta || 0),
+                    metodo_pago: proj.metodo_pago || 'Efectivo',
+                    concepto: proj.concepto || (proj.nombre_proyecto || 'Venta Express'),
+                    tipo: 'VENTA_PENDIENTE'
+                });
+            }
+        });
+
+        const type = typeSelect.value;
+        const dateVal = dateInput.value;
+        const targetDate = new Date(dateVal + "T00:00:00");
+        const targetDay = targetDate.getDate();
+        const targetMonth = targetDate.getMonth();
+        const targetYear = targetDate.getFullYear();
+
+        let filtered = consolidated.filter(t => {
+            const d = t.fecha_obj;
+            if (type === 'DIARIO') {
+                return d.getDate() === targetDay && d.getMonth() === targetMonth && d.getFullYear() === targetYear;
+            } else if (type === 'QUINCENA') {
+                const isFirstFortnight = targetDay <= 15;
+                const isMatchMonth = d.getMonth() === targetMonth && d.getFullYear() === targetYear;
+                if (!isMatchMonth) return false;
+                return isFirstFortnight ? d.getDate() <= 15 : d.getDate() > 15;
+            } else {
+                return d.getMonth() === targetMonth && d.getFullYear() === targetYear;
+            }
+        });
+
+        if (filtered.length === 0) {
             container.innerHTML = `<div style="text-align:center; padding:60px; color:#999;"><i class="fas fa-search fa-3x" style="opacity:0.3; margin-bottom:15px;"></i><p>No se encontraron registros para este periodo.</p></div>`;
             return;
         }
 
+        const reportCategory = app.admin.currentReportType;
         if (reportCategory === 'general') {
-            app.admin._renderGeneralReport(container, payments);
+            app.admin._renderGeneralReport(container, filtered);
         } else if (reportCategory === 'payments') {
-            app.admin._renderPaymentsReport(container, payments);
+            app.admin._renderPaymentsReport(container, filtered);
         } else if (reportCategory === 'profit') {
-            app.admin._renderProfitReport(container, payments);
+            app.admin._renderProfitReport(container, filtered);
         } else if (reportCategory === 'products') {
-            app.admin._renderProductsReport(container, payments);
+            app.admin._renderProductsReport(container, filtered);
         }
     },
 

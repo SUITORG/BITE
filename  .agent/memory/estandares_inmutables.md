@@ -100,3 +100,7 @@ Reinicio por Inactividad: Todo usuario no identificado (Visitante) que permanezc
 Transparencia de Total: Al limpiar el carrito (
 clearCart
 ) o si este está vacío, el total visual de la aplicación DEBE marcar estrictamente $0.00, ignorando cualquier cargo por envío configurado, para evitar confusión en el usuario.
+## 18. Mandato de Integridad Contable (Doble Escritura)
+- **Descripción**: Para garantizar la transparencia y el reporte histórico, todo pago procesado debe registrarse en dos destinos simultáneamente.
+- **Mandato**: Queda estrictamente prohibido omitir la escritura en la tabla **Pagos** al procesar una orden. El orquestador DEBE asegurar la doble llamada en el backend: `Proyectos_Pagos` (Operativo) y `Pagos` (Contable).
+- **Lección Aprendida**: No sacrificar la visibilidad histórica por "optimización" de velocidad; la integridad de la base de datos es prioritaria sobre la reducción de latencia.

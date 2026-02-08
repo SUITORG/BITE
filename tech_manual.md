@@ -1,9 +1,9 @@
 
 # Manual Técnico y Operativo - SuitOrg
 > **Identidad Principal:** SuitOrg (Powered by EVASOL Engine)
-> **Última Versión Estable**: v4.7.5 (STABLE-SYNC)
+> **Última Versión Estable**: v4.8.6 (STABLE-SYNC)
 > **Estado del Sistema**: Operativo y Sincronizado.
-> **Total de Líneas Consolidadas**: ~8,828 (Auditado 2026-02-04).
+> **Total de Líneas Consolidadas**: ~8,622 (Auditado 2026-02-06).
 
 ## 0. Resumen Ejecutivo (TL;DR) - Para gente con prisa ⚡
 1.  **¿Qué es?** Un potente "Food Hub" multi-inquilino especializado en el sector alimenticio (Restaurantes, Snacks, Comida Rápida).
@@ -165,6 +165,13 @@ A partir de la versión 4.7.0, el ecosistema de desarrollo se ha optimizado medi
 
 ---
 
+- **v4.8.6 (2026-02-06):** **"Accounting Integrity Restoration"**.
+    - **BACKEND:** Restauración del protocolo de Doble Escritura en tablas `Pagos` y `Proyectos_Pagos`.
+    - **GUARDRAIL:** Implementación del Estándar Inmutable #18 para prevenir sesgos de visibilidad histórica.
+- **v4.8.5 (2026-02-06):** **"Report Consolidation & Payment Fix"**.
+    - **ADMIN:** Motor de Consolidación de Reportes que une `Proyectos` y `Pagos` en una sola fuente de verdad.
+    - **POS:** Reparación de selectores de interfaz para activar pagos con Tarjeta y Transferencia en Caja.
+    - **UX:** Normalización de fecha local (YYYY-MM-DD) para eliminar errores de desfase UTC en reportes.
 - **v4.7.5 (2026-02-04):** **"POS Integrity & RBAC Omnidirectional"**.
     - **POS:** Protocolo de inyección redundante de dirección/teléfono en descripción para visualización garantizada.
     - **UX:** Sonido "Pop" sutil generado por oscilador y limpieza de audio intrusivo en el Hub.
@@ -263,10 +270,10 @@ A partir de la versión 4.7.0, el ecosistema de desarrollo se ha optimizado medi
 | :--- | :--- |
 | index.html | 1600 | Estructura base PWA / Modales |
 | style.css | 3090 | UI/UX Premium & Micro-animaciones |
-| js/modules/ | 3677 | Lógica de Negocio (Core, UI, POS, AI) |
+| js/modules/ | 3792 | Lógica de Negocio (Core, UI, POS, AI) |
 | app.js | 71 | Router y Orquestación Inicial |
 | backend_schema.gs | 390 | Engine Server-side (GAS) |
-| **TOTAL** | **8828** | Líneas de producción |
+| **TOTAL** | **8621** | Líneas de producción |
 
 ---
 *Manual generado automáticamente por Antigravity AI.*
