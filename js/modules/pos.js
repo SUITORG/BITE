@@ -940,6 +940,8 @@ app.pos = {
                     document.querySelectorAll('.pos-cat-item').forEach(el => el.classList.remove('active'));
                     navItem.classList.add('active');
                     document.getElementById(catId).scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    // Auto-close on mobile
+                    if (window.innerWidth <= 900) app.pos.toggleStaffNav(false);
                 };
                 sideNav.appendChild(navItem);
             }
@@ -981,6 +983,13 @@ app.pos = {
             container.appendChild(section);
         });
         app.pos.updateCartVisuals();
+    },
+
+    toggleStaffNav: (show) => {
+        const nav = document.getElementById('staff-pos-side-nav-container');
+        const overlay = document.querySelector('.pos-nav-overlay');
+        if (nav) nav.classList.toggle('mobile-active', show);
+        if (overlay) overlay.classList.toggle('active', show);
     },
 
     // --- CATALOG MANAGEMENT REMOVED (Now in admin.js) ---

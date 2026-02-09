@@ -2736,156 +2736,213 @@ body.menu-open {
     color: #ef6c00;
 }
 
-/* --- MOBILE POS ADAPTATION --- */
+/* --- MOBILE POS ADAPTATION (v4.8.8) --- */
 @media (max-width: 900px) {
     .pos-layout {
         flex-direction: column;
         height: calc(100vh - 80px);
-        overflow: hidden;
+        /* Adjust for header if needed */
+        position: relative;
     }
 
+    /* Category Menu Toggle */
+    .staff-nav-toggle {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        color: #475569;
+        font-size: 1.2rem;
+        cursor: pointer;
+        margin-right: 15px;
+        transition: all 0.2s;
+    }
+
+    .staff-nav-toggle:active {
+        transform: scale(0.9);
+        background: #e2e8f0;
+    }
+
+    #view-staff-pos .section-header {
+        display: flex;
+        align-items: center;
+        padding: 5px 15px;
+    }
+
+    /* Category Drawer */
     .pos-nav {
+        position: fixed;
+        top: 0;
+        left: -100%;
+        width: 80% !important;
+        max-width: 320px;
+        height: 100vh;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        z-index: 4000;
+        box-shadow: 15px 0 30px rgba(0, 0, 0, 0.1);
+        padding: 60px 20px 20px;
+        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex !important;
+        flex-direction: column;
+        overflow-y: auto;
+    }
+
+    .pos-nav.mobile-active {
+        left: 0;
+    }
+
+    .pos-nav-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
         width: 100%;
-        height: auto;
-        flex-direction: row;
-        border-right: none;
-        border-bottom: 2px solid #eee;
-        padding: 8px;
-        white-space: nowrap;
-        overflow-x: auto;
-        flex-shrink: 0;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 3999;
+        display: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .pos-nav-overlay.active {
+        display: block;
+        opacity: 1;
+    }
+
+    .close-nav-btn {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        font-size: 2rem;
+        background: none;
+        border: none;
+        color: #64748b;
+        cursor: pointer;
+    }
+
+    /* Compact Alerts Stacking */
+    #pos-alerts-container {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 6px !important;
+        margin-bottom: 25px !important;
+    }
+
+    .pos-external-box {
+        padding: 8px 12px !important;
+        border-radius: 12px !important;
+    }
+
+    .pos-external-header span {
+        font-size: 0.75rem !important;
+        font-weight: 700 !important;
+    }
+
+    /* Product Grid: 1 Column */
+    #view-staff-pos .food-grid {
+        grid-template-columns: 1fr !important;
+        padding: 10px !important;
+        gap: 15px !important;
+    }
+
+    .food-card {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center;
+        height: auto !important;
+        padding: 10px !important;
         background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
 
-    .pos-cat-item {
-        padding: 8px 15px;
-        min-width: 100px;
-        transform: none !important;
-        margin: 0 4px;
-        box-shadow: none;
-        border: 1px solid #eee;
+    .food-img-container {
+        width: 90px !important;
+        height: 90px !important;
+        border-radius: 12px !important;
+        overflow: hidden;
+        flex-shrink: 0;
     }
 
-    .pos-cat-item.active {
-        box-shadow: 0 2px 8px rgba(255, 193, 7, 0.4);
+    .food-info {
+        padding: 0 0 0 15px !important;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
     }
 
-    .pos-main {
-        padding: 10px;
-        padding-bottom: 100px;
+    .food-title-row h3 {
+        font-size: 0.95rem !important;
+        margin-bottom: 5px !important;
     }
 
+    .food-actions {
+        margin-top: 8px !important;
+        justify-content: flex-start !important;
+    }
+
+    .food-actions button {
+        width: 44px !important;
+        height: 44px !important;
+        font-size: 1.1rem !important;
+    }
+
+    .food-qty {
+        font-size: 1.1rem !important;
+        padding: 0 15px !important;
+    }
+
+    /* PERSISTENT BOTTOM BAR FOR CAJA */
     .pos-sidebar {
         position: fixed;
         bottom: 0;
         left: 0;
         width: 100% !important;
-        height: 90vh;
-        z-index: 3000;
+        height: 85vh;
+        z-index: 3500;
         transform: translateY(100%);
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        border-radius: 30px 30px 0 0;
-        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
-        border-left: none;
-        background: #fff;
+        border-radius: 25px 25px 0 0 !important;
+        box-shadow: 0 -15px 40px rgba(0, 0, 0, 0.2) !important;
     }
 
     .pos-sidebar.mobile-active {
         transform: translateY(0);
     }
 
-    .close-ticket-btn {
-        display: block !important;
+    /* Checkout & Payment Adjustments */
+    .pay-method-grid {
+        gap: 8px !important;
     }
 
+    .pay-btn {
+        min-height: 55px !important;
+        border-radius: 12px !important;
+    }
+
+    .btn-ticket-confirm {
+        min-height: 55px !important;
+        font-size: 1.1rem !important;
+        border-radius: 14px !important;
+    }
+
+    /* Ensure mobile tickets trigger is styled correctly for Caja too */
     .mobile-ticket-trigger {
         display: flex !important;
-        flex-direction: row;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        width: 100%;
-        height: auto;
-        padding: 12px 20px;
-        background: linear-gradient(135deg, #ff4d00, #ff6d00);
-        color: white;
-        border-radius: 20px 20px 0 0;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.15);
-        z-index: 2600;
-        border: none;
-        border-top: 1px solid rgba(255, 255, 255, 0.2);
-        cursor: pointer;
-        transition: all 0.3s ease;
-        gap: 15px;
+        z-index: 2800 !important;
+        /* Above grid, below sidebar */
     }
+}
 
-    .mobile-ticket-trigger:hover {
-        transform: scale(1.1) rotate(5deg);
-    }
-
-    .mobile-ticket-trigger:active {
-        transform: scale(0.9);
-    }
-
-    .trigger-icon-container {
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-top: 5px;
-    }
-
-    .mobile-ticket-trigger i {
-        font-size: 1.4rem;
-    }
-
-    .trigger-total {
-        font-size: 1.25rem;
-        font-weight: 900;
-        background: rgba(0, 0, 0, 0.1);
-        padding: 4px 15px;
-        border-radius: 50px;
-        margin: 0;
-        flex: 1;
-        text-align: right;
-    }
-
-    .mobile-ticket-trigger .badge {
-        position: absolute;
-        top: -10px;
-        right: -10px;
-        background: #fff;
-        color: #ff4d00;
-        font-size: 0.8rem;
-        font-weight: 900;
-        padding: 2px 8px;
-        border-radius: 50px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    }
-
-    .food-grid {
-        display: grid !important;
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 10px !important;
-        overflow: visible !important;
-        padding: 5px !important;
-    }
-
-    .food-card {
-        flex: none !important;
-        width: 100% !important;
-    }
-
-    .food-actions {
-        height: 48px !important;
-    }
-
-    .food-actions button {
-        width: 48px !important;
-    }
+.staff-nav-toggle {
+    display: none;
 }
 
 @keyframes cartPulse {

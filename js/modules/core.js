@@ -4,7 +4,7 @@
  */
 const app = {
     // --- APP CONFIG ---
-    version: '4.8.7', // v4.8.7: Optimización UI Móvil (Glassmorphism & Barra POS Fija).
+    version: '4.8.8', // v4.8.8: UX Premium para Staff POS en móvil (Drawer, Grid 1-Col, Touch targets).
 
     // Se cargan desde js/modules/config.js (ignorado en git)
     apiUrl: (typeof SUIT_CONFIG !== 'undefined') ? SUIT_CONFIG.apiUrl : '',

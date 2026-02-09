@@ -9,7 +9,7 @@
     <meta name="keywords"
         content="Suit.Org, Suit.Bite, pedidos online monterrey, sistema para restaurantes, saas para pymes, tacos a domicilio méxico, software de ventas online">
     <title>Suit.Org | Suit.Bite - Ecosistema Digital y Pedidos Online</title>
-    <link rel="stylesheet" href="style.css?v=4.8.7">
+    <link rel="stylesheet" href="style.css?v=4.8.8">
 
 
     <!-- Font Awesome for Icons -->
@@ -371,7 +371,9 @@
         <section id="view-staff-pos" class="view-section hidden">
             <div class="pos-layout">
                 <!-- Left Side: Category Navigator -->
+                <div class="pos-nav-overlay" onclick="app.pos.toggleStaffNav(false)"></div>
                 <div class="pos-nav" id="staff-pos-side-nav-container">
+                    <button class="close-nav-btn" onclick="app.pos.toggleStaffNav(false)">&times;</button>
                     <!-- Discrete External Orders Alert -->
                     <!-- Discrete External Orders Alert (Split Layout v4.6.0 - 3 Buttons) -->
                     <!-- Discrete External Orders Alert (Split Layout v4.5.2) -->
@@ -422,6 +424,10 @@
                 <!-- Middle: Product Grid -->
                 <div class="pos-main">
                     <div class="section-header">
+                        <button id="btn-toggle-staff-nav" class="staff-nav-toggle"
+                            onclick="app.pos.toggleStaffNav(true)">
+                            <i class="fas fa-bars"></i>
+                        </button>
                         <h2><i class="fas fa-cash-register"></i> Catálogo de Venta</h2>
                     </div>
                     <div id="staff-pos-grid" class="food-grid">
@@ -1374,17 +1380,17 @@
             </div>
         </div>
     </div>
-    <script src="js/modules/config.js?v=4.8.7"></script>
-    <script src="js/modules/core.js?v=4.8.7"></script>
-    <script src="js/modules/auth.js?v=4.8.7"></script>
-    <script src="js/modules/public.js?v=4.8.7"></script>
-    <script src="js/modules/events.js?v=4.8.7"></script>
-    <script src="js/modules/ui.js?v=4.8.7"></script>
-    <script src="js/modules/agents.js?v=4.8.7"></script>
-    <script src="js/modules/admin.js?v=4.8.7"></script>
-    <script src="js/modules/router.js?v=4.8.7"></script>
-    <script src="js/modules/pos.js?v=4.8.7"></script>
-    <script src="app.js?v=4.8.7"></script>
+    <script src="js/modules/config.js?v=4.8.8"></script>
+    <script src="js/modules/core.js?v=4.8.8"></script>
+    <script src="js/modules/auth.js?v=4.8.8"></script>
+    <script src="js/modules/public.js?v=4.8.8"></script>
+    <script src="js/modules/events.js?v=4.8.8"></script>
+    <script src="js/modules/ui.js?v=4.8.8"></script>
+    <script src="js/modules/agents.js?v=4.8.8"></script>
+    <script src="js/modules/admin.js?v=4.8.8"></script>
+    <script src="js/modules/router.js?v=4.8.8"></script>
+    <script src="js/modules/pos.js?v=4.8.8"></script>
+    <script src="app.js?v=4.8.8"></script>
     <!-- MODAL: KNOWLEDGE UPLOAD (Manual) -->
     <div id="knowledge-modal" class="modal-overlay hidden">
         <div class="modal-content minimalist-form" style="max-width: 500px;">
