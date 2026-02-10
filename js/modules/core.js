@@ -4,7 +4,7 @@
  */
 const app = {
     // --- APP CONFIG ---
-    version: '4.8.9', // v4.8.9: UX Refinement (Menu width reduced, Express Grid fixed, Auto-close menu).
+    version: '4.9.0', // v4.9.0: Visual Refinement (Colorful social icons and footer links).
 
     // Se cargan desde js/modules/config.js (ignorado en git)
     apiUrl: (typeof SUIT_CONFIG !== 'undefined') ? SUIT_CONFIG.apiUrl : '',

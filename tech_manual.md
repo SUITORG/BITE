@@ -1,9 +1,9 @@
 
 # Manual Técnico y Operativo - SuitOrg
 > **Identidad Principal:** SuitOrg (Powered by EVASOL Engine)
-> **Última Versión Estable**: v4.8.8 (STAFF-PREMIUM)
-> **Estado del Sistema**: Operativo con UX Premium para Staff POS.
-> **Total de Líneas Consolidadas**: ~9,976 (Auditado 2026-02-09).
+> **Última Versión Estable**: v4.9.0 (VISUAL-COLORFUL)
+> **Estado del Sistema**: Operativo con Redes Sociales y Footer a color.
+> **Total de Líneas Consolidadas**: ~9,980 (Auditado 2026-02-10).
 
 ## 0. Resumen Ejecutivo (TL;DR) - Para gente con prisa ⚡
 1.  **¿Qué es?** Un potente "Food Hub" multi-inquilino especializado en el sector alimenticio (Restaurantes, Snacks, Comida Rápida).
@@ -165,7 +165,17 @@ A partir de la versión 4.7.0, el ecosistema de desarrollo se ha optimizado medi
 
 ---
 
-- **v4.8.8 (2026-02-09):** **"Premium Mobile UX for Staff POS"**.
+- **v4.9.0** (2026-02-10): **"Visual Color Refinement"**.
+    - **UI:** Iconos de Redes Sociales con colores oficiales permanentes.
+    - **UI:** Enlaces del footer destacados con color de acento y hover dinámico.
+    - **Sync:** Actualización masiva de cache-busting a v4.9.0.
+
+- **v4.8.9** (2026-02-09): **"UX Refinement & Mobile Fixes"**.
+    - **UI:** Menú lateral reducido al 65% de ancho para mejor contexto.
+    - **UX:** Auto-cierre de menú al seleccionar cualquier opción.
+    - **UX:** Forzado de Grid Vertical (1-Col) en Express y Staff POS para móviles.
+
+- **v4.8.8** (2026-02-09): **"Premium Mobile UX for Staff POS"**.
     - **UI:** Implementación de Drawer lateral para categorías y grid de 1 columna para productos en móvil.
     - **UX:** Cierre automático de menú al seleccionar y targets táctiles de 48px para operaciones sin error.
     - **Sync:** Actualización masiva de cache-busting a v4.8.8.

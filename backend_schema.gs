@@ -1,17 +1,17 @@
-/* SuitOrg Backend Engine - v4.8.9
+/* SuitOrg Backend Engine - v4.9.0
  * ---------------------------------------------------------
- * Sincronización: 2026-02-09 06:45 PM (v4.8.9 UI Refinement)
+ * Sincronización: 2026-02-10 10:10 AM (v4.9.0 Visual Update)
  * 
- * Changelog v4.8.9:
- * - UI: Menú lateral más compacto (ancho reducido).
- * - UX: Grid Express vertical (1-Col) y auto-cierre de menú.
+ * Changelog v4.9.0:
+ * - UI: Iconos de Redes Sociales con colores oficiales permanentes.
+ * - UI: Enlaces del footer con colores destacados y hover dinámico.
  * 
- * AUDIT: ~9976 Total Lines (v4.8.9).
+ * AUDIT: ~9980 Total Lines (v4.9.0).
  * ---------------------------------------------------------
  */
 
 const CONFIG = {
-  VERSION: "4.8.9",
+  VERSION: "4.9.0",
   DB_ID: "1uyy2hzj8HWWQFnm6xy-XCwvvGh3odjV4fRlDh5SBxu8", 
   GLOBAL_TABLES: ["Config_Empresas", "Config_Roles", "Usuarios", "Config_SEO", "Prompts_IA", "Cuotas_Pagos"], 
   PRIVATE_TABLES: ["Leads", "Proyectos", "Proyectos_Etapas", "Proyectos_Pagos", "Proyectos_Bitacora", "Catalogo", "Logs", "Pagos", "Empresa_Documentos"],
