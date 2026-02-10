@@ -398,35 +398,42 @@ app.events = {
         const overlay = document.getElementById('mobile-menu-overlay');
         const navLists = document.querySelectorAll('.nav-list');
 
-        const toggleMenu = (forceClose = false) => {
-            const isActive = forceClose ? false : !navLists[0].classList.contains('active');
+        app.ui.toggleMenu = (forceClose = false) => {
+            const listToTest = document.querySelector('.nav-list');
+            if (!listToTest) return;
+
+            const isClosing = forceClose || listToTest.classList.contains('active');
 
             navLists.forEach(list => {
-                if (forceClose) list.classList.remove('active');
-                else list.classList.toggle('active');
+                if (isClosing) list.classList.remove('active');
+                else list.classList.add('active');
             });
+
             if (overlay) {
-                if (forceClose) overlay.classList.add('hidden');
-                else overlay.classList.toggle('hidden');
+                if (isClosing) overlay.classList.add('hidden');
+                else overlay.classList.remove('hidden');
             }
 
-            // Bloqueo de Scroll (UX Premium)
-            if (isActive) document.body.classList.add('menu-open');
+            if (!isClosing) document.body.classList.add('menu-open');
             else document.body.classList.remove('menu-open');
         };
 
         if (toggle) {
-            toggle.onclick = () => toggleMenu();
+            toggle.onclick = (e) => {
+                e.stopPropagation();
+                app.ui.toggleMenu();
+            };
         }
 
         if (overlay) {
-            overlay.onclick = () => toggleMenu(true);
+            overlay.onclick = () => app.ui.toggleMenu(true);
         }
 
         // Close on link click
         document.addEventListener('click', (e) => {
-            if (e.target.closest('.nav-list a')) {
-                toggleMenu(true);
+            if (e.target.closest('.nav-list a') || e.target.closest('.mobile-menu-overlay')) {
+                // Pequeño delay para permitir que el clic se procese (login, scroll, etc)
+                setTimeout(() => app.ui.toggleMenu(true), 150);
             }
         });
     },

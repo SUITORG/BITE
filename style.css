@@ -739,8 +739,8 @@ body {
         top: 0;
         right: -105%;
         /* Desplazado para ocultar sombra inicial */
-        width: 75%;
-        max-width: 320px;
+        width: 65%;
+        max-width: 280px;
         height: 100vh;
         background: rgba(255, 255, 255, 0.95) !important;
         backdrop-filter: blur(10px);
@@ -768,7 +768,7 @@ body {
     .nav-list a {
         color: #2d3748 !important;
         font-weight: 600 !important;
-        font-size: 1.15rem !important;
+        font-size: 1.05rem !important;
         padding: 16px 12px;
         width: 100%;
         text-align: left;
@@ -805,8 +805,8 @@ body {
 
 @media (max-width: 600px) {
     .nav-list {
-        width: 88%;
-        padding: 100px 25px 40px 25px;
+        width: 70%;
+        padding: 90px 20px 40px 20px;
     }
 }
 
@@ -2844,11 +2844,13 @@ body.menu-open {
         font-weight: 700 !important;
     }
 
-    /* Product Grid: 1 Column */
-    #view-staff-pos .food-grid {
+    /* Product Grid: 1 Column for BOTH Staff and Express */
+    .food-grid {
+        display: grid !important;
         grid-template-columns: 1fr !important;
+        overflow-x: visible !important;
+        gap: 12px !important;
         padding: 10px !important;
-        gap: 15px !important;
     }
 
     .food-card {
@@ -2856,7 +2858,9 @@ body.menu-open {
         flex-direction: row !important;
         align-items: center;
         height: auto !important;
-        padding: 10px !important;
+        width: 100% !important;
+        flex: none !important;
+        padding: 12px !important;
         background: #fff;
         border-radius: 16px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);

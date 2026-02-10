@@ -4,7 +4,7 @@
  */
 const app = {
     // --- APP CONFIG ---
-    version: '4.8.8', // v4.8.8: UX Premium para Staff POS en móvil (Drawer, Grid 1-Col, Touch targets).
+    version: '4.8.9', // v4.8.9: UX Refinement (Menu width reduced, Express Grid fixed, Auto-close menu).
 
     // Se cargan desde js/modules/config.js (ignorado en git)
     apiUrl: (typeof SUIT_CONFIG !== 'undefined') ? SUIT_CONFIG.apiUrl : '',
