@@ -1,21 +1,21 @@
-/* SuitOrg Backend Engine - v4.8.7
+/* SuitOrg Backend Engine - v4.8.8
  * ---------------------------------------------------------
- * Sincronización: 2026-02-08 11:45 AM (v4.8.7 UI Sync)
+ * Sincronización: 2026-02-09 06:15 PM (v4.8.8 UI Sync)
  * 
- * Changelog v4.8.7:
- * - UI: Optimización móvil (Glassmorphism & Fixed Bottom Bar).
- * - UX: Accesibilidad táctil aumentada (min 44px targets).
+ * Changelog v4.8.8:
+ * - UI: UX Premium para Staff POS en móvil (Drawer lateral).
+ * - UX: Grid de 1 columna y targets táctiles de 48px.
  * 
- * AUDIT: ~8640 Total Lines (v4.8.7).
+ * AUDIT: ~9976 Total Lines (v4.8.8).
  * ---------------------------------------------------------
  */
 
 const CONFIG = {
-  VERSION: "4.8.7",
+  VERSION: "4.8.8",
   DB_ID: "1uyy2hzj8HWWQFnm6xy-XCwvvGh3odjV4fRlDh5SBxu8", 
   GLOBAL_TABLES: ["Config_Empresas", "Config_Roles", "Usuarios", "Config_SEO", "Prompts_IA", "Cuotas_Pagos"], 
   PRIVATE_TABLES: ["Leads", "Proyectos", "Proyectos_Etapas", "Proyectos_Pagos", "Proyectos_Bitacora", "Catalogo", "Logs", "Pagos", "Empresa_Documentos"],
-  AUDIT: { total: 8941, status: "STABLE_SYNC" }
+  AUDIT: { total: 9976, status: "STABLE_SYNC" }
 };
 
 /**

@@ -1,9 +1,9 @@
 
 # Manual Técnico y Operativo - SuitOrg
 > **Identidad Principal:** SuitOrg (Powered by EVASOL Engine)
-> **Última Versión Estable**: v4.8.7 (UI-SYNC)
-> **Estado del Sistema**: Operativo con Optimización Móvil Avanzada.
-> **Total de Líneas Consolidadas**: ~8,640 (Auditado 2026-02-08).
+> **Última Versión Estable**: v4.8.8 (STAFF-PREMIUM)
+> **Estado del Sistema**: Operativo con UX Premium para Staff POS.
+> **Total de Líneas Consolidadas**: ~9,976 (Auditado 2026-02-09).
 
 ## 0. Resumen Ejecutivo (TL;DR) - Para gente con prisa ⚡
 1.  **¿Qué es?** Un potente "Food Hub" multi-inquilino especializado en el sector alimenticio (Restaurantes, Snacks, Comida Rápida).
@@ -165,6 +165,11 @@ A partir de la versión 4.7.0, el ecosistema de desarrollo se ha optimizado medi
 
 ---
 
+- **v4.8.8 (2026-02-09):** **"Premium Mobile UX for Staff POS"**.
+    - **UI:** Implementación de Drawer lateral para categorías y grid de 1 columna para productos en móvil.
+    - **UX:** Cierre automático de menú al seleccionar y targets táctiles de 48px para operaciones sin error.
+    - **Sync:** Actualización masiva de cache-busting a v4.8.8.
+
 - **v4.8.6 (2026-02-06):** **"Accounting Integrity Restoration"**.
     - **BACKEND:** Restauración del protocolo de Doble Escritura en tablas `Pagos` y `Proyectos_Pagos`.
     - **GUARDRAIL:** Implementación del Estándar Inmutable #18 para prevenir sesgos de visibilidad histórica.
@@ -268,12 +273,12 @@ A partir de la versión 4.7.0, el ecosistema de desarrollo se ha optimizado medi
 
 | Archivo / Carpeta | Líneas |
 | :--- | :--- |
-| index.html | 1600 | Estructura base PWA / Modales |
-| style.css | 3090 | UI/UX Premium & Micro-animaciones |
-| js/modules/ | 3792 | Lógica de Negocio (Core, UI, POS, AI) |
-| app.js | 71 | Router y Orquestación Inicial |
-| backend_schema.gs | 390 | Engine Server-side (GAS) |
-| **TOTAL** | **8621** | Líneas de producción |
+| index.html | 1625 | Estructura base PWA / Modales |
+| style.css | 3728 | UI/UX Premium & Micro-animaciones |
+| js/modules/ | 4162 | Lógica de Negocio (Core, UI, POS, AI) |
+| app.js | 73 | Router y Orquestación Inicial |
+| backend_schema.gs | 388 | Engine Server-side (GAS) |
+| **TOTAL** | **9976** | Líneas de producción |
 
 ---
 *Manual generado automáticamente por Antigravity AI.*
