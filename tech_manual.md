@@ -1,9 +1,9 @@
 
 # Manual Técnico y Operativo - SuitOrg
 > **Identidad Principal:** SuitOrg (Powered by EVASOL Engine)
-> **Última Versión Estable**: v4.9.0 (VISUAL-COLORFUL)
-> **Estado del Sistema**: Operativo con Redes Sociales y Footer a color.
-> **Total de Líneas Consolidadas**: ~9,980 (Auditado 2026-02-10).
+> **Última Versión Estable**: v4.9.1 (SEO-INFRASTRUCTURE)
+> **Estado del Sistema**: Operativo con Sitemap y Deep Linking.
+> **Total de Líneas Consolidadas**: ~9,985 (Auditado 2026-02-10).
 
 ## 0. Resumen Ejecutivo (TL;DR) - Para gente con prisa ⚡
 1.  **¿Qué es?** Un potente "Food Hub" multi-inquilino especializado en el sector alimenticio (Restaurantes, Snacks, Comida Rápida).
@@ -164,6 +164,12 @@ A partir de la versión 4.7.0, el ecosistema de desarrollo se ha optimizado medi
     *   `DATE_STR=$(date +%d%m%y); zip -r "SUIT_${DATE_STR}_WSL.zip" . -x "*/node_modules/*" "*/.git/*" "*.zip" "*/.agent/*"`
 
 ---
+
+- **v4.9.1** (2026-02-10): **"SEO Infrastructure Update"**.
+    - **SEO:** Generación de `sitemap.xml` multi-inquilino.
+    - **SEO:** Configuración de `robots.txt`.
+    - **UX:** Implementación de Deep Linking vía parámetro `id` en la URL.
+    - **Sync:** Actualización masiva de cache-busting a v4.9.1.
 
 - **v4.9.0** (2026-02-10): **"Visual Color Refinement"**.
     - **UI:** Iconos de Redes Sociales con colores oficiales permanentes.

@@ -1,17 +1,18 @@
-/* SuitOrg Backend Engine - v4.9.0
+/* SuitOrg Backend Engine - v4.9.1
  * ---------------------------------------------------------
- * Sincronización: 2026-02-10 10:10 AM (v4.9.0 Visual Update)
+ * Sincronización: 2026-02-10 10:15 AM (v4.9.1 SEO Update)
  * 
- * Changelog v4.9.0:
- * - UI: Iconos de Redes Sociales con colores oficiales permanentes.
- * - UI: Enlaces del footer con colores destacados y hover dinámico.
+ * Changelog v4.9.1:
+ * - SEO: Sitemap.xml multi-inquilino.
+ * - SEO: Robots.txt configurado.
+ * - UX: Deep Linking habilitado vía parámetro 'id'.
  * 
- * AUDIT: ~9980 Total Lines (v4.9.0).
+ * AUDIT: ~9985 Total Lines (v4.9.1).
  * ---------------------------------------------------------
  */
 
 const CONFIG = {
-  VERSION: "4.9.0",
+  VERSION: "4.9.1",
   DB_ID: "1uyy2hzj8HWWQFnm6xy-XCwvvGh3odjV4fRlDh5SBxu8", 
   GLOBAL_TABLES: ["Config_Empresas", "Config_Roles", "Usuarios", "Config_SEO", "Prompts_IA", "Cuotas_Pagos"], 
   PRIVATE_TABLES: ["Leads", "Proyectos", "Proyectos_Etapas", "Proyectos_Pagos", "Proyectos_Bitacora", "Catalogo", "Logs", "Pagos", "Empresa_Documentos"],

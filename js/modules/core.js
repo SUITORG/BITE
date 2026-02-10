@@ -4,7 +4,7 @@
  */
 const app = {
     // --- APP CONFIG ---
-    version: '4.9.0', // v4.9.0: Visual Refinement (Colorful social icons and footer links).
+    version: '4.9.1', // v4.9.1: SEO Infrastructure (Sitemap, Robots.txt, Deep Linking).
 
     // Se cargan desde js/modules/config.js (ignorado en git)
     apiUrl: (typeof SUIT_CONFIG !== 'undefined') ? SUIT_CONFIG.apiUrl : '',
@@ -125,10 +125,10 @@ const app = {
                 const orbit = document.getElementById('view-orbit');
                 if (orbit) orbit.classList.remove('hidden');
             }
-            // 1. Manejar parámetros de URL
+            // 1. Manejar parámetros de URL (v4.9.1: Deep Linking support for Sitemap)
             const urlParams = new URLSearchParams(window.location.search);
-            const coParam = urlParams.get('co');
-            if (coParam) app.state.companyId = coParam;
+            const coParam = urlParams.get('co') || urlParams.get('id');
+            if (coParam) app.state.companyId = coParam.trim().toUpperCase();
             // 2. Vincular eventos y monitor
             if (app.ui && app.ui.bindEvents) app.ui.bindEvents();
             if (app.monitor && app.monitor.start) app.monitor.start();
