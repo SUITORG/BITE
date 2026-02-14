@@ -117,11 +117,7 @@ app.admin = {
         const type = document.getElementById('report-type').value;
         const dateInput = document.getElementById('report-date');
         if (dateInput && !dateInput.value) {
-            const now = new Date();
-            const y = now.getFullYear();
-            const m = String(now.getMonth() + 1).padStart(2, '0');
-            const d = String(now.getDate()).padStart(2, '0');
-            dateInput.value = `${y}-${m}-${d}`;
+            dateInput.value = app.utils.getDate();
         }
         app.admin.renderReport();
     },
@@ -135,11 +131,7 @@ app.admin = {
 
         // Auto-fix date if empty (v4.8.2 - Real Local Date)
         if (!dateInput.value) {
-            const now = new Date();
-            const y = now.getFullYear();
-            const m = String(now.getMonth() + 1).padStart(2, '0');
-            const d = String(now.getDate()).padStart(2, '0');
-            dateInput.value = `${y}-${m}-${d}`;
+            dateInput.value = app.utils.getDate();
         }
 
         container.innerHTML = `<div style="text-align:center; padding:40px;"><i class="fas fa-spinner fa-spin fa-2x"></i><p style="margin-top:10px;">Procesando datos...</p></div>`;
@@ -614,7 +606,7 @@ app.admin = {
                         <button class="btn-small" onclick="app.admin.addProjectManualLog('${pId}')"><i class="fas fa-comment"></i> Add Nota</button>
                     </div>
                     <div style="max-height: 250px; overflow-y: auto;">
-                        ${logs.map(l => `<div style="padding:5px; border-bottom:1px solid #eee; font-size:0.8rem;"><b>${new Date(l.fecha_hora).toLocaleTimeString()}:</b> [${l.tipo}] ${l.detalle}</div>`).join('') || 'Sin registros'}
+                        ${logs.map(l => `<div style="padding:5px; border-bottom:1px solid #eee; font-size:0.8rem;"><b>${(l.fecha_hora || "").replace('T', ' ')}:</b> [${l.tipo}] ${l.detalle}</div>`).join('') || 'Sin registros'}
                     </div>
                 </div>
         `;

@@ -359,6 +359,12 @@ app.events = {
         btn.disabled = true;
 
         const toTitleCase = (str) => str.toLowerCase().replace(/(?:^|\s)\S/g, a => a.toUpperCase());
+        const elRfc = document.getElementById('lead-rfc');
+        const elBiz = document.getElementById('lead-business');
+        const elBillDir = document.getElementById('lead-billing-address');
+
+        const hasBilling = elRfc && elRfc.value.trim() !== "";
+
         const newLead = {
             id_lead: "lead-" + Date.now(),
             id_empresa: app.state.companyId,
@@ -366,9 +372,14 @@ app.events = {
             telefono: document.getElementById('lead-phone').value,
             email: document.getElementById('lead-email').value,
             direccion: document.getElementById('lead-address').value,
+            // Extra Billing Data
+            rfc: elRfc ? elRfc.value : '',
+            negocio: elBiz ? elBiz.value : '',
+            direccion_comercial: elBillDir ? elBillDir.value : '',
             origen: "Web",
             estado: "NUEVO",
-            fecha_creacion: new Date().toISOString()
+            nivel_crm: hasBilling ? 2 : 1, // 2: Datos completos, 1: Datos básicos
+            fecha_creacion: (app.utils && app.utils.getTimestamp) ? app.utils.getTimestamp() : new Date().toISOString()
         };
 
         try {

@@ -1,9 +1,9 @@
 
 # Manual Técnico y Operativo - SuitOrg
 > **Identidad Principal:** SuitOrg (Powered by EVASOL Engine)
-> **Última Versión Estable**: v4.9.1 (SEO-INFRASTRUCTURE)
-> **Estado del Sistema**: Operativo con Sitemap y Deep Linking.
-> **Total de Líneas Consolidadas**: ~9,985 (Auditado 2026-02-10).
+> **Última Versión Estable**: v4.9.4 (MULTI-SYNC-FIX)
+> **Estado del Sistema**: Operativo con Autodepuración Quirúrgica.
+> **Total de Líneas Consolidadas**: ~9,123 (Auditado 2026-02-10).
 
 ## 0. Resumen Ejecutivo (TL;DR) - Para gente con prisa ⚡
 1.  **¿Qué es?** Un potente "Food Hub" multi-inquilino especializado en el sector alimenticio (Restaurantes, Snacks, Comida Rápida).
@@ -165,6 +165,11 @@ A partir de la versión 4.7.0, el ecosistema de desarrollo se ha optimizado medi
 
 ---
 
+- **v4.9.2** (2026-02-10): **"Health System & Auto-Purge"**.
+    - **Backend:** Implementación del motor `runAutoPurge` en Google Apps Script.
+    - **Logic:** Depuración quirúrgica de la tabla `Logs` según los días configurados por cada empresa.
+    - **Maintainability:** Reducción automática de la huella de datos en Google Sheets.
+
 - **v4.9.1** (2026-02-10): **"SEO Infrastructure Update"**.
     - **SEO:** Generación de `sitemap.xml` multi-inquilino.
     - **SEO:** Configuración de `robots.txt`.
@@ -289,12 +294,12 @@ A partir de la versión 4.7.0, el ecosistema de desarrollo se ha optimizado medi
 
 | Archivo / Carpeta | Líneas |
 | :--- | :--- |
-| index.html | 1625 | Estructura base PWA / Modales |
-| style.css | 3728 | UI/UX Premium & Micro-animaciones |
-| js/modules/ | 4162 | Lógica de Negocio (Core, UI, POS, AI) |
-| app.js | 73 | Router y Orquestación Inicial |
-| backend_schema.gs | 388 | Engine Server-side (GAS) |
-| **TOTAL** | **9976** | Líneas de producción |
+| index.html | 1608 | Estructura base PWA / Modales |
+| style.css | 3236 | UI/UX Premium & Micro-animaciones |
+| js/modules/ | 3810 | Lógica de Negocio (Core, UI, POS, AI) |
+| app.js | 71 | Router y Orquestación Inicial |
+| backend_schema.gs | 398 | Engine Server-side (GAS) |
+| **TOTAL** | **9123** | Líneas de producción |
 
 ---
 *Manual generado automáticamente por Antigravity AI.*

@@ -11,6 +11,8 @@ Este archivo es tu **Centro de Comando**. Úsalo para controlar el avance del pr
 Este documento rastrea el cumplimiento de las reglas fundamentales y la visión del proyecto.
 
 ## 🏗️ Arquitectura de Software (v4.9.1 SEO Ready)
+- [x] **v4.9.3: AI Telemetry & Token Tracking**: Detailed logging of AI consumption per tenant.
+- [x] **v4.9.2: Health System & Auto-Purge**: Multi-tenant log cleaning engine based on 'autodepuracion' days.
 - [x] **v4.9.1: SEO Infrastructure**: Sitemap.xml, Robots.txt and Deep Linking support.
 - [x] **v4.9.0: Visual Color Refinement**: Official colors for social media icons and highlighted footer links.
 - [x] **v4.8.9: UX Refinement & Mobile Fixes**: Menu width reduced (65%), auto-close menu, and vertical grid for Express/Staff on mobile.
@@ -206,3 +208,6 @@ Este documento rastrea el cumplimiento de las reglas fundamentales y la visión 
 ## 14. Auditoría de Consumo y Optimización
 - [ ] **Sugerencia A (Low Code):** Manda estos logs a una hoja de cálculo separada ("Logs_Audit_2026") que se recicle cada mes.
 - [ ] **Sugerencia B (Infraestructura QA):** Implementar un script de validación (Node.js) que verifique la integridad de los selectores HTML críticos (Totales, Botones, Inputs) contra las reglas definidas en los workflows para detectar discrepancias antes del despliegue.
+- [x] **v5.2.1: Contacto B2B Dinámico:** Inyección de campos de facturación según flags de empresa (RFC, Negocio).
+- [x] **v5.2.2: Inteligencia CRM y Robustez:** Niveles CRM automáticos (1 y 2) y detección mejorada de facturación.
+- [ ] **v5.2.3: Semáforo de POS:** Alertas visuales para pedidos con más de 15 minutos en el mismo estado.

@@ -1,18 +1,17 @@
-/* SuitOrg Backend Engine - v4.9.1
+/* SuitOrg Backend Engine - v4.9.3
  * ---------------------------------------------------------
- * Sincronización: 2026-02-10 10:15 AM (v4.9.1 SEO Update)
+ * Sincronización: 2026-02-10 01:45 PM (v4.9.3 AI Telemetry)
  * 
- * Changelog v4.9.1:
- * - SEO: Sitemap.xml multi-inquilino.
- * - SEO: Robots.txt configurado.
- * - UX: Deep Linking habilitado vía parámetro 'id'.
+ * Changelog v4.9.3:
+ * - TELEMETRY: Registro de consumo de tokens de IA en Logs.
+ * - HEALTH: Motor de autodepuración multi-inquilino (v4.9.2).
  * 
- * AUDIT: ~9985 Total Lines (v4.9.1).
+ * AUDIT: ~9150 Total Lines (v4.9.3).
  * ---------------------------------------------------------
  */
 
 const CONFIG = {
-  VERSION: "4.9.1",
+  VERSION: "4.9.3",
   DB_ID: "1uyy2hzj8HWWQFnm6xy-XCwvvGh3odjV4fRlDh5SBxu8", 
   GLOBAL_TABLES: ["Config_Empresas", "Config_Roles", "Usuarios", "Config_SEO", "Prompts_IA", "Cuotas_Pagos"], 
   PRIVATE_TABLES: ["Leads", "Proyectos", "Proyectos_Etapas", "Proyectos_Pagos", "Proyectos_Bitacora", "Catalogo", "Logs", "Pagos", "Empresa_Documentos"],
@@ -130,6 +129,10 @@ function handlePostAction(data, output) {
         appendRowMapped(ss, "Catalogo", data.product);
         output.success = true; break;
 
+      case "runMaintenance":
+        runAutoPurge(ss);
+        output.success = true; break;
+
       case "saveProduct":
       case "updateProduct":
         updateRowMapped(ss, "Catalogo", "id_producto", data.product.id_producto, data.product);
@@ -208,8 +211,23 @@ function runGeminiInference(data, output) {
     });
     const result = JSON.parse(res.getContentText());
     if (result.candidates && result.candidates[0]) {
-      output.answer = result.candidates[0].content.parts[0].text;
+      var responseText = (result.candidates && result.candidates[0].content.parts[0].text) || "Error IA: Respuesta vacía.";
+      output.answer = responseText;
       output.success = true;
+
+      // 📊 TELEMETRÍA DE TOKENS (v4.9.3)
+      try {
+        var usage = result.usageMetadata || {};
+        var detail = "Model: " + model + " | Tokens: " + (usage.totalTokenCount || "?") + " (In: " + (usage.promptTokenCount || "?") + " / Out: " + (usage.candidatesTokenCount || "?") + ")";
+        appendRowMapped(ss, "Logs", {
+          fecha: new Date(),
+          id_empresa: String(data.id_empresa || "SYSTEM").toUpperCase(),
+          usuario: data.usuario || "Visitante",
+          evento: "AI_TOKEN_USAGE",
+          detalle: detail
+        });
+      } catch(e) { console.error("Telemetry fail: " + e.message); }
+
     } else {
       output.error = "AI_RESP_EMPTY";
       output.detail = res.getContentText();
@@ -263,6 +281,51 @@ function initializeDatabase(ss, output) {
   }
   
   output.info = "Database structure verified and seeds restored.";
+  
+  // Ejecutar Autodepuración Quirúrgica (v4.9.2)
+  try { runAutoPurge(ss); } catch(e) { console.error("Purge fail: " + e.message); }
+}
+
+/**
+ * 🧹 MOTOR DE AUTODEPURACIÓN MULTI-INQUILINO (v4.9.2)
+ */
+function runAutoPurge(ss) {
+  var logSheet = ss.getSheetByName("Logs");
+  if (!logSheet) return;
+  
+  var empresas = getSheetData(ss, "Config_Empresas");
+  var logData = logSheet.getDataRange().getValues();
+  if (logData.length < 2) return;
+  
+  var headers = logData[0].map(h => String(h).toLowerCase().trim().replace(/\s+/g, '_'));
+  var coIdx = headers.indexOf("id_empresa");
+  var dateIdx = headers.indexOf("fecha");
+  if (coIdx === -1 || dateIdx === -1) return;
+
+  var now = new Date();
+  var rowsToDelete = [];
+
+  // 1. Mapear reglas de depuración por empresa
+  var rules = {};
+  empresas.forEach(function(e) {
+    var days = parseInt(e.autodepuracion);
+    if (!isNaN(days) && days > 0) {
+      rules[String(e.id_empresa).toUpperCase()] = days;
+    }
+  });
+
+  // 2. Identificar filas caducas (Procesar de abajo hacia arriba para mantener índices)
+  for (var i = logData.length - 1; i >= 1; i--) {
+    var rCo = String(logData[i][coIdx]).toUpperCase().trim();
+    var rDate = new Date(logData[i][dateIdx]);
+    
+    if (rules[rCo] && !isNaN(rDate.getTime())) {
+      var diffDays = (now - rDate) / (1000 * 60 * 60 * 24);
+      if (diffDays > rules[rCo]) {
+        logSheet.deleteRow(i + 1);
+      }
+    }
+  }
 }
 
 function ensureSeed(ss, sheetName, idCol, idVal, dataObj) {

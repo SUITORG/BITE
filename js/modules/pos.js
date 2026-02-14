@@ -35,6 +35,7 @@ app.pos = {
     clearCart: () => {
         app.state.cart = [];
         app.state.deliveryMethod = 'DOMICILIO';
+        app.state.currentLeadId = null; // Reset CRM match
         // Reset Payment & Field Defaults
         app.ui.setPosPaymentMethod('Efectivo');
         const pFolio = document.getElementById('pos-pay-folio');
@@ -234,8 +235,14 @@ app.pos = {
             nombre: name,
             telefono: phone,
             direccion: address,
-            origen: isStaffSale ? 'APP-POS-COUNTER' : 'APP-ORDER'
+            origen: isStaffSale ? 'APP-POS-COUNTER' : 'APP-ORDER',
+            nivel_crm: (name && name !== "Venta en Mostrador" && address) ? 1 : 0,
+            fecha: app.utils.getDate()
         };
+        // Inyectar ID si el cliente ya existe para evitar duplicado (v5.1.1)
+        if (app.state.currentLeadId) {
+            leadData.id_lead = app.state.currentLeadId;
+        }
         const cartSubtotal = app.state.cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
         const company = app.data.Config_Empresas.find(c => c.id_empresa === app.state.companyId);
         const deliveryFee = isPickup ? 0 : (parseFloat(company?.costo_envio) || 0);
@@ -569,7 +576,7 @@ app.pos = {
         app.pos.handlePayMethodChange();
     },
     updateOrderStatus: async (id, newStatus, skipOtp = false) => {
-        const timestamp = new Date().toLocaleTimeString();
+        const timestamp = app.utils.getTimestamp();
         console.log(`[LOG ${timestamp}] Action: UPDATE_STATUS | ID: ${id} | New: ${newStatus} | SkipOTP: ${skipOtp}`);
 
         // 1. Logs visibles para el usuario (Diagnóstico Solicitado)
@@ -610,7 +617,7 @@ app.pos = {
             localStorage.setItem('suit_status_cache', JSON.stringify(localCache));
             app.state._recentStatusCache = localCache;
 
-            console.log(`[LOG ${timestamp}] Optimistic Update Applied. Rendering POS...`);
+            console.log(`[LOG ${app.utils.getTimestamp()}] Optimistic Update Applied. Rendering POS...`);
 
             // Renderizado Inmediato
             if (window.location.hash === '#pos') {
@@ -713,6 +720,47 @@ app.pos = {
         document.querySelectorAll('.pay-btn').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.value === method);
         });
+    },
+
+    autoLookupCustomer: () => {
+        const phone = document.getElementById('cust-phone').value.trim();
+        const msg = document.getElementById('search-msg');
+        if (msg) msg.style.opacity = phone.length > 5 ? '1' : '0';
+
+        if (phone.length < 10) {
+            app.state.currentLeadId = null;
+            return;
+        }
+
+        // BñÂºsqueda local en Leads (v5.1.0)
+        const lead = (app.data.Leads || []).find(l => {
+            const lPh = (l.telefono || "").toString().replace(/\D/g, "");
+            const sPh = phone.replace(/\D/g, "");
+            return lPh.endsWith(sPh) && sPh.length >= 10;
+        });
+
+        if (lead) {
+            app.state.currentLeadId = lead.id_lead || lead.id || null;
+            const nameIn = document.getElementById('cust-name');
+            const addrIn = document.getElementById('cust-address');
+
+            if (nameIn && !nameIn.value) {
+                nameIn.value = lead.nombre || "";
+                nameIn.style.backgroundColor = 'rgba(0, 230, 118, 0.1)';
+                setTimeout(() => nameIn.style.backgroundColor = '', 2000);
+            }
+            if (addrIn && !addrIn.value && lead.direccion) {
+                addrIn.value = lead.direccion;
+                addrIn.style.backgroundColor = 'rgba(0, 230, 118, 0.1)';
+                setTimeout(() => addrIn.style.backgroundColor = '', 2000);
+            }
+            if (msg) {
+                msg.innerHTML = `✅ ¡Cliente reconocido! (${lead.nombre})`;
+                msg.style.color = '#00e676';
+            }
+        } else {
+            app.state.currentLeadId = null;
+        }
     },
 
     filterPOS: (status) => {

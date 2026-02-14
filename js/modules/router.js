@@ -86,6 +86,7 @@ app.router = {
             }
             app.ui.renderPOS();
         }
+        if (hash === '#contact' && app.ui.renderContact) app.ui.renderContact();
         if (hash === '#reports' && app.ui.handleReportTypeChange) app.ui.handleReportTypeChange();
 
         // Control del botón flotante de WhatsApp

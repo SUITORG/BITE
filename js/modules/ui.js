@@ -63,7 +63,8 @@ app.ui = {
         if (!company) return;
         const bizType = (company?.tipo_negocio || "").toString().toLowerCase();
         const bizId = (company?.id_empresa || "").toString().toUpperCase();
-        const isFood = ['alimentos', 'comida', 'restaurante', 'bite', 'food'].some(k => bizType.includes(k) || bizId.includes(k));
+        const keywords = ['alimentos', 'comida', 'restaurante', 'snack', 'food', 'pfm', 'pmp', 'hmp', 'bite'];
+        const isFood = keywords.some(k => bizType.includes(k) || bizId.includes(k));
         app.state.isFood = isFood;
 
         document.title = `${company.nomempresa} | ${isFood ? 'Suit.Bite' : 'Suit.Org'}`;
@@ -131,6 +132,12 @@ app.ui = {
     renderHome: (c) => app.public.renderHome(c),
     renderGallery: () => app.public.renderGallery(),
     renderFooter: (c) => app.public.renderFooter(c),
+    showAboutUs: () => app.public.showAboutUs(),
+    showPolicies: () => app.public.showPolicies(),
+    showReviews: () => app.public.showReviews(),
+    showLocation: () => app.public.showLocation(),
+    closeInfoModal: (id) => app.public.closeInfoModal(id),
+    renderContact: () => app.public.renderContact(),
 
     // --- AGENTS BRIDGE ---
     openAgentsModal: () => app.agents.openAgentsModal(),

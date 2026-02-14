@@ -18,7 +18,7 @@ app.public = {
                 <div style="text-align: center; margin-bottom: 20px;">
                     <img src="${company.logo_url ? app.utils.fixDriveUrl(company.logo_url) : ''}" style="max-width: 120px; border-radius: 12px; margin-bottom: 10px;">
                     <h2 style="color: var(--primary-color); margin:0;">${company.nomempresa}</h2>
-                    <p style="font-style: italic; color: #666; font-size: 0.9rem;">"${company.eslogan || ''}"</p>
+                    <p style="font-style: italic; color: #666; font-size: 0.9rem;">"${company.slogan || ''}"</p>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 15px; text-align: left;">
                     <div class="about-item">
@@ -168,13 +168,19 @@ app.public = {
     },
 
     // --- RENDERERS ---
-    renderHome: (company) => {
-        // Autodetectar modo comida si no está definido (v4.6.8)
+    renderHome: (companyData) => {
+        const urlId = (app.state.companyId || "").toString().trim().toUpperCase();
+        const company = companyData || app.data.Config_Empresas.find(c => c.id_empresa === urlId);
+
+        if (!company) return console.error("[RENDER_HOME] No company data found for ID:", urlId);
+
+        // Autodetectar modo comida (v5.0.3 Fix: UI restoration)
         const keywords = ['Alimentos', 'Comida', 'Restaurante', 'Snack', 'Food', 'PFM', 'PMP', 'HMP'];
-        const bizType = (company?.tipo_negocio || "").toString();
-        const bizId = (app.state.companyId || "").toString().toUpperCase();
-        const isFood = app.state.isFood || keywords.some(k => bizType.includes(k) || bizId.includes(k));
-        app.state.isFood = isFood; // Persistir para otros módulos
+        const bizType = (company.tipo_negocio || "").toString();
+        const bizId = urlId;
+        const isFood = keywords.some(k => bizType.includes(k) || bizId.includes(k));
+        app.state.isFood = isFood;
+
         const sloganEl = document.getElementById('hero-slogan');
         const subEl = document.getElementById('hero-sub');
         const heroBanner = document.getElementById('hero-banner-main');
@@ -184,8 +190,15 @@ app.public = {
         const foodAreaSpec = document.getElementById('food-app-area');
         const foodTitle = document.getElementById('food-menu-title');
         const foodSubtitle = document.getElementById('food-menu-subtitle');
+        const menuPublic = document.getElementById('menu-public');
 
-        // if (industrialSeo) industrialSeo.classList.add('hidden'); // Removed to allow SEO matrix to show for food businesses
+        // Forzar visibilidad y reset de clases (v5.0.3 Security Fix)
+        if (heroBanner) {
+            heroBanner.classList.remove('hidden');
+            heroBanner.style.display = 'block';
+        }
+
+        const showForm = company.formulario === 'TRUE' || company.formulario === true;
 
         if (isFood) {
             // Prioridad: foto_agente reemplaza al fondo (Hero) si existe, según solicitud del usuario.
@@ -194,12 +207,12 @@ app.public = {
             // Ajustamos el gradiente para asegurar legibilidad del texto sobre cualquier foto
             heroBanner.style.backgroundImage = `linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.85)), url('${app.utils.fixDriveUrl(bgUrl)}')`;
             heroBanner.style.backgroundAttachment = 'scroll';
-            heroBanner.style.backgroundPosition = 'center center'; // Centrado absoluto para todos los dispositivos
-            heroBanner.style.backgroundSize = 'cover'; // Asegura que cubra todo el contenedor sin deformarse
+            heroBanner.style.backgroundPosition = 'center center';
+            heroBanner.style.backgroundSize = 'cover';
             heroBanner.style.backgroundRepeat = 'no-repeat';
             heroBanner.style.display = 'block';
 
-            const sloganText = company.slogan || company.eslogan || "Sabor Premium";
+            const sloganText = company.slogan || "Sabor Premium";
             const subText = company.mensaje1 || company.descripcion || "Excelencia en cada platillo.";
             const extraText = company.mensaje2 || "";
             const extraEl = document.getElementById('hero-extra-msg');
@@ -224,15 +237,6 @@ app.public = {
                 ` : '';
             }
 
-
-
-
-
-
-
-            const menuPublic = document.getElementById('menu-public');
-
-
             if (menuPublic) {
                 menuPublic.innerHTML = `
                     <li><a href="#orbit"><i class="fas fa-planet-ring"></i> Hub</a></li>
@@ -242,19 +246,20 @@ app.public = {
                             <i class="fas fa-utensils"></i> PEDIDO EXPRESS
                         </a>
                     </li>
-                    <li><a href="#contact">Contacto</a></li>
+                    ${showForm ? `<li><a href="#contact">Contacto</a></li>` : ''}
                     <li><a class="nav-login-btn" href="#login"><i class="fas fa-user-lock"></i> Staff</a></li>
                 `;
             }
 
-            if (standardFeatures) standardFeatures.classList.add('hidden');
+            // v5.0.3: No ocultar la landing (standardFeatures) para food businesses si el usuario quiere mantenerla.
+            if (standardFeatures) standardFeatures.classList.remove('hidden');
             app.public.renderFoodMenu();
         } else {
             if (menuPublic) {
                 menuPublic.innerHTML = `
                     <li><a href="#orbit"><i class="fas fa-planet-ring"></i> Hub</a></li>
                     <li><a href="#home">Inicio</a></li>
-                    <li><a href="#contact">Contacto</a></li>
+                    ${showForm ? `<li><a href="#contact">Contacto</a></li>` : ''}
                     <li><a class="nav-login-btn" href="#login"><i class="fas fa-user-lock"></i> Staff</a></li>
                 `;
             }
@@ -265,7 +270,7 @@ app.public = {
             if (heroBanner) heroBanner.classList.remove('reduced');
             const extraEl = document.getElementById('hero-extra-msg');
             if (extraEl) extraEl.classList.add('hidden');
-            if (sloganEl) sloganEl.innerText = company.slogan || company.eslogan || "Soluciones Industriales";
+            if (sloganEl) sloganEl.innerText = company.slogan || "Soluciones Industriales";
             if (subEl) subEl.innerText = company.mensaje1 || company.descripcion || "Eficiencia y Calidad.";
             if (actions) {
                 const showSupport = company.usa_soporte_ia === 'TRUE' || company.usa_soporte_ia === true;
@@ -275,6 +280,18 @@ app.public = {
                 `;
             }
             if (standardFeatures) standardFeatures.classList.remove('hidden');
+        }
+
+        // Asegurar visibilidad de secciones críticas (v5.0.3)
+        if (industrialSeo) {
+            industrialSeo.classList.remove('hidden');
+            industrialSeo.style.display = 'block';
+        }
+
+        // Forzar visibilidad de la sección Home en el router si el hash es correcto
+        const homeSection = document.getElementById('view-home');
+        if (homeSection && window.location.hash === '#home') {
+            homeSection.classList.remove('hidden');
         }
 
         // Hide monitor for non-food
@@ -299,7 +316,6 @@ app.public = {
         container.classList.remove('hidden');
         container.style.display = "block";
 
-        // Omit title and description as requested (Task 5)
         const mainTitle = container.querySelector('h2');
         const mainSub = container.querySelector('p');
         if (mainTitle) mainTitle.style.display = 'none';
@@ -439,12 +455,11 @@ app.public = {
 
         companies.forEach((co) => {
             const isPriority = co.id_empresa === priorityId;
-            const size = isPriority ? 250 : 136; // Reducido ~15% (300->250, 160->136)
+            const size = isPriority ? 250 : 136;
             const radius = size / 2;
 
             const bubbleEl = document.createElement('div');
             bubbleEl.className = `enterprise-bubble ${isPriority ? 'priority' : 'shaded'}`;
-            // Color difuminado (gradient) - No transparente
             const themeColor = co.color_tema || '#00d2ff';
             const gradient = `radial-gradient(circle at 30% 30%, ${themeColor}, #000)`;
 
@@ -464,7 +479,7 @@ app.public = {
             bubbles.push({
                 el: bubbleEl,
                 x: Math.random() * (width - size),
-                y: Math.random() * (height - height * 0.2), // Inicia un poco disperso
+                y: Math.random() * (height - height * 0.2),
                 vx: (Math.random() - 0.5) * 2,
                 vy: (Math.random() - 0.5) * 2,
                 radius: radius,
@@ -480,19 +495,16 @@ app.public = {
                 b1.x += b1.vx;
                 b1.y += b1.vy;
 
-                // Límites de pantalla (Rebote)
                 if (b1.x <= 0) { b1.x = 0; b1.vx *= -1; }
                 if (b1.x + b1.size >= w) { b1.x = w - b1.size; b1.vx *= -1; }
                 if (b1.y <= 0) { b1.y = 0; b1.vy *= -1; }
                 if (b1.y + b1.size >= h) { b1.y = h - b1.size; b1.vy *= -1; }
 
-                // Atracción suave al centro para mantener el efecto "Hub"
                 const targetX = w / 2 - b1.radius;
                 const targetY = h / 2 - b1.radius;
                 b1.vx += (targetX - b1.x) * 0.00003;
                 b1.vy += (targetY - b1.y) * 0.00003;
 
-                // Colisión entre burbujas
                 for (let j = i + 1; j < bubbles.length; j++) {
                     const b2 = bubbles[j];
                     const dx = (b2.x + b2.radius) - (b1.x + b1.radius);
@@ -505,7 +517,6 @@ app.public = {
                         const sin = Math.sin(angle);
                         const cos = Math.cos(angle);
 
-                        // Rebote elástico
                         const vx1 = b1.vx * cos + b1.vy * sin;
                         const vy1 = b1.vy * cos - b1.vx * sin;
                         const vx2 = b2.vx * cos + b2.vy * sin;
@@ -519,7 +530,6 @@ app.public = {
                         b2.vx = vx2Final * cos - vy2 * sin;
                         b2.vy = vy2 * cos + vx2Final * sin;
 
-                        // Separación inmediata para evitar que se peguen
                         const overlap = minDist - distance;
                         b1.x -= cos * overlap / 2;
                         b1.y -= sin * overlap / 2;
@@ -541,7 +551,6 @@ app.public = {
     },
 
     renderFooter: (company) => {
-        // 1. Update Copyright dynamic
         const footerCopy = document.getElementById('footer-copy');
         if (footerCopy) {
             footerCopy.innerHTML = `&copy; ${new Date().getFullYear()} ${company.nomempresa}. Todos los derechos reservados. | ${company.id_empresa}`;
@@ -550,30 +559,28 @@ app.public = {
         const container = document.getElementById('footer-links-container');
         if (!container) return;
 
-        // 2. Social Media Logic (Official Colors)
         let socialHtml = '';
         if (company.rsface) socialHtml += `<a href="${company.rsface}" target="_blank" class="social-icon facebook" title="Facebook"><i class="fab fa-facebook-f"></i></a>`;
         if (company.rsinsta) socialHtml += `<a href="${company.rsinsta}" target="_blank" class="social-icon instagram" title="Instagram"><i class="fab fa-instagram"></i></a>`;
         if (company.rstik) socialHtml += `<a href="${company.rstik}" target="_blank" class="social-icon tiktok" title="TikTok"><i class="fab fa-tiktok"></i></a>`;
 
+        const showForm = company.formulario === 'TRUE' || company.formulario === true;
+
         container.innerHTML = `
-            <!-- Navigation Links -->
             <div class="footer-links-sub">
                 <a class="btn-link" onclick="app.public.showLocation()">Ubicación</a>
                 <a class="btn-link" onclick="app.public.showReviews()">Opiniones</a>
                 <a class="btn-link" onclick="window.location.hash='#pillars'">Pilares</a>
                 <a class="btn-link" onclick="app.public.showAboutUs()">Nosotros</a>
                 <a class="btn-link" onclick="app.public.showPolicies()">Políticas</a>
-                <a class="btn-link" onclick="window.location.hash='#contact'">Contáctanos</a>
+                ${showForm ? `<a class="btn-link" onclick="window.location.hash='#contact'">Contáctanos</a>` : ''}
             </div>
 
-            <!-- Social Media -->
             <div class="footer-social">
                 ${socialHtml}
             </div>
         `;
 
-        // Update WhatsApp Floating
         const btn = document.getElementById('whatsapp-float');
         if (btn && company.telefonowhatsapp) btn.href = `https://wa.me/${company.telefonowhatsapp}`;
     },
@@ -613,5 +620,88 @@ app.public = {
     toggleMobileTicket: (show) => {
         const sidebar = document.getElementById('pos-ticket-sidebar');
         if (sidebar) sidebar.classList.toggle('mobile-active', show);
+    },
+
+    renderContact: () => {
+        const container = document.getElementById('view-contact');
+        if (!container) return;
+
+        const urlId = (app.state.companyId || "").toString().trim().toUpperCase();
+        const company = app.data.Config_Empresas.find(c => c.id_empresa === urlId);
+        if (!company) return;
+
+        const showForm = (company.formulario || "").toString().toUpperCase() === 'TRUE';
+        const needsBilling = (company.Facturacion || "").toString().toUpperCase() === 'TRUE';
+        const needsInvoice = (company.factura || "").toString().toUpperCase() === 'TRUE';
+        const finalBilling = needsBilling || needsInvoice;
+
+        if (!showForm) {
+            container.innerHTML = `<div class="form-container" style="text-align:center; padding:50px;">
+                <i class="fas fa-comment-slash fa-3x" style="color:#ccc; margin-bottom:20px;"></i>
+                <h2>Contacto Desactivado</h2>
+                <p>Por el momento este negocio no recibe solicitudes vía formulario.</p>
+                <button class="btn-primary" onclick="window.location.hash='#home'">Volver al Inicio</button>
+            </div>`;
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="form-container">
+                <h2>Contáctanos</h2>
+                <p>Déjanos tus datos y un asesor se comunicará contigo.</p>
+                <form id="public-lead-form">
+                    <div class="form-group">
+                        <label>Teléfono / WhatsApp *</label>
+                        <input type="tel" id="lead-phone" required placeholder="Ej: 521...">
+                    </div>
+                    <div class="form-group">
+                        <label>Nombre Completo *</label>
+                        <input type="text" id="lead-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Correo Electrónico</label>
+                        <input type="email" id="lead-email">
+                    </div>
+                    <div class="form-group">
+                        <label>Dirección</label>
+                        <input type="text" id="lead-address" placeholder="Calle, Número, Colonia..." autocomplete="off">
+                    </div>
+                    
+                    ${finalBilling ? `
+                    <div id="billing-fields" style="background: rgba(0, 210, 255, 0.05); padding: 15px; border-radius: 12px; border: 1px dashed var(--primary-color); margin: 20px 0;">
+                        <h4 style="margin-top:0; color:var(--primary-color); font-size:0.8rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:15px;">
+                            <i class="fas fa-file-invoice"></i> Datos de Facturación
+                        </h4>
+                        <div class="form-group">
+                            <label>RFC / Tax ID *</label>
+                            <input type="text" id="lead-rfc" required placeholder="RFC123456789">
+                        </div>
+                        <div class="form-group">
+                            <label>Nombre del Negocio *</label>
+                            <input type="text" id="lead-business" required placeholder="Nombre Comercial o Fiscal">
+                        </div>
+                        <div class="form-group">
+                            <label>Dirección Comercial *</label>
+                            <input type="text" id="lead-billing-address" required placeholder="Calle, Número, CP, Ciudad">
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <div id="contact-msg" class="success-msg hidden" style="margin-bottom:15px; text-align:center; color:var(--primary-color); font-weight:bold;"></div>
+                    <button type="submit" class="btn-primary w-100" id="btn-submit-contact">
+                        Enviar Información <i class="fas fa-paper-plane" style="margin-left:8px;"></i>
+                    </button>
+                </form>
+            </div>
+        `;
+
+        // Re-bind el evento ya que el DOM del form cambió
+        const publicLeadForm = document.getElementById('public-lead-form');
+        if (publicLeadForm) {
+            publicLeadForm.onsubmit = async (e) => {
+                e.preventDefault();
+                if (app.events && app.events._handlePublicLead) app.events._handlePublicLead(e);
+            };
+        }
     }
 };
