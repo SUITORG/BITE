@@ -742,7 +742,8 @@ body {
         width: 65%;
         max-width: 280px;
         height: 100vh;
-        background: rgba(255, 255, 255, 0.95) !important;
+        background: rgba(255, 255, 255, 0.15);
+        /* 85-90% Transparente */
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
         flex-direction: column;
@@ -755,31 +756,76 @@ body {
         overflow-y: auto;
     }
 
+    /* Estilo Hub Activo (Glassmorphism 90% transparente) */
+    .nav-list.hub-active {
+        background: rgba(255, 255, 255, 0.1) !important;
+        backdrop-filter: blur(15px) !important;
+        -webkit-backdrop-filter: blur(15px) !important;
+        border-left: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .nav-list.hub-active li {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+
+    .nav-list.hub-active a {
+        color: #fff !important;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .nav-list.hub-active a:hover {
+        background: rgba(255, 255, 255, 0.15) !important;
+        padding-left: 20px;
+    }
+
     .nav-list.active {
         right: 0;
     }
 
     .nav-list li {
         width: 100%;
-        border-bottom: 1px solid #f4f7f9;
-        margin-bottom: 5px;
+        border-bottom: none;
+        /* Removed line for cleaner capsule look */
+        margin-bottom: 2px;
+        display: flex;
+        justify-content: center;
     }
 
     .nav-list a {
-        color: #2d3748 !important;
-        font-weight: 600 !important;
-        font-size: 1.05rem !important;
-        padding: 16px 12px;
-        width: 100%;
-        text-align: left;
-        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.9);
+        /* Capsule background */
+        color: #1a202c !important;
+        font-weight: 700 !important;
+        font-size: 0.95rem !important;
+        padding: 10px 20px;
+        width: fit-content;
+        min-width: 160px;
+        text-align: center;
+        justify-content: center;
+        border-radius: 50px;
+        /* Capsule shape */
         transition: all 0.2s ease;
+        text-transform: capitalize;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
     }
 
     .nav-list a:hover {
-        background: #f7fafc;
+        background: #fff;
+        transform: scale(1.05);
         color: var(--primary-color) !important;
-        padding-left: 20px;
+    }
+
+    /* Pedido Express Capsule Button */
+    .btn-express-nav-special {
+        background: var(--accent-color) !important;
+        color: #000 !important;
+        width: fit-content !important;
+        min-width: 180px;
+        justify-content: center;
+        margin: 5px auto !important;
+        box-shadow: 0 4px 15px rgba(255, 179, 0, 0.4);
+        text-transform: none !important;
+        /* Avoid all caps */
     }
 
     .mobile-menu-overlay {
@@ -2897,7 +2943,10 @@ body.menu-open {
 
     .food-actions {
         margin-top: 8px !important;
-        justify-content: flex-start !important;
+        justify-content: space-between !important;
+        width: fit-content !important;
+        min-width: 120px !important;
+        padding: 0 5px !important;
     }
 
     .food-actions button {

@@ -1,9 +1,9 @@
 
 # Manual Técnico y Operativo - SuitOrg
 > **Identidad Principal:** SuitOrg (Powered by EVASOL Engine)
-> **Última Versión Estable**: v4.9.4 (MULTI-SYNC-FIX)
-> **Estado del Sistema**: Operativo con Autodepuración Quirúrgica.
-> **Total de Líneas Consolidadas**: ~9,123 (Auditado 2026-02-10).
+> **Última Versión Estable**: v5.2.5 (LEAD SYNC & TIMESTAMPS)
+> **Estado del Sistema**: Operativo con sincronización de columnas y hora.
+> **Total de Líneas Consolidadas**: ~9,450 (Auditado 2026-02-15).
 
 ## 0. Resumen Ejecutivo (TL;DR) - Para gente con prisa ⚡
 1.  **¿Qué es?** Un potente "Food Hub" multi-inquilino especializado en el sector alimenticio (Restaurantes, Snacks, Comida Rápida).
@@ -165,6 +165,22 @@ A partir de la versión 4.7.0, el ecosistema de desarrollo se ha optimizado medi
 
 ---
 
+- **v5.2.5** (2026-02-15): **"Lead Sync & Timestamps"**.
+    - **Leads:** Sincronización oficial de columnas `fecha`, `nom_negocio` y `dir_comercial`.
+    - **Traceability:** Implementación de timestamp completo (Fecha + Hora) en todos los registros.
+    - **Analytics:** El registro de hora permite análisis de frecuencia horaria de ventas.
+
+- **v5.2.4** (2026-02-15): **"Smart ID & Project Traceability"**.
+    - **Leads:** Implementación de folios secuenciales `LEAD-XXX` centralizados en backend.
+    - **Projects:** Activación de creación de proyectos con folios `ORD-XXX` y timestamps ISO.
+    - **Architecture:** Creación de `backend_schema.md` como referencia técnica oficial.
+    - **Cleanup:** Eliminada generación de IDs temporales basados en tiempo en el frontend.
+
+- **v5.2.2** (2026-02-13): **"CRM Intelligence & Robust Billing"**.
+    - **Frontend:** Implementación de niveles CRM (1 y 2) automáticos basados en completitud de datos.
+    - **UX:** Reordenamiento de formulario de contacto con prioridad en WhatsApp.
+    - **Backend Sync:** Detección de flags de facturación insensible a mayúsculas para compatibilidad universal.
+
 - **v4.9.2** (2026-02-10): **"Health System & Auto-Purge"**.
     - **Backend:** Implementación del motor `runAutoPurge` en Google Apps Script.
     - **Logic:** Depuración quirúrgica de la tabla `Logs` según los días configurados por cada empresa.
@@ -294,12 +310,12 @@ A partir de la versión 4.7.0, el ecosistema de desarrollo se ha optimizado medi
 
 | Archivo / Carpeta | Líneas |
 | :--- | :--- |
-| index.html | 1608 | Estructura base PWA / Modales |
+| index.html | 1627 | Estructura base PWA / Modales |
 | style.css | 3236 | UI/UX Premium & Micro-animaciones |
-| js/modules/ | 3810 | Lógica de Negocio (Core, UI, POS, AI) |
+| js/modules/ | 4008 | Lógica de Negocio (Core, UI, POS, AI) |
 | app.js | 71 | Router y Orquestación Inicial |
-| backend_schema.gs | 398 | Engine Server-side (GAS) |
-| **TOTAL** | **9123** | Líneas de producción |
+| backend_schema.gs | 484 | Engine Server-side (GAS) |
+| **TOTAL** | **9450** | Líneas de producción |
 
 ---
 *Manual generado automáticamente por Antigravity AI.*

@@ -348,13 +348,18 @@ app.admin = {
         const form = e.target;
         const isEdit = form.dataset.mode === "edit";
         const leadData = {
-            id_lead: form.dataset.leadId,
+            id_lead: form.dataset.leadId || null,
             id_empresa: app.state.companyId,
             nombre: document.getElementById('new-lead-name').value,
             telefono: document.getElementById('new-lead-phone').value,
             email: document.getElementById('new-lead-email').value,
             direccion: document.getElementById('new-lead-address').value,
-            origen: document.getElementById('new-lead-source').value
+            origen: document.getElementById('new-lead-source').value || "Local",
+            estado: "NUEVO",
+            estatus: "NUEVO",
+            nivel_crm: 1,
+            fecha: (app.utils && app.utils.getTimestamp) ? app.utils.getTimestamp() : new Date().toISOString(),
+            fecha_actualizacion: (app.utils && app.utils.getTimestamp) ? app.utils.getTimestamp() : new Date().toISOString()
         };
 
         const btn = form.querySelector('button[type="submit"]');
@@ -413,7 +418,7 @@ app.admin = {
                     <td>${lead.id_lead || 'N/A'} - <b>${lead.nombre}</b></td>
                     <td>${lead.direccion || '-'}</td>
                     <td>${lead.telefono}</td>
-                    <td><span style="padding:4px 8px; border-radius:4px; background:#e0f2f1; color: #00695c; font-size:0.8rem">${lead.estado}</span></td>
+                    <td><span style="padding:4px 8px; border-radius:4px; background:#e0f2f1; color: #00695c; font-size:0.8rem">${lead.estado || lead.estatus || 'NUEVO'}</span></td>
                     <td>
                         <div class="actions-cell">
                             ${isAdmin ? `<button class="btn-small btn-danger" onclick="app.admin.deleteLead('${lead.id_lead}')" title="Borrar Lead"><i class="fas fa-trash"></i></button>` : ''}
@@ -463,9 +468,13 @@ app.admin = {
         const projectData = {
             id_empresa: app.state.companyId,
             nombre_proyecto: document.getElementById('project-name').value || document.getElementById('proj-name').value,
-            id_cliente: document.getElementById('proj-client')?.value,
+            id_lead: document.getElementById('proj-client')?.value,
             descripcion: document.getElementById('project-desc')?.value || document.getElementById('proj-desc')?.value,
-            estado: "NUEVO"
+            estado: document.getElementById('proj-status')?.value || "NUEVO",
+            estatus: document.getElementById('proj-status')?.value || "NUEVO",
+            fecha_inicio: (app.utils && app.utils.getTimestamp) ? app.utils.getTimestamp() : new Date().toISOString(),
+            fecha_estatus: (app.utils && app.utils.getTimestamp) ? app.utils.getTimestamp() : new Date().toISOString(),
+            activo: true
         };
         try {
             const res = await fetch(app.apiUrl, {
@@ -498,7 +507,7 @@ app.admin = {
 
         if (query) {
             list = list.filter(p => {
-                const client = (app.data.Leads || []).find(l => l.id_lead === p.id_cliente);
+                const client = (app.data.Leads || []).find(l => l.id_lead === (p.id_lead || p.id_cliente));
                 const clientName = (client ? client.nombre : (p.cliente_nombre || '')).toLowerCase();
                 return (p.nombre_proyecto || "").toLowerCase().includes(query) ||
                     (p.id_proyecto || "").toLowerCase().includes(query) ||
@@ -512,7 +521,7 @@ app.admin = {
             const phase = flow.find(f => f.id_fase === (p.status || p.estado)) || { nombre_fase: (p.status || p.estado), peso_porcentaje: 0, color_hex: "#999" };
             const color = phase.color_hex || "#999";
             const pct = parseInt(phase.peso_porcentaje) || 0;
-            const client = app.data.Leads.find(l => l.id_lead === p.id_cliente);
+            const client = app.data.Leads.find(l => l.id_lead === (p.id_lead || p.id_cliente));
             const clientName = client ? client.nombre : (p.cliente_nombre || 'N/A');
 
             const isAdmin = app.state.currentUser && (app.state.currentUser.nivel_acceso >= 10 || app.state.currentUser.rol === 'DIOS');

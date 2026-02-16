@@ -191,6 +191,9 @@ app.public = {
         const foodTitle = document.getElementById('food-menu-title');
         const foodSubtitle = document.getElementById('food-menu-subtitle');
         const menuPublic = document.getElementById('menu-public');
+        if (menuPublic) {
+            menuPublic.classList.remove('hub-active');
+        }
 
         // Forzar visibilidad y reset de clases (v5.0.3 Security Fix)
         if (heroBanner) {
@@ -243,7 +246,7 @@ app.public = {
                     <li><a href="#home">Inicio</a></li>
                     <li>
                         <a href="#food-app-area" class="btn-express-nav-special" style="background: var(--accent-color); color: #000; padding: 5px 15px; border-radius: 50px; font-weight: bold; display: flex; align-items: center; gap: 5px; text-decoration: none;">
-                            <i class="fas fa-utensils"></i> PEDIDO EXPRESS
+                            <i class="fas fa-utensils"></i> Pedido Express
                         </a>
                     </li>
                     ${showForm ? `<li><a href="#contact">Contacto</a></li>` : ''}
@@ -487,6 +490,29 @@ app.public = {
             });
         });
 
+        // --- ACTUALIZACIÓN MENÚ HUB (Inyectar Inquilinos) ---
+        const menuPublic = document.getElementById('menu-public');
+        if (menuPublic) {
+            menuPublic.classList.add('hub-active');
+            menuPublic.innerHTML = `
+                <li style="padding: 10px 15px; font-weight: 800; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 10px; font-size: 0.8rem; letter-spacing: 1px;">
+                    <i class="fas fa-planet-ring"></i> DIRECTORIO HUB
+                </li>
+            ` + companies.map(co => `
+                <li>
+                    <a href="javascript:void(0)" onclick="app.switchCompany('${co.id_empresa}')">
+                        <i class="fas fa-chevron-right" style="font-size: 0.7rem; opacity: 0.5;"></i> ${co.nomempresa}
+                    </a>
+                </li>
+            `).join('') + `
+                <li style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+                    <a href="#login" onclick="app.ui.showLogin(); return false;">
+                        <i class="fas fa-user-lock"></i> Staff Login
+                    </a>
+                </li>
+            `;
+        }
+
         const update = () => {
             const w = window.innerWidth;
             const h = window.innerHeight;
@@ -663,26 +689,26 @@ app.public = {
                         <input type="email" id="lead-email">
                     </div>
                     <div class="form-group">
-                        <label>Dirección</label>
-                        <input type="text" id="lead-address" placeholder="Calle, Número, Colonia..." autocomplete="off">
+                        <label>Dirección *</label>
+                        <input type="text" id="lead-address" required placeholder="Calle, Número, Colonia..." autocomplete="off">
                     </div>
                     
                     ${finalBilling ? `
                     <div id="billing-fields" style="background: rgba(0, 210, 255, 0.05); padding: 15px; border-radius: 12px; border: 1px dashed var(--primary-color); margin: 20px 0;">
                         <h4 style="margin-top:0; color:var(--primary-color); font-size:0.8rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:15px;">
-                            <i class="fas fa-file-invoice"></i> Datos de Facturación
+                            <i class="fas fa-file-invoice"></i> Datos de Facturación (Opcional)
                         </h4>
                         <div class="form-group">
-                            <label>RFC / Tax ID *</label>
-                            <input type="text" id="lead-rfc" required placeholder="RFC123456789">
+                            <label>RFC / Tax ID</label>
+                            <input type="text" id="lead-rfc" placeholder="RFC123456789">
                         </div>
                         <div class="form-group">
-                            <label>Nombre del Negocio *</label>
-                            <input type="text" id="lead-business" required placeholder="Nombre Comercial o Fiscal">
+                            <label>Nombre del Negocio</label>
+                            <input type="text" id="lead-business" placeholder="Nombre Comercial o Fiscal">
                         </div>
                         <div class="form-group">
-                            <label>Dirección Comercial *</label>
-                            <input type="text" id="lead-billing-address" required placeholder="Calle, Número, CP, Ciudad">
+                            <label>Dirección Comercial</label>
+                            <input type="text" id="lead-billing-address" placeholder="Calle, Número, CP, Ciudad">
                         </div>
                     </div>
                     ` : ''}
@@ -694,6 +720,45 @@ app.public = {
                 </form>
             </div>
         `;
+
+        // --- Lógica de Auto-rellenado (v5.2.4) ---
+        const elPhone = document.getElementById('lead-phone');
+        if (elPhone) {
+            elPhone.addEventListener('blur', () => {
+                const phone = elPhone.value.trim();
+                if (phone.length < 8) return;
+
+                const existing = (app.data.Leads || []).find(l =>
+                    (l.telefono || "").toString().includes(phone) &&
+                    (l.id_empresa || "").toString().toUpperCase() === urlId
+                );
+
+                if (existing) {
+                    console.log("[CRM] Cliente existente encontrado, auto-rellenando...");
+                    const elName = document.getElementById('lead-name');
+                    const elEmail = document.getElementById('lead-email');
+                    const elAddr = document.getElementById('lead-address');
+                    const elRfc = document.getElementById('lead-rfc');
+                    const elBiz = document.getElementById('lead-business');
+                    const elBillDir = document.getElementById('lead-billing-address');
+
+                    if (elName) elName.value = existing.nombre || '';
+                    if (elEmail) elEmail.value = existing.email || '';
+                    if (elAddr) elAddr.value = existing.direccion || '';
+                    if (elRfc) elRfc.value = existing.rfc || '';
+                    if (elBiz) elBiz.value = existing.negocio || '';
+                    if (elBillDir) elBillDir.value = existing.direccion_comercial || '';
+
+                    // Notificar visualmente
+                    const msg = document.getElementById('contact-msg');
+                    if (msg) {
+                        msg.innerText = "¡Bienvenido de nuevo! Hemos cargado tus datos.";
+                        msg.classList.remove('hidden');
+                        setTimeout(() => msg.classList.add('hidden'), 3000);
+                    }
+                }
+            });
+        }
 
         // Re-bind el evento ya que el DOM del form cambió
         const publicLeadForm = document.getElementById('public-lead-form');

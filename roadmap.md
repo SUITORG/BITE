@@ -102,6 +102,11 @@ Este documento rastrea el cumplimiento de las reglas fundamentales y la visión 
     - [x] **estandar-barra-st:** Monitoreo visual técnico del sistema.
     - [x] **Seguridad UX:** Botones de "Volver" obligatorios en modales.
     - [x] **Agentes IA:** Integración estable con Gemini 2.0 Flash.
+    - [ ] **Visibilidad de Logs:** Implementar delay visual o marquesina para mensajes en `BS-T` para mejorar legibilidad.
+    - [ ] **Robustez de Logs:** Asegurar captura de error exacto en bloques `catch` de `updateOrderStatus`.
+
+12. Geolocalización (Pendiente)
+    - [ ] **v5.2.6: Localización Inteligente (Visitante):** Implementar captura de ubicación actual del visitante para auto-llenado de dirección en pedidos.
 
 - [x] **Checkout Express (Público):** Refinar estabilidad del flujo de 3 pasos, integración de WhatsApp y visualización de ticket estilo térmico.
     - [x] **Cargo por Envío Dinámico (v3.4.0):** Implementación de selector de método (Recoger/Domicilio) con cargo configurable desde `Config_Empresas`.
@@ -124,11 +129,12 @@ Este documento rastrea el cumplimiento de las reglas fundamentales y la visión 
 - [x] **Módulo de Soporte en Landing:** Reactivar y optimizar el botón de "Atención y Soporte" (AGT-001) en la página principal para usuarios públicos. Activado en v3.4.6.
 - [x] **Módulo de Atención al Cliente (CRM Quejas):** Generación de tickets automática vía IA, alertas por email al negocio y cierre de chat post-reporte.
 
-- [ ] **Módulo de Reportes & Analítica (v3.6.0):**
+13. Reportes & Analítica (v3.6.0)
     - [ ] **Aislamiento Multi-Tenant:** Los reportes deben filtrarse estrictamente por `id_empresa`. Ningún negocio podrá ver estadísticas de otro.
     - [ ] **Excepción de Consolidación (SuitOrg):** Solo el usuario DIOS de la empresa `SuitOrg` tendrá acceso a la vista consolidada (Metamétricas) para ver el rendimiento de todos los clientes del SaaS.
     - [ ] **KPIs Iniciales:** Ventas por división, métodos de pago y rendimiento de productos.
-- [ ] **Módulo de Gestión de Cuotas (v3.8.0):**
+
+14. Gestión de Cuotas (v3.8.0)
     - [x] **Tabla Backend:** Creada `Cuotas_Pagos` para control de suscripciones.
     - [ ] **Interfaz Admin:** Vista para consultar y actualizar estados de pago por negocio.
     - [ ] **Alertas de Vencimiento:** Notificaciones automáticas cuando una cuota esté próxima a vencer.
@@ -211,3 +217,7 @@ Este documento rastrea el cumplimiento de las reglas fundamentales y la visión 
 - [x] **v5.2.1: Contacto B2B Dinámico:** Inyección de campos de facturación según flags de empresa (RFC, Negocio).
 - [x] **v5.2.2: Inteligencia CRM y Robustez:** Niveles CRM automáticos (1 y 2) y detección mejorada de facturación.
 - [ ] **v5.2.3: Semáforo de POS:** Alertas visuales para pedidos con más de 15 minutos en el mismo estado.
+- [x] **v5.2.4: Smart ID & Project Traceability**: Identidad por teléfono, folios secuenciales `LEAD-XXX`/`ORD-XXX` y timestamps ISO.
+- [x] **v5.2.5: Lead Sync & Timestamps**: Sincronización de columnas `fecha`, `nom_negocio`, `dir_comercial` y timestamps con hora.
+---
+*Última actualización: 2026-02-15 | Versión: v5.2.5 (LEAD SYNC)*

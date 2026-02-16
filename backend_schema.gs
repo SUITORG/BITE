@@ -1,17 +1,18 @@
-/* SuitOrg Backend Engine - v4.9.3
+/* SuitOrg Backend Engine - v5.2.5
  * ---------------------------------------------------------
- * Sincronización: 2026-02-10 01:45 PM (v4.9.3 AI Telemetry)
+ * Sincronización: 2026-02-15 03:25 PM (v5.2.5 Lead Sync)
  * 
- * Changelog v4.9.3:
- * - TELEMETRY: Registro de consumo de tokens de IA en Logs.
- * - HEALTH: Motor de autodepuración multi-inquilino (v4.9.2).
+ * Changelog v5.2.5:
+ * - CRM: Sincronización de columnas 'fecha', 'nom_negocio' y 'dir_comercial'.
+ * - CRM: Implementación de Timestamp ISO completo (Fecha + Hora) en Leads.
+ * - CRM: Folios secuenciales LEAD-XXX y ORD-XXX operativos.
  * 
- * AUDIT: ~9150 Total Lines (v4.9.3).
+ * AUDIT: ~9450 Total Lines (v5.2.5).
  * ---------------------------------------------------------
  */
 
 const CONFIG = {
-  VERSION: "4.9.3",
+  VERSION: "5.2.5",
   DB_ID: "1uyy2hzj8HWWQFnm6xy-XCwvvGh3odjV4fRlDh5SBxu8", 
   GLOBAL_TABLES: ["Config_Empresas", "Config_Roles", "Usuarios", "Config_SEO", "Prompts_IA", "Cuotas_Pagos"], 
   PRIVATE_TABLES: ["Leads", "Proyectos", "Proyectos_Etapas", "Proyectos_Pagos", "Proyectos_Bitacora", "Catalogo", "Logs", "Pagos", "Empresa_Documentos"],
@@ -99,7 +100,17 @@ function handlePostAction(data, output) {
         output.success = true; break;
 
       case "createLead": 
+        var leadSheet = ss.getSheetByName("Leads");
+        var lData = leadSheet.getDataRange().getValues();
+        var nextL = lData.length + 99; // Offset para iniciar en ~100
+        var newId = "LEAD-" + nextL;
+        data.lead.id_lead = newId;
         appendRowMapped(ss, "Leads", data.lead);
+        output.newId = newId;
+        output.success = true; break;
+
+      case "updateLead":
+        updateRowMapped(ss, "Leads", data.lead, "id_lead");
         output.success = true; break;
 
       case "processFullOrder":
@@ -162,6 +173,22 @@ function handlePostAction(data, output) {
 
       case "updateLeadStatus":
         updateRowMapped(ss, "Leads", "id_lead", data.id, { estatus: data.status });
+        output.success = true; break;
+
+      case "createProject":
+        var projSheet = ss.getSheetByName("Proyectos");
+        var pData = projSheet.getDataRange().getValues();
+        var nextP = pData.length + 100;
+        data.project.id_proyecto = "ORD-" + nextP; // Folio Oficial
+        data.project.id_lead = data.project.id_lead || data.project.id_cliente; // Fallback durante transición
+        data.project.fecha_inicio = new Date();
+        data.project.fecha_estatus = new Date();
+        data.project.activo = "TRUE";
+        appendRowMapped(ss, "Proyectos", data.project);
+        output.success = true; break;
+
+      case "deleteProject":
+        updateRowMapped(ss, "Proyectos", "id_proyecto", data.id, { activo: "FALSE", estado: "ELIMINADO" });
         output.success = true; break;
 
       default:
@@ -280,6 +307,7 @@ function initializeDatabase(ss, output) {
     if (headers.indexOf("id_empresa") === -1) cat.insertColumnAfter(1).getRange(1, 2).setValue("id_empresa");
   }
   
+
   output.info = "Database structure verified and seeds restored.";
   
   // Ejecutar Autodepuración Quirúrgica (v4.9.2)
@@ -408,8 +436,12 @@ function updateRowMapped(ss, sheetName, idCol, idVal, dataObj) {
 }
 
 function processTransaction(ss, data, output) {
-  var leadId = data.lead.id_lead || ("LEAD-" + Date.now());
-  if (!data.lead.id_lead) {
+  var leadId = data.lead.id_lead;
+  if (!leadId) {
+     var leadSheet = ss.getSheetByName("Leads");
+     var lData = leadSheet.getDataRange().getValues();
+     var nextL = lData.length + 99;
+     leadId = "LEAD-" + nextL;
      data.lead.id_lead = leadId;
      appendRowMapped(ss, "Leads", data.lead);
   }

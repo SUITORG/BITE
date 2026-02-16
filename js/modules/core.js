@@ -4,7 +4,7 @@
  */
 const app = {
     // --- APP CONFIG ---
-    version: '5.2.1', // v5.2.1: Dynamic Billing Contact Form.
+    version: '5.2.5', // v5.2.5: Full Timestamp & Column Sync.
 
     // Se cargan desde js/modules/config.js (ignorado en git)
     apiUrl: (typeof SUIT_CONFIG !== 'undefined') ? SUIT_CONFIG.apiUrl : '',

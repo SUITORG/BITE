@@ -98,6 +98,8 @@ app.ui = {
     deleteLead: (id) => app.admin.deleteLead(id),
 
     renderProjects: () => app.admin.renderProjects(),
+    openProjectModal: () => app.admin.openProjectModal(),
+    saveProject: (e) => app.admin.saveProject(e),
     openProjectDetails: (id) => app.admin.openProjectDetails(id),
     deleteProject: (id) => app.admin.deleteProject(id),
     addProjectStage: (id) => app.admin.addProjectStage(id),

@@ -206,16 +206,19 @@ app.events = {
 
         const toTitleCase = (str) => str.toLowerCase().replace(/(?:^|\s)\S/g, a => a.toUpperCase());
         const leadData = {
-            id_lead: leadId || ("lead-" + Date.now()),
+            id_lead: leadId || null, // El servidor asignará LEAD-xxx
             id_empresa: app.state.companyId,
             nombre: toTitleCase(document.getElementById('new-lead-name').value),
             telefono: document.getElementById('new-lead-phone').value,
             email: document.getElementById('new-lead-email').value,
             direccion: document.getElementById('new-lead-address').value,
-            origen: toTitleCase(document.getElementById('new-lead-source').value),
+            origen: toTitleCase(document.getElementById('new-lead-source').value || "Local"),
             estado: "NUEVO",
+            estatus: "NUEVO", // Compatibilidad con backend
+            nivel_crm: 1,
             activo: true,
-            fecha_creacion: new Date().toISOString()
+            fecha: (app.utils && app.utils.getTimestamp) ? app.utils.getTimestamp() : new Date().toISOString(),
+            fecha_actualizacion: (app.utils && app.utils.getTimestamp) ? app.utils.getTimestamp() : new Date().toISOString()
         };
 
         try {
@@ -313,9 +316,9 @@ app.events = {
         const toTitleCase = (str) => str.toLowerCase().replace(/(?:^|\s)\S/g, a => a.toUpperCase());
         const clientSelect = document.getElementById('proj-client');
         const newProj = {
-            id_proyecto: "proj-" + Date.now(),
+            id_proyecto: null, // El servidor asignará ORD-XXX
             id_empresa: app.state.companyId,
-            id_cliente: clientSelect.value,
+            id_lead: clientSelect.value,
             cliente_nombre: clientSelect.options[clientSelect.selectedIndex].text,
             nombre_proyecto: toTitleCase(document.getElementById('proj-name').value),
             estado: document.getElementById('proj-status').value,
@@ -359,45 +362,73 @@ app.events = {
         btn.disabled = true;
 
         const toTitleCase = (str) => str.toLowerCase().replace(/(?:^|\s)\S/g, a => a.toUpperCase());
+        const elPhone = document.getElementById('lead-phone');
+        const phone = elPhone.value.trim();
+
         const elRfc = document.getElementById('lead-rfc');
         const elBiz = document.getElementById('lead-business');
         const elBillDir = document.getElementById('lead-billing-address');
 
-        const hasBilling = elRfc && elRfc.value.trim() !== "";
+        // Check for existing lead by phone and company
+        const existingLead = (app.data.Leads || []).find(l =>
+            (l.telefono || "").toString().includes(phone) &&
+            (l.id_empresa || "").toString().toUpperCase() === app.state.companyId.toUpperCase()
+        );
 
-        const newLead = {
-            id_lead: "lead-" + Date.now(),
+        const hasBilling = elRfc && elRfc.value.trim() !== "" && elBiz && elBiz.value.trim() !== "" && elBillDir && elBillDir.value.trim() !== "";
+
+        const finalLead = {
+            id_lead: existingLead ? existingLead.id_lead : null, // El servidor asignará LEAD-xxx
             id_empresa: app.state.companyId,
             nombre: toTitleCase(document.getElementById('lead-name').value),
-            telefono: document.getElementById('lead-phone').value,
+            telefono: phone,
             email: document.getElementById('lead-email').value,
             direccion: document.getElementById('lead-address').value,
             // Extra Billing Data
             rfc: elRfc ? elRfc.value : '',
-            negocio: elBiz ? elBiz.value : '',
-            direccion_comercial: elBillDir ? elBillDir.value : '',
-            origen: "Web",
-            estado: "NUEVO",
+            nom_negocio: elBiz ? elBiz.value : '',
+            dir_comercial: elBillDir ? elBillDir.value : '',
+            asunto: 'Contacto Web',
+            body: '',
+            origen: existingLead ? (existingLead.origen || "Web") : "Web",
+            estado: existingLead ? (existingLead.estado || "NUEVO") : "NUEVO",
+            estatus: existingLead ? (existingLead.estado || "NUEVO") : "NUEVO",
             nivel_crm: hasBilling ? 2 : 1, // 2: Datos completos, 1: Datos básicos
-            fecha_creacion: (app.utils && app.utils.getTimestamp) ? app.utils.getTimestamp() : new Date().toISOString()
+            fecha: existingLead ? (existingLead.fecha || existingLead.fecha_creacion) : ((app.utils && app.utils.getTimestamp) ? app.utils.getTimestamp() : new Date().toISOString()),
+            fecha_creacion: existingLead ? (existingLead.fecha_creacion) : ((app.utils && app.utils.getTimestamp) ? app.utils.getTimestamp() : new Date().toISOString()),
+            fecha_actualizacion: (app.utils && app.utils.getTimestamp) ? app.utils.getTimestamp() : new Date().toISOString()
         };
+
+        const action = existingLead ? 'updateLead' : 'createLead';
 
         try {
             const response = await fetch(app.apiUrl, {
                 method: 'POST',
                 headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify({ action: 'createLead', lead: newLead, token: app.apiToken })
+                body: JSON.stringify({ action: action, lead: finalLead, token: app.apiToken })
             });
             const result = await response.json();
             if (result.success || result.status === "online") {
-                if (result.newId) newLead.id_lead = result.newId;
                 if (!app.data.Leads) app.data.Leads = [];
-                app.data.Leads.unshift(newLead);
+
+                if (existingLead) {
+                    const idx = app.data.Leads.findIndex(l => l.id_lead === finalLead.id_lead);
+                    if (idx > -1) app.data.Leads[idx] = finalLead;
+                    console.log("[CRM] Lead actualizado localmente.");
+                } else {
+                    if (result.newId) finalLead.id_lead = result.newId;
+                    app.data.Leads.unshift(finalLead);
+                    console.log("[CRM] Lead creado localmente.");
+                }
+
                 app.ui.renderLeads();
-                alert("¡Gracias! Pronto nos contactaremos.");
+                alert(existingLead ? "¡Datos actualizados! Gracias por tu preferencia." : "¡Gracias! Pronto nos contactaremos.");
                 form.reset();
             }
-        } catch (err) { alert("Error al enviar."); } finally {
+        } catch (err) {
+            console.error(err);
+            alert("Error al enviar.");
+        } finally {
             btn.innerText = originalText;
             btn.disabled = false;
             form.dataset.submitting = "false";

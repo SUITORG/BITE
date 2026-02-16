@@ -237,7 +237,7 @@ app.pos = {
             direccion: address,
             origen: isStaffSale ? 'APP-POS-COUNTER' : 'APP-ORDER',
             nivel_crm: (name && name !== "Venta en Mostrador" && address) ? 1 : 0,
-            fecha: app.utils.getDate()
+            fecha: app.utils.getTimestamp()
         };
         // Inyectar ID si el cliente ya existe para evitar duplicado (v5.1.1)
         if (app.state.currentLeadId) {
@@ -867,8 +867,16 @@ app.pos = {
                 </div>
                 <!-- OTS Info Layout (v4.7.5 Robust Rendering) -->
                 <div class="order-ots-info" style="font-size:0.8rem; margin:5px 0; border-top:1px dashed #eee; padding-top:5px;">
-                    <div class="ots-item"><i class="fas fa-map-marker-alt"></i> ${p.direccion || (p.descripcion?.includes('DIR:') ? p.descripcion.split('|')[0].replace('DIR:', '').trim() : 'Entrega en Local')}</div>
-                    <div class="ots-item"><i class="fas fa-phone"></i> ${p.telefono || (p.descripcion?.includes('TEL:') ? p.descripcion.split('|')[1].replace('TEL:', '').trim() : 'N/A')}</div>
+                    <div class="ots-item">
+                        <a href="https://maps.google.com/?q=${encodeURIComponent(p.direccion || p.descripcion || '')}" target="_blank" style="text-decoration:none; color:inherit;">
+                            <i class="fas fa-map-marker-alt"></i> ${p.direccion || (p.descripcion?.includes('DIR:') ? p.descripcion.split('|')[0].replace('DIR:', '').trim() : 'Entrega en Local')}
+                        </a>
+                    </div>
+                    <div class="ots-item">
+                        <a href="tel:${p.telefono || ''}" style="text-decoration:none; color:inherit;">
+                            <i class="fas fa-phone"></i> ${p.telefono || (p.descripcion?.includes('TEL:') ? p.descripcion.split('|')[1].replace('TEL:', '').trim() : 'N/A')}
+                        </a>
+                    </div>
                 </div>
                 <div class="order-items">
                     ${items.map(i => `<div>${i.qty}x ${i.name}</div>`).join('')}
@@ -1072,7 +1080,11 @@ app.pos = {
         const ctx = app.state._otpContext;
         const input = document.getElementById('otp-entry-input');
         if (!ctx || !input) return;
-        if (input.value.trim() === String(ctx.correctOtp).trim()) {
+        const inputValue = input.value.trim();
+        const correctOtp = String(ctx.correctOtp).trim();
+        const folioDigits = ctx.id.split('-').pop(); // Permite validar con folio (ej: 251) o OTP
+
+        if (inputValue === correctOtp || inputValue === folioDigits) {
             document.getElementById('otp-modal').classList.add('hidden');
             await app.pos.updateOrderStatus(ctx.id, ctx.targetStatus, true);
         } else {

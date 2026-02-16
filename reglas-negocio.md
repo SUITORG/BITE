@@ -30,3 +30,10 @@ Este documento centraliza las políticas operativas y lógicas del sistema para 
 *   **Stock:** Cada venta confirmada en el POS debe descontar stock real en el backend de forma atómica.
 *   **Folios:** Cada orden genera un folio corto secuencial (ej. #101) para facilitar la comunicación operativa.
 *   **Flujo WhatsApp:** El mensaje final de ticket incluye una instrucción en **negritas** resaltando la necesidad de enviar el resumen para agilizar el proceso.
+## 6. Estándar de Identificadores (Regla Inmutable)
+*   **Catálogo**: `PROD-XX` (Autoincremental por empresa).
+*   **Proyectos / Órdenes**: `ORD-XXX` (Folio secuencial).
+*   **Leads**: `LEAD-XXX` (Folio secuencial centralizado).
+
+---
+**Nota:** El sistema ignorará cualquier ID generado localmente para Leads nuevos y asignará el folio `LEAD-XXX` oficial al momento de la inserción en el servidor.

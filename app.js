@@ -49,7 +49,6 @@ Object.assign(app, {
                     app.auth.logout();
                     return;
                 }
-                // Sincronización periódica (Cada 15 segundos - v4.6.1 Optimized)
                 syncCounter++;
                 if (syncCounter >= 3) {
                     syncCounter = 0;
@@ -62,7 +61,7 @@ Object.assign(app, {
                         }
                     }
                 }
-            }, 5000);
+            }, 2500); // Sincronización cada 7.5s (v5.2.5 Optimized)
         }
     }
 });
