@@ -524,6 +524,14 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    overflow-x: hidden;
+    /* Prevent horizontal scroll globally */
+    width: 100%;
+}
+
+html {
+    overflow-x: hidden;
+    width: 100%;
 }
 
 /* Helpers */
@@ -737,45 +745,22 @@ body {
     .nav-list {
         position: fixed;
         top: 0;
-        right: -105%;
-        /* Desplazado para ocultar sombra inicial */
-        width: 65%;
-        max-width: 280px;
+        right: -100%;
+        width: 80%;
+        max-width: 300px;
         height: 100vh;
-        background: rgba(255, 255, 255, 0.15);
-        /* 85-90% Transparente */
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
         flex-direction: column;
         justify-content: flex-start;
         align-items: flex-start;
-        padding: 90px 30px 40px 30px;
+        padding: 80px 20px 40px 20px;
         transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: -15px 0 30px rgba(0, 0, 0, 0.15);
-        z-index: 2500;
+        box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
+        z-index: 3000;
         overflow-y: auto;
-    }
-
-    /* Estilo Hub Activo (Glassmorphism 90% transparente) */
-    .nav-list.hub-active {
-        background: rgba(255, 255, 255, 0.1) !important;
-        backdrop-filter: blur(15px) !important;
-        -webkit-backdrop-filter: blur(15px) !important;
-        border-left: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    .nav-list.hub-active li {
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-    }
-
-    .nav-list.hub-active a {
-        color: #fff !important;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-    }
-
-    .nav-list.hub-active a:hover {
-        background: rgba(255, 255, 255, 0.15) !important;
-        padding-left: 20px;
+        border-left: 1px solid rgba(0, 0, 0, 0.05);
     }
 
     .nav-list.active {
@@ -784,29 +769,26 @@ body {
 
     .nav-list li {
         width: 100%;
-        border-bottom: none;
-        /* Removed line for cleaner capsule look */
-        margin-bottom: 2px;
-        display: flex;
-        justify-content: center;
+        margin-bottom: 15px;
+        display: block;
     }
 
     .nav-list a {
-        background: rgba(255, 255, 255, 0.9);
-        /* Capsule background */
+        background: transparent;
         color: #1a202c !important;
-        font-weight: 700 !important;
-        font-size: 0.95rem !important;
-        padding: 10px 20px;
-        width: fit-content;
-        min-width: 160px;
-        text-align: center;
-        justify-content: center;
-        border-radius: 50px;
-        /* Capsule shape */
-        transition: all 0.2s ease;
-        text-transform: capitalize;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        font-weight: 600 !important;
+        font-size: 1.1rem !important;
+        padding: 12px 15px;
+        border-radius: 12px;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        transition: background 0.2s;
+    }
+
+    .nav-list a:hover {
+        background: rgba(0, 0, 0, 0.05);
     }
 
     .nav-list a:hover {
@@ -989,10 +971,12 @@ body.menu-open {
 }
 
 .bubble-logo {
-    width: 60%;
-    height: 60%;
+    width: 80%;
+    height: 80%;
     object-fit: contain;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.4)) brightness(1.1);
+    transition: all 0.3s ease;
 }
 
 .bubble-name {
@@ -1169,7 +1153,8 @@ body.menu-open {
     margin-bottom: 40px;
 }
 
-.section-header h2 {
+.section-header h2,
+.section-header h3 {
     color: var(--primary-color);
     font-size: 2rem;
     margin-bottom: 10px;
@@ -1557,11 +1542,11 @@ body.menu-open {
 .modal {
     background: #ffffff;
     border-radius: 16px;
-    /* Square look */
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
     overflow: hidden;
-    width: 90%;
-    max-width: 450px;
+    width: 95%;
+    max-width: 500px;
+    margin: 10px;
     transform: translateY(0);
     transition: transform 0.3s ease;
 }
@@ -1942,9 +1927,56 @@ body.menu-open {
 @media (max-width: 768px) {
     #main-header {
         flex-direction: row;
-        /* Mantener horizontal */
-        padding: 0 1rem;
-        height: 60px;
+        padding: 0 15px;
+        height: 65px;
+        justify-content: space-between;
+    }
+
+    .logo-area {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    #header-title {
+        font-size: 1.2rem;
+    }
+
+    /* Ocultar elementos que causan scroll o desorden */
+    .sb-console {
+        display: none !important;
+    }
+
+    .sb-left,
+    .sb-right {
+        font-size: 0.65rem;
+    }
+
+    .dashboard-stats {
+        grid-template-columns: 1fr !important;
+    }
+
+    .features-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .data-table th:nth-child(n+4),
+    .data-table td:nth-child(n+4) {
+        display: none;
+        /* Simplificar tablas en móvil */
+    }
+
+    .food-grid-container {
+        padding: 0 10px;
+    }
+
+    .pos-dashboard {
+        padding: 10px;
+    }
+
+    .pos-grid {
+        grid-template-columns: 1fr !important;
     }
 }
 
@@ -2245,10 +2277,46 @@ body.menu-open {
 .pos-layout {
     display: flex;
     gap: 0;
-    height: calc(100vh - 80px);
-    /* Fill the screen minus header */
+    height: calc(100vh - 120px);
     overflow: hidden;
     background: #f4f6f8;
+}
+
+@media (max-width: 768px) {
+    .pos-layout {
+        flex-direction: column;
+        height: auto;
+        overflow-y: visible;
+    }
+
+    .pos-nav {
+        width: 100% !important;
+        height: auto !important;
+        border-right: none !important;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 20px;
+    }
+
+    .pos-main {
+        width: 100% !important;
+    }
+
+    .pos-sidebar {
+        width: 100% !important;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        height: 85vh;
+        z-index: 2500;
+        transform: translateY(105%);
+        transition: transform 0.4s ease;
+        border-radius: 20px 20px 0 0;
+        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    .pos-sidebar.active {
+        transform: translateY(0);
+    }
 }
 
 .pos-nav {
@@ -3308,21 +3376,85 @@ body.menu-open {
     margin: 0;
 }
 
-.footer-links .btn-link {
-    color: #fff;
-    text-decoration: none;
-    font-size: 0.9rem;
-    transition: all 0.3s;
-    font-weight: 400;
-    opacity: 0.7;
-    cursor: pointer;
-    border-bottom: 1px solid transparent;
+.footer-links-sub {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
 }
 
-.footer-links .btn-link:hover {
-    opacity: 1;
-    color: var(--accent-color);
-    border-bottom-color: var(--accent-color);
+.footer-links-sub .btn-link {
+    font-weight: 900 !important;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-size: 0.85rem !important;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: inline-block;
+    padding: 5px 10px;
+    position: relative;
+
+    /* Chrome/Metallic Liquid Fix */
+    background-size: 100% 200%;
+    background-position: 50% 100%;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    color: transparent !important;
+
+    /* Relieve y Brillo Reflectivo */
+    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.3));
+}
+
+.footer-links-sub .btn-link:hover {
+    transform: scale(1.15) translateY(-5px);
+    filter: brightness(1.5) drop-shadow(0 5px 15px rgba(255, 255, 255, 0.4));
+    background-position: 50% 0%;
+}
+
+/* Rainbow Chrome Palettes (High Contrast) */
+.footer-links-sub .btn-link:nth-child(1) {
+    /* Ubicación - Azul Cromo Líquido */
+    background-image: linear-gradient(to bottom, #00d2ff 0%, #ffffff 50%, #00d2ff 100%) !important;
+    filter: drop-shadow(0 0 5px rgba(0, 210, 255, 0.5));
+}
+
+.footer-links-sub .btn-link:nth-child(2) {
+    /* Opiniones - Rojo Cromo Líquido */
+    background-image: linear-gradient(to bottom, #ff0000 0%, #ffffff 50%, #ff0000 100%) !important;
+    filter: drop-shadow(0 0 5px rgba(255, 0, 0, 0.5));
+}
+
+.footer-links-sub .btn-link:nth-child(3) {
+    /* Pilares - Verde Cromo Líquido */
+    background-image: linear-gradient(to bottom, #00ff88 0%, #ffffff 50%, #00ff88 100%) !important;
+    filter: drop-shadow(0 0 5px rgba(0, 255, 136, 0.5));
+}
+
+.footer-links-sub .btn-link:nth-child(4) {
+    /* Nosotros - Oro Cromo Líquido */
+    background-image: linear-gradient(to bottom, #ffcc00 0%, #ffffff 50%, #ffcc00 100%) !important;
+    filter: drop-shadow(0 0 5px rgba(255, 204, 0, 0.5));
+}
+
+.footer-links-sub .btn-link:nth-child(5) {
+    /* Políticas - Magenta Cromo Líquido */
+    background-image: linear-gradient(to bottom, #ff00ff 0%, #ffffff 50%, #ff00ff 100%) !important;
+    filter: drop-shadow(0 0 5px rgba(255, 0, 255, 0.5));
+}
+
+.footer-links-sub .btn-link:nth-child(6) {
+    /* Contáctanos - Cyan Cromo Líquido */
+    background-image: linear-gradient(to bottom, #00ffff 0%, #ffffff 50%, #00ffff 100%) !important;
+    filter: drop-shadow(0 0 5px rgba(0, 255, 255, 0.5));
+}
+
+.footer-links-sub .btn-link:nth-child(6) {
+    /* Contáctanos - Turquesa Cromo */
+    background: linear-gradient(to bottom, #ffffff 0%, #7ef3f0 40%, #3c87d6 60%, #ffffff 100%) !important;
+    filter: drop-shadow(0 2px 4px rgba(126, 243, 240, 0.4));
 }
 
 .social-mini {
@@ -3774,16 +3906,126 @@ body.menu-open {
     }
 }
 
-/* --- STAFF POS REFINEMENTS (v4.7.9) --- */
+/* --- STAFF POS REFINEMENTS (v4.8.0) --- */
 .stock-badge {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(4px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    pointer-events: none;
+    padding: 2px 8px;
+    border-radius: 50px;
+    color: white !important;
+    font-size: 0.65rem;
+    font-weight: bold;
+    display: inline-block;
+    width: fit-content;
+    margin-top: 4px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.stock-badge.stock-low {
+    background: #e74c3c !important;
+}
+
+.stock-badge.stock-ok {
+    background: #27ae60 !important;
 }
 
 .promo-ribbon {
+    position: absolute;
+    top: 10px;
+    left: -5px;
+    background: #f39c12;
+    color: white;
+    padding: 2px 10px;
+    font-size: 0.6rem;
+    font-weight: bold;
+    z-index: 2;
+    border-radius: 0 10px 10px 0;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     pointer-events: none;
+}
+
+/* --- MOBILE STAFF POS OPTIMIZATIONS (v4.8.0) --- */
+@media (max-width: 768px) {
+    #view-staff-pos .food-info {
+        padding: 5px !important;
+    }
+
+    #view-staff-pos .food-title-row {
+        gap: 0 !important;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+
+    #view-staff-pos .food-info h3 {
+        font-size: 0.75rem !important;
+        height: 2.2em !important;
+        margin-bottom: 2px !important;
+    }
+
+    #view-staff-pos .food-actions {
+        height: 28px !important;
+        margin-top: 5px;
+        border-radius: 8px !important;
+    }
+
+    #view-staff-pos .food-actions button {
+        width: 28px !important;
+    }
+
+    #view-staff-pos .food-qty {
+        font-size: 0.8rem !important;
+    }
+
+    #view-staff-pos .price {
+        font-size: 0.85rem !important;
+        font-weight: 900 !important;
+    }
+
+    /* Prioridad al Ticket de Venta */
+    #mobile-ticket-trigger {
+        display: flex !important;
+        position: fixed !important;
+        bottom: 20px !important;
+        right: 20px !important;
+        left: 20px !important;
+        width: auto !important;
+        z-index: 2800 !important;
+        background: linear-gradient(135deg, var(--primary-color), #00796b) !important;
+        color: white !important;
+        border: 2px solid rgba(255, 255, 255, 0.3) !important;
+        box-shadow: 0 10px 30px rgba(0, 77, 64, 0.4) !important;
+        padding: 12px 25px !important;
+        border-radius: 100px !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap: 12px !important;
+        font-weight: 800 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 1.5px !important;
+        font-size: 0.95rem !important;
+        animation: quickPulse 2s infinite !important;
+        backdrop-filter: blur(5px);
+    }
+
+    @keyframes quickPulse {
+        0% {
+            transform: scale(1);
+            box-shadow: 0 10px 30px rgba(0, 77, 64, 0.4);
+        }
+
+        50% {
+            transform: scale(1.02);
+            box-shadow: 0 15px 45px rgba(0, 77, 64, 0.6);
+        }
+
+        100% {
+            transform: scale(1);
+            box-shadow: 0 10px 30px rgba(0, 77, 64, 0.4);
+        }
+    }
+
+    #pos-ticket-sidebar {
+        z-index: 4000 !important;
+    }
 }

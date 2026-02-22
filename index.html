@@ -5,10 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description"
-        content="Suit.Org & Suit.Bite | La solución SaaS definitiva. Digitaliza tu empresa o negocio de comida con Punto de Venta, Pedidos Web y Chatbots inteligentes.">
+        content="Plataforma de ecosistema digital para empresas y negocios. Soluciones inteligentes de gestión, ventas y presencia online.">
     <meta name="keywords"
-        content="Suit.Org, Suit.Bite, pedidos online monterrey, sistema para restaurantes, saas para pymes, tacos a domicilio méxico, software de ventas online">
-    <title>Suit.Org | Suit.Bite - Ecosistema Digital y Pedidos Online</title>
+        content="SuitOrg, gestión empresarial, SaaS para pymes, software de ventas, digitalización de negocios">
+    <title>SuitOrg | Ecosistema Digital y Gestión Inteligente</title>
     <link rel="stylesheet" href="style.css?v=5.2.0">
 
 
@@ -136,40 +136,43 @@
 
         <!-- SECTION: EXPRESS ORDER (Suit.Bite) -->
         <section id="view-express" class="view-section hidden" style="padding: 20px 0;">
-            <!-- PFM / FOOD SPECIALIZED AREA -->
-            <div id="food-app-area" class="food-container">
-                <div class="food-header">
-                    <h2 id="food-menu-title">Nuestro Menú</h2>
-                    <p id="food-menu-subtitle">Selecciona tus favoritos y haz tu pedido en segundos.</p>
-                </div>
-                <!-- Food Search & Navigation -->
-                <div class="food-nav-container" style="margin-bottom: 20px;">
-                    <div class="food-search-box" style="position: relative; margin-bottom: 20px;">
-                        <i class="fas fa-search"
-                            style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #999;"></i>
-                        <input type="text" id="food-search-input" placeholder="Buscar productos..."
-                            style="width: 100%; padding: 12px 15px 12px 45px; border-radius: 50px; border: 1px solid #eee; font-size: 1rem; outline: none; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+            <!-- INVARIANTE UI: POS/EXPRESS SECTION -->
+            <div id="pos-express-section">
+                <!-- PFM / FOOD SPECIALIZED AREA -->
+                <div id="food-app-area" class="food-container">
+                    <div class="food-header">
+                        <h2 id="food-menu-title">Nuestro Menú</h2>
+                        <p id="food-menu-subtitle">Selecciona tus favoritos y haz tu pedido en segundos.</p>
                     </div>
-                    <div id="food-category-tabs" class="food-tabs"
-                        style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none;">
-                        <!-- Category tabs injected via JS -->
-                    </div>
-                </div>
-                <div id="food-menu-grid" class="food-grid-container"></div>
-                <!-- Floating Cart Bar -->
-                <div id="cart-float-bar" class="cart-bar">
-                    <div class="cart-bar-content">
-                        <div class="cart-info">
-                            <i class="fas fa-shopping-basket"></i>
-                            <span id="cart-count-badge" class="badge hidden">0</span>
-                            <span class="total-label">Total:</span>
-                            <span id="cart-total">$0.00</span>
+                    <!-- Food Search & Navigation -->
+                    <div class="food-nav-container" style="margin-bottom: 20px;">
+                        <div class="food-search-box" style="position: relative; margin-bottom: 20px;">
+                            <i class="fas fa-search"
+                                style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #999;"></i>
+                            <input type="text" id="food-search-input" placeholder="Buscar productos..."
+                                style="width: 100%; padding: 12px 15px 12px 45px; border-radius: 50px; border: 1px solid #eee; font-size: 1rem; outline: none; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
                         </div>
-                        <div class="cart-btns">
-                            <button onclick="app.pos.clearCart()" class="btn-clear"><i class="fas fa-trash-alt"></i>
-                                Limpiar</button>
-                            <button onclick="app.pos.openCheckout()" class="btn-checkout"><i
-                                    class="fas fa-paper-plane"></i> Pedir</button>
+                        <div id="food-category-tabs" class="food-tabs"
+                            style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none;">
+                            <!-- Category tabs injected via JS -->
+                        </div>
+                    </div>
+                    <div id="food-menu-grid" class="food-grid-container"></div>
+                    <!-- Floating Cart Bar -->
+                    <div id="cart-float-bar" class="cart-bar">
+                        <div class="cart-bar-content">
+                            <div class="cart-info">
+                                <i class="fas fa-shopping-basket"></i>
+                                <span id="cart-count-badge" class="badge hidden">0</span>
+                                <span class="total-label">Total:</span>
+                                <span id="cart-total">$0.00</span>
+                            </div>
+                            <div class="cart-btns">
+                                <button onclick="app.pos.clearCart()" class="btn-clear"><i class="fas fa-trash-alt"></i>
+                                    Limpiar</button>
+                                <button onclick="app.pos.openCheckout()" class="btn-checkout"><i
+                                        class="fas fa-paper-plane"></i> Pedir</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -178,7 +181,7 @@
         <!-- SECTION: STRATEGIC PILLARS (Standalone View) -->
         <section id="view-pillars" class="view-section about-section hidden">
             <div class="section-header">
-                <h2>Pilares Estratégicos de EVASOL</h2>
+                <h2>Nuestros Pilares Estratégicos</h2>
                 <p>Nuestra identidad y camino se cimentan sobre cuatro pilares fundamentales.</p>
             </div>
             <div class="pillars-grid" id="pillars-container">
@@ -187,7 +190,7 @@
         </section>
         <!-- SECTION: DASHBOARD (Staff Only) -->
         <section id="view-dashboard" class="view-section hidden">
-            <h2>Panel de Control</h2>
+            <h3>Panel de Control</h3>
             <div class="dashboard-stats">
                 <div class="stat-card">
                     <h3>Créditos Restantes</h3>
@@ -253,7 +256,7 @@
         <!-- SECTION: LEADS (Staff Only) -->
         <section id="view-leads" class="view-section hidden">
             <div class="section-header">
-                <h2>Gestión de Leads</h2>
+                <h3>Gestión de Leads</h3>
                 <button class="btn-primary" id="btn-show-lead-modal" onclick="app.ui.openLeadModal()">
                     <i class="fas fa-plus-circle"></i> Nuevo Lead
                 </button>
@@ -301,7 +304,7 @@
         <!-- SECTION: PROJECTS (Staff Only) -->
         <section id="view-projects" class="view-section hidden">
             <div class="section-header">
-                <h2>Proyectos en Curso</h2>
+                <h3>Proyectos en Curso</h3>
                 <button class="btn-primary" id="btn-show-project-modal" onclick="app.ui.openProjectModal()">
                     <i class="fas fa-hammer"></i> Nuevo Proyecto
                 </button>
@@ -349,7 +352,7 @@
         <!-- SECTION: KNOWLEDGE BASE (Staff Only) -->
         <section id="view-knowledge" class="view-section hidden">
             <div class="section-header">
-                <h2><i class="fas fa-book-open"></i> Base de Conocimientos</h2>
+                <h3><i class="fas fa-book-open"></i> Base de Conocimientos</h3>
                 <div class="actions">
                     <button class="btn-primary" id="btn-sync-drive" onclick="app.ui.syncKnowledge()">
                         <i class="fas fa-sync"></i> Sincronizar Drive
@@ -428,7 +431,7 @@
                             onclick="app.pos.toggleStaffNav(true)">
                             <i class="fas fa-bars"></i>
                         </button>
-                        <h2><i class="fas fa-cash-register"></i> Catálogo de Venta</h2>
+                        <h3><i class="fas fa-cash-register"></i> Catálogo de Venta</h3>
                     </div>
                     <div id="staff-pos-grid" class="food-grid">
                         <!-- Products rendered here -->
@@ -576,7 +579,7 @@
             </div>
             <div id="report-view-fixed">
                 <div class="section-header">
-                    <h2><i class="fas fa-list-ul"></i> Reportes Operativos</h2>
+                    <h3><i class="fas fa-list-ul"></i> Reportes Operativos</h3>
                 </div>
                 <div class="card glass" style="margin-bottom: 20px; padding: 20px;">
                     <div
@@ -645,8 +648,8 @@
                 <div class="card glass" style="margin-bottom: 20px; padding: 25px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <h2 style="margin: 0; color: var(--primary-color);"><i class="fas fa-briefcase"></i>
-                                Dashboard Ejecutivo</h2>
+                            <h3 style="margin: 0; color: var(--primary-color);"><i class="fas fa-briefcase"></i>
+                                Dashboard Ejecutivo</h3>
                             <p style="margin: 5px 0 0; opacity: 0.7; font-size: 0.9rem;">Visualización de KPIs y
                                 tendencias en tiempo real.</p>
                         </div>
@@ -685,7 +688,7 @@
         <!-- SECTION: CATALOG (Staff Only) -->
         <section id="view-catalog" class="view-section hidden">
             <div class="section-header">
-                <h2>Catálogo de Productos</h2>
+                <h3>Catálogo de Productos</h3>
                 <button class="btn-primary" id="btn-show-product-modal" onclick="app.ui.openProductModal()">
                     <i class="fas fa-box"></i> Agregar Producto
                 </button>
@@ -721,7 +724,7 @@
         <!-- SECTION: AI AGENTS (God Mode Only) -->
         <section id="view-agents" class="view-section hidden">
             <div class="section-header">
-                <h2><i class="fas fa-brain"></i> Sistema de Agentes AI</h2>
+                <h3><i class="fas fa-brain"></i> Sistema de Agentes AI</h3>
                 <button class="btn-small" onclick="window.location.hash='#dashboard'">Volver</button>
             </div>
             <div class="features-grid" id="agents-grid">
@@ -757,7 +760,7 @@
         <section id="view-pos" class="view-section hidden">
             <div class="pos-dashboard">
                 <div class="pos-header">
-                    <h2><i class="fas fa-desktop"></i> Monitor de Pedidos PFM</h2>
+                    <h3><i class="fas fa-desktop"></i> Monitor de Pedidos PFM</h3>
                     <div class="pos-status-filters">
                         <button id="filter-btn-recibido" class="pos-filter-btn active"
                             onclick="app.ui.filterPOS('PEDIDO-RECIBIDO')" data-status="PEDIDO-RECIBIDO">Nuevos</button>
@@ -777,7 +780,7 @@
         <!-- SECTION: BUSINESS QUOTAS (SaaS Management) -->
         <section id="view-quotas" class="view-section hidden">
             <div class="section-header">
-                <h2><i class="fas fa-money-check-alt"></i> Historial de Cuotas y Pagos</h2>
+                <h3><i class="fas fa-money-check-alt"></i> Historial de Cuotas y Pagos</h3>
                 <div class="header-actions">
                     <button class="btn-refresh" title="Refrescar Datos" onclick="app.ui.refreshData('quotas')">
                         <i class="fas fa-sync-alt"></i>
@@ -1040,7 +1043,7 @@
         <!-- Default Footer content or Business Specific Footer -->
         <div id="footer-dynamic-content" class="footer-minimal">
             <div class="footer-brand" id="footer-copy">
-                &copy; ORG SUIR. Todos los derechos reservados.
+                &copy; ORG SUIT. Todos los derechos reservados.
             </div>
             <div class="footer-links" id="footer-links-container">
                 <a href="#contact" class="btn-link">Contacto</a>
@@ -1399,7 +1402,7 @@
     <div id="knowledge-modal" class="modal-overlay hidden">
         <div class="modal-content minimalist-form" style="max-width: 500px;">
             <div class="modal-header">
-                <h2><i class="fas fa-book-medical"></i> Cargar Conocimiento</h2>
+                <h3><i class="fas fa-book-medical"></i> Cargar Conocimiento</h3>
                 <button class="close-btn"
                     onclick="document.getElementById('knowledge-modal').classList.add('hidden')">&times;</button>
             </div>
@@ -1534,7 +1537,7 @@
     <div id="product-modal" class="modal-overlay hidden">
         <div class="modal-content minimalist-form" style="max-width: 550px;">
             <div class="modal-header">
-                <h2><i class="fas fa-box"></i> Gestionar Producto / Servicio</h2>
+                <h3><i class="fas fa-box"></i> Gestionar Producto / Servicio</h3>
                 <button class="close-btn"
                     onclick="document.getElementById('product-modal').classList.add('hidden')">&times;</button>
             </div>

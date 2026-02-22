@@ -148,6 +148,7 @@ app.ui = {
     printTicket: (o, c) => app.pos.printTicket(o, c),
     setPublicPaymentMethod: (m) => app.pos.setPublicPaymentMethod(m),
     setPosPaymentMethod: (m) => app.pos.setPosPaymentMethod(m),
+    toggleMobileTicket: (s) => app.public.toggleMobileTicket(s),
 
     refreshData: async (v) => {
         app.ui.updateConsole(`SYNC_${v || 'ALL'}`);

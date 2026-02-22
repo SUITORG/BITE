@@ -14,10 +14,16 @@ app.auth = {
             const email = getVal(u, ['email', 'correo', 'mail']);
             const username = getVal(u, ['username', 'usuario', 'user', 'login']);
             const nombre = getVal(u, ['nombre', 'name', 'full_name']);
-            const coId = getVal(u, ['id_empresa', 'empresa', 'company']);
-            const sCo = (app.state.companyId || "").toString().trim().toUpperCase();
-            const matchId = (email.toLowerCase() === userOrEmailClean || username.toLowerCase() === userOrEmailClean || nombre.toLowerCase() === userOrEmailClean);
-            const matchCo = (coId.toUpperCase() === sCo || coId.toUpperCase() === "GLOBAL");
+            const uCoId = getVal(u, ['id_empresa', 'empresa', 'company']).toUpperCase();
+            const sCoId = (app.state.companyId || "").toString().trim().toUpperCase();
+
+            // v5.2.6: Estabilidad de Identidad
+            const matchId = (email.toLowerCase() === userOrEmailClean ||
+                username.toLowerCase() === userOrEmailClean ||
+                nombre.toLowerCase() === userOrEmailClean);
+
+            // Permite login si la empresa coincide o el usuario es Global (DIOS)
+            const matchCo = (uCoId === sCoId || uCoId === "GLOBAL");
             return matchId && matchCo;
         });
         if (!user) {

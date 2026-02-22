@@ -447,7 +447,12 @@ app.public = {
         const container = document.getElementById('orbit-bubbles');
         if (!container) return;
         container.innerHTML = '';
-        const companies = app.data.Config_Empresas || [];
+        const companies = (app.data.Config_Empresas || []).filter(co => {
+            const isHabil = (co.habilitado === 'TRUE' || co.habilitado === true || co.habilitado === "1");
+            const isProd = (co.modo === 'PROD');
+            // El ID prioritario (actual) siempre se muestra, el resto debe cumplir el filtro
+            return isHabil && isProd;
+        });
         const priorityId = app.state.companyId;
 
         const bubbles = [];
@@ -505,7 +510,7 @@ app.public = {
                     </a>
                 </li>
             `).join('') + `
-                <li style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <li style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
                     <a href="#login" onclick="app.ui.showLogin(); return false;">
                         <i class="fas fa-user-lock"></i> Staff Login
                     </a>

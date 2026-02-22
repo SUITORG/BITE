@@ -11,6 +11,7 @@ Este archivo es tu **Centro de Comando**. Úsalo para controlar el avance del pr
 Este documento rastrea el cumplimiento de las reglas fundamentales y la visión del proyecto.
 
 ## 🏗️ Arquitectura de Software (v4.9.1 SEO Ready)
+- [ ] **v5.3.0: Optimización Semántica SEO (H2 Refinement)**: Reestructurar jerarquía de encabezados en `index.html`. Bajar secciones administrativas de `h2` a `h3/div` para priorizar la Matriz SEO ante Google.
 - [x] **v4.9.3: AI Telemetry & Token Tracking**: Detailed logging of AI consumption per tenant.
 - [x] **v4.9.2: Health System & Auto-Purge**: Multi-tenant log cleaning engine based on 'autodepuracion' days.
 - [x] **v4.9.1: SEO Infrastructure**: Sitemap.xml, Robots.txt and Deep Linking support.
@@ -220,4 +221,4 @@ Este documento rastrea el cumplimiento de las reglas fundamentales y la visión 
 - [x] **v5.2.4: Smart ID & Project Traceability**: Identidad por teléfono, folios secuenciales `LEAD-XXX`/`ORD-XXX` y timestamps ISO.
 - [x] **v5.2.5: Lead Sync & Timestamps**: Sincronización de columnas `fecha`, `nom_negocio`, `dir_comercial` y timestamps con hora.
 ---
-*Última actualización: 2026-02-15 | Versión: v5.2.5 (LEAD SYNC)*
+*Última actualización: 2026-02-21 | Versión: v5.3.0 (SEO PLANNING)*

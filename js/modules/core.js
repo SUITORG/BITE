@@ -148,8 +148,14 @@ const app = {
                     window.location.hash = '#orbit';
                     if (app.ui.renderOrbit) app.ui.renderOrbit();
                     company = null;
-                } else if (!company) {
-                    console.warn("Target Company Not Found - Falling back to default");
+                } else if (!company && coParam) {
+                    // Si hay un parámetro pero no se encontró en la data cargada, 
+                    // NO caemos a la empresa por defecto para evitar cross-login.
+                    // Solo mantenemos el ID del estado para que Auth pueda intentarlo.
+                    console.warn(`[V5.2.6] Identity Lock: Company ${coParam} not yet in cache, preserving ID.`);
+                    app.state.companyId = coParam.trim().toUpperCase();
+                } else if (!company && !coParam) {
+                    // Solo si no hay parámetro alguno, caemos a la primera empresa
                     company = app.data.Config_Empresas[0];
                     if (company) app.state.companyId = company.id_empresa;
                 }
