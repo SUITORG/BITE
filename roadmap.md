@@ -10,7 +10,8 @@ Este archivo es tu **Centro de Comando**. Úsalo para controlar el avance del pr
 
 Este documento rastrea el cumplimiento de las reglas fundamentales y la visión del proyecto.
 
-## 🏗️ Arquitectura de Software (v5.4.0 Factory)
+## 🏗️ Arquitectura de Software (v5.5.0 Report Engine)
+- [x] **v5.5.0: Dynamic Report Engine (Excel Driven)**: Motor de reportes administrable desde Google Sheets. Soporte para columnas dinámicas, labels e iconos personalizados sin tocar código.
 - [x] **v5.4.0: Identity Onboarding & Brand Intelligence**: Fábrica de Negocios de Suit.Org con autogenerativa de Misión, Visión, Valores e Identidad Visual (Color/Logo). Resalte de EVASOL en Órbita.
 - [x] **v5.3.6: Brand Hierarchy & Identity Reset**: Implementación de 'es_principal' y 'modo_sitio' (HUB, WHITE, HYBRID). Reset automático de identidad en Órbita.
 - [x] **v5.3.0: Optimización Semántica SEO (H2 Refinement)**: Reestructurar jerarquía de encabezados en `index.html`. Bajar secciones administrativas de `h2` a `h3/div` para priorizar la Matriz SEO ante Google.

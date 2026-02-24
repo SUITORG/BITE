@@ -92,6 +92,7 @@ app.admin = {
             viewDash?.classList.add('hidden');
             btnFixed?.classList.add('active');
             btnDash?.classList.remove('active');
+            app.admin.renderReportTabs(); // Inyectar tabs dinámicos
             app.admin.renderReport();
         } else {
             viewFixed?.classList.add('hidden');
@@ -100,6 +101,45 @@ app.admin = {
             btnDash?.classList.add('active');
             app.admin.renderBusinessDashboard();
         }
+    },
+
+    renderReportTabs: () => {
+        const container = document.getElementById('report-tab-selector');
+        if (!container) return;
+
+        // --- FIXED REPORTS ---
+        let html = `
+            <button class="report-tab-btn ${app.admin.currentReportType === 'general' ? 'active' : ''}" 
+                    data-report="general" onclick="app.admin.selectReportType('general', this)">
+                <i class="fas fa-chart-line"></i> General
+            </button>
+            <button class="report-tab-btn ${app.admin.currentReportType === 'payments' ? 'active' : ''}" 
+                    data-report="payments" onclick="app.admin.selectReportType('payments', this)">
+                <i class="fas fa-wallet"></i> Pagos
+            </button>
+        `;
+
+        // --- DYNAMIC REPORTS (Excel based v5.5.0) ---
+        const bizType = app.state.userCompany?.tipo_negocio || 'GLOBAL';
+        const userLevel = app.state.currentUser?.nivel_acceso || 0;
+
+        const dynamicList = (app.data.Config_Reportes || []).filter(r => {
+            const isHabil = r.habilitado === 'TRUE' || r.habilitado === true;
+            const matchGiro = r.tipo_negocio === 'GLOBAL' || r.tipo_negocio === bizType;
+            const matchLevel = userLevel >= (parseInt(r.acceso_minimo) || 0);
+            return isHabil && matchGiro && matchLevel;
+        });
+
+        dynamicList.forEach(r => {
+            html += `
+                <button class="report-tab-btn ${app.admin.currentReportType === r.id_reporte ? 'active' : ''}" 
+                        data-report="${r.id_reporte}" onclick="app.admin.selectReportType('${r.id_reporte}', this)">
+                    <i class="fas ${r.icono || 'fa-file-alt'}"></i> ${r.nombre}
+                </button>
+            `;
+        });
+
+        container.innerHTML = html;
     },
 
     selectReportType: (type, btn) => {
@@ -211,15 +251,63 @@ app.admin = {
         }
 
         const reportCategory = app.admin.currentReportType;
+
+        // --- FIXED RENDERING ---
         if (reportCategory === 'general') {
             app.admin._renderGeneralReport(container, filtered);
         } else if (reportCategory === 'payments') {
             app.admin._renderPaymentsReport(container, filtered);
-        } else if (reportCategory === 'profit') {
-            app.admin._renderProfitReport(container, filtered);
-        } else if (reportCategory === 'products') {
-            app.admin._renderProductsReport(container, filtered);
+        } else {
+            // --- DYNAMIC RENDERING (v5.5.0) ---
+            const config = (app.data.Config_Reportes || []).find(r => r.id_reporte === reportCategory);
+            if (config) {
+                app.admin._renderDynamicReport(container, filtered, config);
+            } else {
+                container.innerHTML = `<div style="text-align:center; padding:40px;"><i class="fas fa-exclamation-triangle fa-2x"></i><p>Reporte "${reportCategory}" no disponible.</p></div>`;
+            }
         }
+    },
+
+    _renderDynamicReport: (container, data, config) => {
+        const cols = (config.columnas || "").split(',').map(c => c.trim());
+        const labels = (config.labels || "").split(',').map(l => l.trim());
+
+        // Calculate dynamic total
+        const total = data.reduce((acc, row) => acc + (parseFloat(row.monto) || 0), 0);
+
+        container.innerHTML = `
+            <div class="report-summary-cards">
+                <div class="summary-card">
+                    <h4>Venta Agrupada</h4>
+                    <div class="value">$${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+                </div>
+                <div class="summary-card" style="border-left-color: var(--primary-color);">
+                    <h4>Registros</h4>
+                    <div class="value">${data.length}</div>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            ${labels.map(l => `<th>${l}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(row => `
+                            <tr>
+                                ${cols.map(col => {
+            let val = row[col] || '-';
+            if (col.includes('monto') || col.includes('total')) val = '$' + (parseFloat(val) || 0).toFixed(2);
+            if (col.includes('fecha')) val = new Date(val).toLocaleDateString();
+            return `<td>${val}</td>`;
+        }).join('')}
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
     },
 
     _renderGeneralReport: (container, payments) => {

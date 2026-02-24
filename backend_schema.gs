@@ -1,21 +1,21 @@
-/* SuitOrg Backend Engine - v5.4.0
+/* SuitOrg Backend Engine - v5.5.0
  * ---------------------------------------------------------
- * Sincronización: 2026-02-23 06:43 PM (v5.4.0 Identity Factory)
+ * Sincronización: 2026-02-23 10:18 PM (v5.5.0 Report Engine)
  * 
- * Changelog v5.4.0:
- * - SAAS: Soporte completo para Onboarding con Identidad (Color, Logo, MVV).
- * - SAAS: Persistencia de Valores, Impacto Social y Políticas autogeneradas.
+ * Changelog v5.5.0:
+ * - DATA: Implementación de 'Config_Reportes' (Motor de Reportes Dinámicos).
+ * - DATA: Soporte para filtrado omnidireccional por Giro de Negocio.
  * 
- * AUDIT: ~9780 Total Lines (v5.4.0).
+ * AUDIT: ~9850 Total Lines (v5.5.0).
  * ---------------------------------------------------------
  */
 
 const CONFIG = {
-  VERSION: "5.4.0",
+  VERSION: "5.5.0",
   DB_ID: "1uyy2hzj8HWWQFnm6xy-XCwvvGh3odjV4fRlDh5SBxu8", 
-  GLOBAL_TABLES: ["Config_Empresas", "Config_Roles", "Usuarios", "Config_SEO", "Prompts_IA", "Cuotas_Pagos"], 
+  GLOBAL_TABLES: ["Config_Empresas", "Config_Roles", "Usuarios", "Config_SEO", "Prompts_IA", "Cuotas_Pagos", "Config_Reportes"], 
   PRIVATE_TABLES: ["Leads", "Proyectos", "Proyectos_Etapas", "Proyectos_Pagos", "Proyectos_Bitacora", "Catalogo", "Logs", "Pagos", "Empresa_Documentos"],
-  AUDIT: { total: 9780, status: "STABLE_SYNC" }
+  AUDIT: { total: 9850, status: "STABLE_SYNC" }
 };
 
 /**

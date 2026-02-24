@@ -4,7 +4,7 @@
  */
 const app = {
     // --- APP CONFIG ---
-    version: '5.4.0', // v5.4.0: Identity Onboarding & Brand Intelligence.
+    version: '5.5.0', // v5.5.0: Dynamic Report Engine (Excel Driven).
 
     // Se cargan desde js/modules/config.js (ignorado en git)
     apiUrl: (typeof SUIT_CONFIG !== 'undefined') ? SUIT_CONFIG.apiUrl : '',
