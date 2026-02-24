@@ -156,9 +156,18 @@ app.admin = {
     handleReportTypeChange: () => {
         const type = document.getElementById('report-type').value;
         const dateInput = document.getElementById('report-date');
+        const dateEndContainer = document.getElementById('report-date-end-container');
+
         if (dateInput && !dateInput.value) {
             dateInput.value = app.utils.getDate();
         }
+
+        if (type === 'RANGO') {
+            dateEndContainer?.classList.remove('hidden');
+        } else {
+            dateEndContainer?.classList.add('hidden');
+        }
+
         app.admin.renderReport();
     },
 
@@ -226,6 +235,8 @@ app.admin = {
 
         const type = typeSelect.value;
         const dateVal = dateInput.value;
+        const dateEndVal = document.getElementById('report-date-end')?.value;
+
         const targetDate = new Date(dateVal + "T00:00:00");
         const targetDay = targetDate.getDate();
         const targetMonth = targetDate.getMonth();
@@ -240,6 +251,10 @@ app.admin = {
                 const isMatchMonth = d.getMonth() === targetMonth && d.getFullYear() === targetYear;
                 if (!isMatchMonth) return false;
                 return isFirstFortnight ? d.getDate() <= 15 : d.getDate() > 15;
+            } else if (type === 'RANGO') {
+                if (!dateEndVal) return d.getDate() === targetDay && d.getMonth() === targetMonth && d.getFullYear() === targetYear;
+                const endD = new Date(dateEndVal + "T23:59:59");
+                return d >= targetDate && d <= endD;
             } else {
                 return d.getMonth() === targetMonth && d.getFullYear() === targetYear;
             }
@@ -272,8 +287,20 @@ app.admin = {
         const cols = (config.columnas || "").split(',').map(c => c.trim());
         const labels = (config.labels || "").split(',').map(l => l.trim());
 
-        // Calculate dynamic total
+        // --- SORTING & GROUPING LOGIC (v5.6.0) ---
+        // Alfabético por método de pago si la columna existe
+        if (cols.includes('metodo_pago')) {
+            data.sort((a, b) => (a.metodo_pago || '').localeCompare(b.metodo_pago || ''));
+        }
+
         const total = data.reduce((acc, row) => acc + (parseFloat(row.monto) || 0), 0);
+
+        // Calculate subtotals
+        const subtotals = {};
+        data.forEach(row => {
+            const method = row.metodo_pago || 'No especificado';
+            subtotals[method] = (subtotals[method] || 0) + (parseFloat(row.monto) || 0);
+        });
 
         container.innerHTML = `
             <div class="report-summary-cards">
@@ -286,7 +313,8 @@ app.admin = {
                     <div class="value">${data.length}</div>
                 </div>
             </div>
-            <div class="table-responsive">
+
+            <div class="table-responsive" style="margin-bottom: 30px;">
                 <table class="report-table">
                     <thead>
                         <tr>
@@ -306,6 +334,16 @@ app.admin = {
                         `).join('')}
                     </tbody>
                 </table>
+            </div>
+
+            <div class="report-summary-cards subtotals-grid" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));">
+                <div style="grid-column: 1 / -1; font-weight: bold; margin-bottom: 15px; color: var(--primary-color); border-bottom: 1px solid #eee; padding-bottom: 5px;">SUBTOTALES POR MÉTODO DE PAGO:</div>
+                ${Object.keys(subtotals).sort().map(method => `
+                    <div class="summary-card" style="padding: 10px; border-left: 4px solid #3498db;">
+                        <h4 style="font-size: 0.7rem;">${method.toUpperCase()}</h4>
+                        <div class="value" style="font-size: 1.1rem;">$${subtotals[method].toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+                    </div>
+                `).join('')}
             </div>
         `;
     },
